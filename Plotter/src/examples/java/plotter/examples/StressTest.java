@@ -52,6 +52,7 @@ public class StressTest {
 		Container contentPane = frame.getContentPane();
 		int plotsx = 32;
 		int plotsy = 32;
+		final int linesPerPlot = 2;
 		JPanel container = new JPanel();
 		container.setLayout(new GridLayout(plotsx, plotsy));
 		contentPane.add(new JScrollPane(container));
@@ -59,7 +60,7 @@ public class StressTest {
 		final int numPlots = plotsx * plotsy;
 		final Axis[] xAxes = new Axis[numPlots];
 		final Axis[] yAxes = new Axis[numPlots];
-		final SimpleXYDataset[] datasets = new SimpleXYDataset[numPlots];
+		final SimpleXYDataset[][] datasets = new SimpleXYDataset[numPlots][linesPerPlot];
 		SlopeLine slopeLine = new SlopeLine();
 		slopeLine.setForeground(Color.white);
 		for(int i = 0; i < numPlots; i++) {
@@ -87,13 +88,22 @@ public class StressTest {
 
 			new DefaultXYLayoutGenerator().generateLayout(plot);
 
-			final LinearXYPlotLine line = new LinearXYPlotLine(xAxis, yAxis, XYDimension.X);
-			line.setForeground(Color.white);
-			final SimpleXYDataset d = new SimpleXYDataset(line);
-			d.setMaxCapacity(1000);
-			d.setXData(line.getXData());
-			d.setYData(line.getYData());
-			contents.add(line);
+			for(int j = 0; j < linesPerPlot; j++) {
+				final LinearXYPlotLine line = new LinearXYPlotLine(xAxis, yAxis, XYDimension.X);
+				line.setForeground(Color.white);
+				final SimpleXYDataset d = new SimpleXYDataset(line);
+				d.setMaxCapacity(1000);
+				d.setXData(line.getXData());
+				d.setYData(line.getYData());
+				contents.add(line);
+
+				for(int x = 0; x < 900; x++) {
+					double x2 = x / 10.0;
+					double y2 = Math.sin(x2 / 10.0 + Math.PI * j / (double) linesPerPlot);
+					d.add(x2, y2);
+				}
+				datasets[i][j] = d;
+			}
 			slopeLine.attach(plot);
 
 			yAxis.setStart(-1.2);
@@ -103,15 +113,8 @@ public class StressTest {
 
 			container.add(plot);
 
-			for(int x = 0; x < 900; x++) {
-				double x2 = x / 10.0;
-				double y2 = Math.sin(x2 / 10.0);
-				d.add(x2, y2);
-			}
-
 			xAxes[i] = xAxis;
 			yAxes[i] = yAxis;
-			datasets[i] = d;
 
 			System.out.println("Plot " + (i + 1) + " of " + numPlots + " created");
 		}
@@ -128,9 +131,11 @@ public class StressTest {
 						for(int i = 0; i < numPlots; i++) {
 							xAxes[i].setStart(x / 10);
 							xAxes[i].setEnd(x / 10 + 100);
-							double x2 = x / 10.0 + 90;
-							double y2 = Math.sin(x2 / 10.0);
-							datasets[i].add(x2, y2);
+							for(int j = 0; j < linesPerPlot; j++) {
+								double x2 = x / 10.0 + 90;
+								double y2 = Math.sin(x2 / 10.0 + Math.PI * j / (double) linesPerPlot);
+								datasets[i][j].add(x2, y2);
+							}
 						}
 					}
 				});

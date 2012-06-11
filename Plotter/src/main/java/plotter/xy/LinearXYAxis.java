@@ -147,14 +147,37 @@ public class LinearXYAxis extends XYAxis {
 		if(plotDimension == XYDimension.X) {
 			for(int i = 0; i < major.length; i++) {
 				Component label = labels[i];
-				label.setLocation(major[i] + startMargin - label.getWidth() / 2, textMargin);
+				double preferredSize = label.getPreferredSize().getWidth();
+				double end = preferredSize / 2;
+				double start = -end;
+				if(i > 0) {
+					start = Math.max(start, (major[i - 1] - major[i]) / 2);
+				}
+				if(i < major.length - 1) {
+					end = Math.min(end, (major[i + 1] - major[i]) / 2);
+				}
+				double labelWidth = end - start;
+				label.setSize((int) labelWidth, label.getHeight());
+				label.setLocation((int) (start + startMargin + major[i]), textMargin);
 			}
 		} else {
 			int height2 = height - startMargin;
 			int width2 = width - textMargin;
 			for(int i = 0; i < major.length; i++) {
 				Component label = labels[i];
-				label.setLocation(width2 - label.getWidth(), height2 - major[i] - label.getHeight() / 2);
+				double preferredSize = label.getPreferredSize().getHeight();
+				double end = preferredSize / 2;
+				double start = -end;
+				if(i > 0) {
+					start = Math.max(start, (major[i - 1] - major[i]) / 2);
+				}
+				if(i < major.length - 1) {
+					end = Math.min(end, (major[i + 1] - major[i]) / 2);
+				}
+				double labelHeight = end - start;
+				int labelWidth = label.getWidth();
+				label.setSize(labelWidth, (int) labelHeight);
+				label.setLocation(width2 - labelWidth, (int) (height2 - major[i] - end));
 			}
 		}
 	}

@@ -21,6 +21,8 @@
  *******************************************************************************/
 package plotter.xy;
 
+import java.awt.Shape;
+
 import javax.swing.JComponent;
 
 import plotter.DoubleData;
@@ -31,6 +33,12 @@ import plotter.DoubleData;
  */
 public abstract class XYPlotLine extends JComponent {
 	private static final long serialVersionUID = 1L;
+
+	/** Shape used to draw the outline of each data point.  May be null. */
+	protected Shape pointOutline;
+
+	/** Shape used to fill each data point.  May be null. */
+	protected Shape pointFill;
 
 
 	/**
@@ -116,4 +124,40 @@ public abstract class XYPlotLine extends JComponent {
 	 * Removes all points.
 	 */
 	public abstract void removeAllPoints();
+
+
+	/**
+	 * Returns the point outline.
+	 * @return the point outline
+	 */
+	public Shape getPointOutline() {
+		return pointOutline;
+	}
+
+
+	/**
+	 * Sets the point outline
+	 * @param pointOutline the point outline
+	 */
+	public void setPointOutline(Shape pointOutline) {
+		this.pointOutline = pointOutline;
+	}
+
+
+	/**
+	 * Returns the point fill.
+	 * @return the point fill
+	 */
+	public Shape getPointFill() {
+		return pointFill;
+	}
+
+
+	/**
+	 * Sets the point fill.
+	 * @param pointFill the point fill
+	 */
+	public void setPointFill(Shape pointFill) {
+		this.pointFill = pointFill;
+	}
 }

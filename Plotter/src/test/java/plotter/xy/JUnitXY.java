@@ -41,6 +41,7 @@ public class JUnitXY extends TestSuite {
 		suite.addTestSuite(JUnitXYLocationDisplay.class);
 		suite.addTestSuite(JUnitXYMarkerLine.class);
 		suite.addTestSuite(JUnitXYPlot.class);
+		suite.addTestSuite(JUnitXYPlotLine.class);
 		suite.addTestSuite(JUnitXYReversingDataset.class);
 		return suite;
 	}

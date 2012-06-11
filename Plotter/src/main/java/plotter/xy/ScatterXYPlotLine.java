@@ -68,7 +68,6 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 
 	/**
 	 * Creates a plot line.
-	 * The independent dimension stores data in increasing or decreasing order.  May be null for a scatter plot or parametric plot, although this is not supported yet.
 	 * @param xAxis the X axis
 	 * @param yAxis the Y axis
 	 */
@@ -79,7 +78,6 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 
 	/**
 	 * Creates a plot line.
-	 * The independent dimension stores data in increasing or decreasing order.  May be null for a scatter plot or parametric plot, although this is not supported yet.
 	 * @param xAxis the X axis
 	 * @param yAxis the Y axis
 	 * @param linesPerBoundingBox lines per bounding box, a tuning parameter for clipping
@@ -196,6 +194,38 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 				}
 			}
 		}
+
+		if(pointFill != null || pointOutline != null) {
+			for(int k = 0; k < boxCount; k++) {
+				Rectangle2D box = boundingBoxes.get(k);
+				if(box == null || !box.intersects(clipLogical)) {
+					continue;
+				}
+				int index = firstIndex(k);
+				int endIndex = Math.min(n, index + linesPerBoundingBox + 1);
+				int oldx = 0;
+				int oldy = 0;
+				for(int i = index; i < endIndex; i++) {
+					double xx = xData.get(i);
+					double yy = yData.get(i);
+					if(Double.isNaN(xx) || Double.isNaN(yy)) {
+						continue;
+					}
+					int x = (int) ((xx - xstart) * xscale + .5) - 1;
+					int y = height - (int) ((yy - ystart) * yscale + .5);
+					g2.translate(x - oldx, y - oldy);
+					if(pointFill != null) {
+						g2.fill(pointFill);
+					}
+					if(pointOutline != null) {
+						g2.draw(pointOutline);
+					}
+					oldx = x;
+					oldy = y;
+				}
+			}
+		}
+
 		assert invariants();
 	}
 

@@ -29,7 +29,8 @@ package plotter;
 public interface TickMarkCalculator {
 	/**
 	 * Calculates tick marks.
-	 * The values of major and minor tick marks are returned. 
+	 * The values of major and minor tick marks are returned.
+	 * Major values <b>must</b> be in sorted order.
 	 * @param axis axis that needs tick marks and labels
 	 * @return values of the major tick marks at index 0, and the minor tick marks at index 1
 	 */

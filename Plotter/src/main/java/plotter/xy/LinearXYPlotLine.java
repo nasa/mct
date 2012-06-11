@@ -213,6 +213,28 @@ public class LinearXYPlotLine extends XYPlotLine implements XYDataset {
 				g2.drawPolyline(pointsx, pointsy, points);
 			}
 		}
+
+		if(pointFill != null || pointOutline != null) {
+			int oldx = 0;
+			int oldy = 0;
+			for(i = Math.max(0, index); i < n; i++) {
+				double xx = xData.get(i);
+				double yy = yData.get(i);
+				if(!Double.isNaN(xx) && !Double.isNaN(yy)) {
+					int x = (int) ((xx - xstart) * xscale + .5) - 1;
+					int y = height - (int) ((yy - ystart) * yscale + .5);
+					g2.translate(x - oldx, y - oldy);
+					if(pointFill != null) {
+						g2.fill(pointFill);
+					}
+					if(pointOutline != null) {
+						g2.draw(pointOutline);
+					}
+					oldx = x;
+					oldy = y;
+				}
+			}
+		}
 	}
 
 

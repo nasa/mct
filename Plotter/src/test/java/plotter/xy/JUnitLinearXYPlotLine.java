@@ -24,6 +24,7 @@ package plotter.xy;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.geom.GeneralPath;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -464,6 +465,71 @@ public class JUnitLinearXYPlotLine extends TestCase {
 		line.repaintData(1);
 		assertEquals(1, repaints.size());
 		assertEquals(new Rectangle(138, 119, 42, 42), repaints.get(0));
+	}
+
+
+	public void testPointOutline() throws InterruptedException, InvocationTargetException {
+		line.setPointOutline(createSquare());
+		add(.1, .1);
+		add(.9, .9);
+		CountingGraphics g = paint();
+		assertEquals(12, g.getPointCount());
+		assertEquals(2, g.getShapeCount());
+
+		LineChecker c = new LineChecker();
+		c.require(19, 180, 179, 20);
+
+		// Point 1
+		c.require(14, 175, 14, 185);
+		c.require(14, 185, 24, 185);
+		c.require(24, 185, 24, 175);
+		c.require(24, 175, 14, 175);
+
+		// Point 2
+		c.require(174, 15, 174, 25);
+		c.require(174, 25, 184, 25);
+		c.require(184, 25, 184, 15);
+		c.require(184, 15, 174, 15);
+
+		c.check(g.getLines());
+	}
+
+
+	public void testPointOutlineNaN() throws InterruptedException, InvocationTargetException {
+		line.setPointOutline(createSquare());
+		add(.1, .1);
+		add(.5, Double.NaN);
+		add(.9, .9);
+		CountingGraphics g = paint();
+		assertEquals(10, g.getPointCount());
+		assertEquals(2, g.getShapeCount());
+
+		LineChecker c = new LineChecker();
+
+		// Point 1
+		c.require(14, 175, 14, 185);
+		c.require(14, 185, 24, 185);
+		c.require(24, 185, 24, 175);
+		c.require(24, 175, 14, 175);
+
+		// Point 3
+		c.require(174, 15, 174, 25);
+		c.require(174, 25, 184, 25);
+		c.require(184, 25, 184, 15);
+		c.require(184, 15, 174, 15);
+
+		c.check(g.getLines());
+	}
+
+
+	private GeneralPath createSquare() {
+		GeneralPath pointShape = new GeneralPath();
+		pointShape.moveTo(-5, -5);
+		pointShape.lineTo(-5, 5);
+		pointShape.lineTo(5, 5);
+		pointShape.lineTo(5, -5);
+		pointShape.lineTo(-5, -5);
+		return pointShape;
 	}
 
 

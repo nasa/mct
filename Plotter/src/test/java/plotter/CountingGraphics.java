@@ -24,10 +24,13 @@
  */
 package plotter;
 
+import java.awt.BasicStroke;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Shape;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
+import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +46,7 @@ public class CountingGraphics extends GraphicsProxy {
 	private int points;
 	private int simpleLines;
 	private int polyLines;
+	private int shapes;
 
 
 	/**
@@ -88,6 +92,45 @@ public class CountingGraphics extends GraphicsProxy {
 
 
 	@Override
+	public void draw(Shape s) {
+		super.draw(s);
+		root.shapes++;
+		PathIterator pi = s.getPathIterator(base.getTransform(), 0.5);
+		float[] points = new float[6];
+		Point2D p1 = null;
+		Point2D cp = null;
+		while(!pi.isDone()) {
+			switch(pi.currentSegment(points)) {
+			case PathIterator.SEG_MOVETO: {
+				root.points++;
+				double x1 = Math.floor(points[0]);
+				double y1 = Math.floor(points[1]);
+				p1 = new Point2D.Double(x1, y1);
+				cp = p1;
+				break;
+			}
+			case PathIterator.SEG_LINETO: {
+				root.points++;
+				double x2 = Math.floor(points[0]);
+				double y2 = Math.floor(points[1]);
+				Point2D p2 = new Point2D.Double(x2, y2);
+				root.lines.add(new Line2D.Double(p1, p2));
+				p1 = p2;
+				break;
+			}
+			case PathIterator.SEG_CLOSE: {
+				root.points++;
+				root.lines.add(new Line2D.Double(p1, cp));
+				p1 = cp;
+				break;
+			}
+			}
+			pi.next();
+		}
+	}
+
+
+	@Override
 	public Graphics create() {
 		return new CountingGraphics((Graphics2D) base.create(), root);
 	}
@@ -118,5 +161,14 @@ public class CountingGraphics extends GraphicsProxy {
 	 */
 	public int getPointCount() {
 		return points;
+	}
+
+
+	/**
+	 * Returns the number of calls to {@link #draw(Shape)}.
+	 * @return number of {@link Shape}s drawn
+	 */
+	public int getShapeCount() {
+		return shapes;
 	}
 }

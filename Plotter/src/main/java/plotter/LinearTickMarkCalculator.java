@@ -21,6 +21,8 @@
  *******************************************************************************/
 package plotter;
 
+import java.util.Arrays;
+
 
 
 /**
@@ -156,6 +158,7 @@ public class LinearTickMarkCalculator implements TickMarkCalculator {
 			}
 		}
 
+		Arrays.sort(majorVals);
 		return new double[][] {majorVals, minorVals};
 	}
 }
