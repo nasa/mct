@@ -31,10 +31,5 @@
 			<type>2</type>
 			<locationURI>M2_REPO</locationURI>
 		</link>
-		<link>
-			<name>SLF4J_API</name>
-			<type>2</type>
-			<locationURI>SLF4J_API</locationURI>
-		</link>
 	</linkedResources>
 </projectDescription>

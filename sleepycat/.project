@@ -27,9 +27,9 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>JE_LIB</name>
+			<name>M2_REPO</name>
 			<type>2</type>
-			<locationURI>JE_LIB</locationURI>
+			<locationURI>M2_REPO</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

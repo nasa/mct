@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="JE_LIB"/>
+	<classpathentry kind="src" path="M2_REPO/com/sleepycat/je/4.0.92"/>
 	<classpathentry including="META-INF/" kind="src" path=""/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry exported="true" kind="lib" path="JE_LIB/je-4.0.92.jar"/>
+	<classpathentry exported="true" kind="lib" path="M2_REPO/com/sleepycat/je/4.0.92/je-4.0.92.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

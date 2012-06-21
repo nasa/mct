@@ -24,5 +24,6 @@ Export-Package: gov.nasa.arc.mct.api.feed;version="1.1.0",
  com.mysql.jdbc;version="5.1.16",
  org.slf4j.spi;version="1.5.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Bundle-ClassPath: SLF4J_API/slf4j-api-1.5.6.jar,
+Bundle-ClassPath: M2_REPO/org/slf4j/slf4j-api/1.5.6/slf4j-api-1.5.6.jar,
+ M2_REPO/mysql/mysql-connector-java/5.1.16/mysql-connector-java-5.1.16.jar,
  .
