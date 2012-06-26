@@ -144,17 +144,27 @@ public class LinearXYAxis extends XYAxis {
 
 		// Position the labels to line up with the corresponding tick marks.
 		int textMargin = getTextMargin();
+		boolean inverted = getEnd() < getStart();
 		if(plotDimension == XYDimension.X) {
 			for(int i = 0; i < major.length; i++) {
 				Component label = labels[i];
 				double preferredSize = label.getPreferredSize().getWidth();
 				double end = preferredSize / 2;
 				double start = -end;
-				if(i > 0) {
-					start = Math.max(start, (major[i - 1] - major[i]) / 2);
-				}
-				if(i < major.length - 1) {
-					end = Math.min(end, (major[i + 1] - major[i]) / 2);
+				if(inverted) {
+					if(i < major.length - 1) {
+						start = Math.max(start, (major[i + 1] - major[i]) / 2);
+					}
+					if(i > 0) {
+						end = Math.min(end, (major[i - 1] - major[i]) / 2);
+					}
+				} else {
+					if(i > 0) {
+						start = Math.max(start, (major[i - 1] - major[i]) / 2);
+					}
+					if(i < major.length - 1) {
+						end = Math.min(end, (major[i + 1] - major[i]) / 2);
+					}
 				}
 				double labelWidth = end - start;
 				label.setSize((int) labelWidth, label.getHeight());
@@ -168,11 +178,20 @@ public class LinearXYAxis extends XYAxis {
 				double preferredSize = label.getPreferredSize().getHeight();
 				double end = preferredSize / 2;
 				double start = -end;
-				if(i > 0) {
-					start = Math.max(start, (major[i - 1] - major[i]) / 2);
-				}
-				if(i < major.length - 1) {
-					end = Math.min(end, (major[i + 1] - major[i]) / 2);
+				if(inverted) {
+					if(i < major.length - 1) {
+						start = Math.max(start, (major[i + 1] - major[i]) / 2);
+					}
+					if(i > 0) {
+						end = Math.min(end, (major[i - 1] - major[i]) / 2);
+					}
+				} else {
+					if(i > 0) {
+						start = Math.max(start, (major[i - 1] - major[i]) / 2);
+					}
+					if(i < major.length - 1) {
+						end = Math.min(end, (major[i + 1] - major[i]) / 2);
+					}
 				}
 				double labelHeight = end - start;
 				int labelWidth = label.getWidth();
