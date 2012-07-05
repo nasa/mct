@@ -84,10 +84,10 @@ public class TestPlotViewPolicy {
 	}
 		
 	@Test
-	public void testIsALeafComponentThatRequiresAPlot() {
-		Assert.assertTrue(PlotViewPolicy.isALeafComponentThatRequiresAPlot(leafWithAFeedComponent));
-		Assert.assertFalse(PlotViewPolicy.isALeafComponentThatRequiresAPlot(leafWithOutAFeedComponent));
-		Assert.assertFalse(PlotViewPolicy.isALeafComponentThatRequiresAPlot(nonLeafComponent));
+	public void testHasFeed() {
+		Assert.assertTrue(PlotViewPolicy.hasFeed(leafWithAFeedComponent));
+		Assert.assertFalse(PlotViewPolicy.hasFeed(leafWithOutAFeedComponent));
+		Assert.assertTrue(PlotViewPolicy.hasFeed(nonLeafComponent));
 	}
 	
 	@Test

@@ -39,7 +39,7 @@ import java.util.List;
 
 public class PlotViewPolicy implements Policy {
 	
-	private static boolean hasFeed(AbstractComponent component) {
+	static boolean hasFeed(AbstractComponent component) {
 		return component.getCapability(FeedProvider.class)  != null || (component.getCapability(Placeholder.class) != null);
 	}
 	
@@ -52,7 +52,7 @@ public class PlotViewPolicy implements Policy {
 		if (viewInfo.getViewClass().equals(PlotViewManifestation.class)) {
 			AbstractComponent targetComponent = context.getProperty(PolicyContext.PropertyName.TARGET_COMPONENT.getName(), AbstractComponent.class);
 			
-			if (targetComponent.isLeaf() && !isALeafComponentThatRequiresAPlot(targetComponent)) {
+			if (targetComponent.isLeaf() && !hasFeed(targetComponent)) {
 				String message = "Leaf is not a feed.";
 				return new ExecutionResult(context, false, message);
 			}
@@ -97,7 +97,7 @@ public class PlotViewPolicy implements Policy {
 		List<AbstractComponent[]> subPlots = new ArrayList<AbstractComponent[]>();
 		if (targetComponent!=null){
 			
-			if (isALeafComponentThatRequiresAPlot(targetComponent)) {
+			if (hasFeed(targetComponent)) {
 			    // We need only add this component to the plot. 
 				List<AbstractComponent> phantomChildren = new ArrayList<AbstractComponent>();
 				phantomChildren.add(targetComponent);
@@ -106,7 +106,7 @@ public class PlotViewPolicy implements Policy {
 			} else if (isCompoundComponentWithAtLeastOneChildThatIsALeafAndThatRequiresAPlot(targetComponent)) {
 				List<AbstractComponent> children = new ArrayList<AbstractComponent>();
 				for (AbstractComponent component : targetComponent.getComponents()) {
-					if (isALeafComponentThatRequiresAPlot(component)) {
+					if (hasFeed(component)) {
 						children.add(component);
 					}
 				}
@@ -159,16 +159,6 @@ public class PlotViewPolicy implements Policy {
 	}
 	
 	/**
-	 * Returns true if component is a leaf component (cannot have children) and it has an associated data feed, false otherwise.
-	 * 
-	 * @param component
-	 * @return
-	 */
-	static boolean isALeafComponentThatRequiresAPlot(AbstractComponent component) {
-		return component.isLeaf() && hasFeed(component);
-	}
-	
-	/**
 	 * Returns true if the component is an evaluator component.
 	 * @param component to determine whether it is an evaluator
 	 * @return true if the component is an evaluator, false otherwise
@@ -190,7 +180,7 @@ public class PlotViewPolicy implements Policy {
     	}
     	
     	for (AbstractComponent childComponent : component.getComponents()) {
-    		if (isALeafComponentThatRequiresAPlot(childComponent)) {
+    		if (hasFeed(childComponent)) {
     			return true;
     		}
     	}
