@@ -140,7 +140,7 @@ public class DeleteObjectAction extends ContextAwareAction {
                     "ERROR: "+ WARNING, 
                     OptionBox.ERROR_MESSAGE);
         } else {
-            Object[] options = { "Delete Core" , "Cancel" };
+            Object[] options = { bundle.getString("DeleteCoreText"), bundle.getString("AbortDeleteText") };
             int choice = OptionBox.showOptionDialog(actionContext.getWindowManifestation(), 
                     buildWarningPanel(deleteComponents),
                     WARNING,

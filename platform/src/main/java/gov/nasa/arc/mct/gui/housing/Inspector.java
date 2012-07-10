@@ -222,6 +222,7 @@ public class Inspector extends View {
             c.gridwidth = GridBagConstraints.REMAINDER;
             c.weightx = 0;       
             titlebar.add(viewButtonBar, c);
+            this.view.requestFocusInWindow();
         }
         Dimension preferredSize = content.getPreferredSize();
         JScrollPane jp = new JScrollPane(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -232,7 +233,7 @@ public class Inspector extends View {
         content = inspectorScrollPane;
         add(inspectorScrollPane, BorderLayout.CENTER);
         revalidate();
-        this.view.requestFocusInWindow();
+        
     }
 
     private void registerSelectionChange() {
