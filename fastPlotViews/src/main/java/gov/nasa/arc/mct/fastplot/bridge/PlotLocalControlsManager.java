@@ -283,11 +283,11 @@ public class PlotLocalControlsManager implements ActionListener {
 	}
 	
 	// Key event notifications.
-	void informShiftKeyState(boolean state) {
+	public void informShiftKeyState(boolean state) {
 		plot.timeSyncLine.informShiftKeyState(state);
 	}
 	
-	void informAltKeyState(boolean state) {
+	public void informAltKeyState(boolean state) {
 		if(altPin == null) {
 			altPin = plot.plotAbstraction.createPin();
 		}
@@ -303,7 +303,7 @@ public class PlotLocalControlsManager implements ActionListener {
 		}
 	}
 	
-    void informCtlKeyState(boolean state) {
+    public void informCtlKeyState(boolean state) {
 		if(ctrlPin == null) {
 			ctrlPin = plot.plotAbstraction.createPin();
 		}

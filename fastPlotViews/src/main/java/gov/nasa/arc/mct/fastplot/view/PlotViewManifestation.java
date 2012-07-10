@@ -23,7 +23,9 @@ package gov.nasa.arc.mct.fastplot.view;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.components.FeedProvider;
+import gov.nasa.arc.mct.fastplot.bridge.AbstractPlottingPackage;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants;
+import gov.nasa.arc.mct.fastplot.bridge.PlotterPlot;
 import gov.nasa.arc.mct.fastplot.bridge.PlotAbstraction.PlotSettings;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.NonTimeAxisSubsequentBoundsSetting;
@@ -46,6 +48,8 @@ import gov.nasa.arc.mct.services.component.ViewInfo;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,7 +61,9 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JWindow;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
@@ -88,6 +94,49 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 	
 	PlotSettingsControlPanel controlPanel;
 	public static final String VIEW_ROLE_NAME =  "Plot";
+	
+	/** This listens to key events for the plot view and all sub-components so it can forward modifier key presses and releases to the local controls managers. */
+	private KeyListener keyListener = new KeyListener() {
+		@Override
+		public void keyTyped(KeyEvent e) {
+		}
+
+
+		@Override
+		public void keyReleased(KeyEvent e) {
+			if(e.getKeyCode() == KeyEvent.VK_CONTROL) {
+				for(AbstractPlottingPackage p : thePlot.subPlots) {
+					((PlotterPlot) p).getLocalControlsManager().informCtlKeyState(false);
+				}
+			} else if(e.getKeyCode() == KeyEvent.VK_ALT) {
+				for(AbstractPlottingPackage p : thePlot.subPlots) {
+					((PlotterPlot) p).getLocalControlsManager().informAltKeyState(false);
+				}
+			} else if(e.getKeyCode() == KeyEvent.VK_SHIFT) {
+				for(AbstractPlottingPackage p : thePlot.subPlots) {
+					((PlotterPlot) p).getLocalControlsManager().informShiftKeyState(false);
+				}
+			}
+		}
+
+
+		@Override
+		public void keyPressed(KeyEvent e) {
+			if(e.getKeyCode() == KeyEvent.VK_CONTROL) {
+				for(AbstractPlottingPackage p : thePlot.subPlots) {
+					((PlotterPlot) p).getLocalControlsManager().informCtlKeyState(true);
+				}
+			} else if(e.getKeyCode() == KeyEvent.VK_ALT) {
+				for(AbstractPlottingPackage p : thePlot.subPlots) {
+					((PlotterPlot) p).getLocalControlsManager().informAltKeyState(true);
+				}
+			} else if(e.getKeyCode() == KeyEvent.VK_SHIFT) {
+				for(AbstractPlottingPackage p : thePlot.subPlots) {
+					((PlotterPlot) p).getLocalControlsManager().informShiftKeyState(true);
+				}
+			}
+		}
+	};
 
 	public PlotViewManifestation(AbstractComponent component, ViewInfo vi) {
 		super(component,vi);
@@ -100,7 +149,8 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 		
 		// Generate the plot (& connect it to feeds, etc) 
 		generatePlot();
-
+		setFocusable(true);
+		addKeyListener(keyListener);
 		assert thePlot != null : "Plot should not be null at this point";		
 	}
 

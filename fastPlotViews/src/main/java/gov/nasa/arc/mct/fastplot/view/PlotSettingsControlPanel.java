@@ -2070,7 +2070,11 @@ public class PlotSettingsControlPanel extends JPanel {
 		try {
 			if (nonTimeSpanValue.getText().isEmpty()) {
 				return false;
+			} else if (!nonTimeMaxPadding.getText().isEmpty() && !nonTimeMinPadding.getText().isEmpty() && 
+					Integer.parseInt(nonTimeMaxPadding.getText()) + Integer.parseInt(nonTimeMinPadding.getText()) > 99) {
+				return false;
 			}
+			
 			// When the plot has no data, the current min and max may be the same value,
 			// usually zero. This should not disable the Apply and Reset buttons.
 			if (nonTimeAxisMinCurrent.isSelected() && nonTimeAxisMaxCurrent.isSelected()
@@ -2893,7 +2897,9 @@ public class PlotSettingsControlPanel extends JPanel {
 					}
 				}
 			}
-			super.insertString(fb, offset, insertBuilder.toString(), attr);
+			if (insertBuilder.length() + fb.getDocument().getLength() < 3) {
+				super.insertString(fb, offset, insertBuilder.toString(), attr);
+			}
 		}
 
 		@Override
@@ -2910,7 +2916,9 @@ public class PlotSettingsControlPanel extends JPanel {
 					}
 				}
 			}
-			super.replace(fb, offset, length, replaceBuilder.toString(), attr);
+			if (replaceBuilder.length() - length + fb.getDocument().getLength() < 3) {
+				super.replace(fb, offset, length, replaceBuilder.toString(), attr);
+			}
 		}
 
 		StringBuilder getInsertBuilder() {
@@ -3290,8 +3298,7 @@ public class PlotSettingsControlPanel extends JPanel {
     	
     	if (timeAxisSubsequentSetting == TimeAxisSubsequentBoundsSetting.JUMP) {
     		timeJumpMode.setSelected(true);
-    		timeScrunchMode.setSelected(false);
-    		timeJumpPadding.setText(timePaddingFormat.format(timePadding * 100)); 	
+    		timeScrunchMode.setSelected(false);	
 
     		timeAxisMaxAuto.setSelected(false);
     		timeAxisMaxManual.setSelected(false);
@@ -3309,7 +3316,6 @@ public class PlotSettingsControlPanel extends JPanel {
     	} else if (timeAxisSubsequentSetting ==  TimeAxisSubsequentBoundsSetting.SCRUNCH) {
     		timeJumpMode.setSelected(false);
     		timeScrunchMode.setSelected(true);
-    		timeScrunchPadding.setText(timePaddingFormat.format(timePadding * 100));
     	 		
     		timeAxisMaxAuto.setSelected(false);
     		timeAxisMaxManual.setSelected(false);
@@ -3326,6 +3332,9 @@ public class PlotSettingsControlPanel extends JPanel {
     	} else {
            assert false : "No time subsequent mode selected"; 
     	}
+    	timeScrunchPadding.setText(timePaddingFormat.format(timePadding * 100));
+    	timeJumpPadding.setText(timePaddingFormat.format(timePadding * 100)); 
+    	
     	// Set the Current Min and Max values
 		timeAxisMinCurrentValue.setTime(plotViewManifestion.getPlot().getMinTime());
 		timeAxisMaxCurrentValue.setTime(plotViewManifestion.getPlot().getMaxTime());
@@ -3378,7 +3387,6 @@ public class PlotSettingsControlPanel extends JPanel {
     		nonTimeAxisMinCurrent.setSelected(true);
     		nonTimeAxisMinManual.setSelected(false);
     		nonTimeAxisMinAutoAdjust.setSelected(false);
-        	nonTimeMinPadding.setText(nonTimePaddingFormat.format(nonTimePaddingMin * 100));
     	
     	} else if (NonTimeAxisSubsequentBoundsSetting.SEMI_FIXED == nonTimeAxisSubsequentMinSetting
     				|| NonTimeAxisSubsequentBoundsSetting.FIXED == nonTimeAxisSubsequentMinSetting) {
@@ -3386,28 +3394,28 @@ public class PlotSettingsControlPanel extends JPanel {
 			nonTimeAxisMinCurrent.setSelected(false);
 			if (!nonTimeAxisMinManual.isSelected()) {
 				nonTimeAxisMinManual.setSelected(true);
-			}
-    		nonTimeAxisMinManualValue.setText(nonTimePaddingFormat.format(nonTimeMin));
+			}	
     		nonTimeAxisMinAutoAdjust.setSelected(false);
     	} 
+    	nonTimeMinPadding.setText(nonTimePaddingFormat.format(nonTimePaddingMin * 100));
+    	nonTimeAxisMinManualValue.setText(nonTimePaddingFormat.format(nonTimeMin));
     	
     	// Non-Time Max. Control Panel
     	if (NonTimeAxisSubsequentBoundsSetting.AUTO == nonTimeAxisSubsequentMaxSetting) {
     		nonTimeAxisMaxCurrent.setSelected(true);
     		nonTimeAxisMaxManual.setSelected(false);
     		nonTimeAxisMaxAutoAdjust.setSelected(false);
-        	nonTimeMaxPadding.setText(nonTimePaddingFormat.format(nonTimePaddingMax * 100));
         	
     	} else if (NonTimeAxisSubsequentBoundsSetting.SEMI_FIXED == nonTimeAxisSubsequentMaxSetting
 	    				|| NonTimeAxisSubsequentBoundsSetting.FIXED == nonTimeAxisSubsequentMaxSetting) {
-			
 			nonTimeAxisMaxCurrent.setSelected(false);
 			if (!nonTimeAxisMaxManual.isSelected()) {
 				nonTimeAxisMaxManual.setSelected(true);
 			}
-    		nonTimeAxisMaxManualValue.setText(nonTimePaddingFormat.format(nonTimeMax));
     		nonTimeAxisMaxAutoAdjust.setSelected(false);
     	} 
+    	nonTimeMaxPadding.setText(nonTimePaddingFormat.format(nonTimePaddingMax * 100));
+    	nonTimeAxisMaxManualValue.setText(nonTimePaddingFormat.format(nonTimeMax));
     	
     	// Draw
     	if (plotLineDraw.drawLine() && plotLineDraw.drawMarkers()) {

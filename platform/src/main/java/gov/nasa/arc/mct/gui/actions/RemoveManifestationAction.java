@@ -36,14 +36,28 @@ import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.policymgr.PolicyManagerImpl;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
+
+import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
 
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTree;
+import javax.swing.SwingConstants;
 import javax.swing.tree.TreePath;
 
 /**
@@ -112,11 +126,13 @@ public class RemoveManifestationAction extends ContextAwareAction {
     @Override
     public void actionPerformed(ActionEvent e) {
         Map<String,Integer> numberOfParents = new HashMap<String,Integer>();
+        Set<String> lastManifestationComponents = new HashSet<String>();
+        List<Map<MCTMutableTreeNode, MCTMutableTreeNode>> okToRemoveManifestations = new ArrayList<Map<MCTMutableTreeNode, MCTMutableTreeNode>>();
+        
         for (TreePath path : selectedTreePaths) {
             MCTMutableTreeNode selectedNode = (MCTMutableTreeNode) path.getLastPathComponent();            
             MCTMutableTreeNode parentNode = (MCTMutableTreeNode) selectedNode.getParent();
             
-            AbstractComponent parentComponent = ((View) parentNode.getUserObject()).getManifestedComponent();
             AbstractComponent selectedComponent = ((View) selectedNode.getUserObject()).getManifestedComponent();
             
             if (!numberOfParents.containsKey(selectedComponent.getComponentId()))  {
@@ -126,47 +142,112 @@ public class RemoveManifestationAction extends ContextAwareAction {
             if (numberOfParents.get(selectedComponent.getComponentId()) == 1) {
                 // If component has no children,
                 if (selectedComponent.getComponents().size() == 0) {
-                    Object[] options = { "Delete Core" , "Cancel" };
-                    int choice = OptionBox.showOptionDialog(actionContext.getWindowManifestation(), 
-                            bundle.getString("RemoveLastManifestationWarningText") + " " + selectedComponent.getDisplayName() +
-                            " " + bundle.getString("RemoveLastManifestationWarningText2"),
-                            WARNING,
-                            OptionBox.YES_NO_OPTION,
-                            OptionBox.WARNING_MESSAGE,
-                            null,
-                            options,
-                            null);
-                    if (choice == 0) {
-                        // Delete Object
-                        Object[] deleteOptions = { "Delete Core" , "Cancel" };
-                        int deleteChoice = OptionBox.showOptionDialog(actionContext.getWindowManifestation(), 
-                                bundle.getString("DeleteWarningText") + " " + selectedComponent.getDisplayName() +
-                                " " + bundle.getString("DeleteWarningText2"),
-                                bundle.getString("DeleteWarningTitle"),
-                                OptionBox.YES_NO_OPTION,
-                                OptionBox.WARNING_MESSAGE,
-                                null,
-                                deleteOptions,
-                                null);
-                        if (deleteChoice == 0) {
-                            PlatformAccess.getPlatform().getPersistenceProvider().delete(Collections.singleton(selectedComponent));
-                            PlatformAccess.getPlatform().getWindowManager().closeWindows(selectedComponent.getComponentId());
-                            numberOfParents.put(selectedComponent.getComponentId(), numberOfParents.get(selectedComponent.getComponentId())-1);
+                    lastManifestationComponents.add(selectedComponent.getComponentId());
+                    //Remove it from ok-to-remove Manifestations
+                    Iterator<Map<MCTMutableTreeNode, MCTMutableTreeNode>> iterator = okToRemoveManifestations.iterator();
+                    while (iterator.hasNext()) {
+                        Map<MCTMutableTreeNode, MCTMutableTreeNode> map = iterator.next();
+                        for (MCTMutableTreeNode mapNode : map.values()) {
+                            if (((View) mapNode.getUserObject()).getManifestedComponent().getComponentId().equals(selectedComponent.getComponentId())) {
+                                iterator.remove();
+                            }
                         }
                     }
+
                 } else {
-                    OptionBox.showMessageDialog(actionContext.getWindowManifestation(), 
-                            bundle.getString("RemoveLastManifestationHasDescendantsErrorText"), 
-                            "ERROR: "+ WARNING+ " " + selectedComponent.getDisplayName(), 
-                            OptionBox.ERROR_MESSAGE);
+                    //At least one component has children
+                    handleWarnings(false, okToRemoveManifestations, lastManifestationComponents);
+                    return;
                 }
             } else {
-                // Remove from component model
-                parentComponent.removeDelegateComponent(selectedComponent);
-                parentComponent.save();
+                // Has more than 1 parent
+                Map<MCTMutableTreeNode, MCTMutableTreeNode> okManifestationMap = new HashMap<MCTMutableTreeNode, MCTMutableTreeNode>();
+                okManifestationMap.put(parentNode, selectedNode);
+                okToRemoveManifestations.add(okManifestationMap);
                 numberOfParents.put(selectedComponent.getComponentId(), numberOfParents.get(selectedComponent.getComponentId())-1);
             }
-        }   
+        }  
+        handleWarnings(true, okToRemoveManifestations, lastManifestationComponents);
+    }
+    
+    private void handleWarnings(boolean canRemove, List<Map<MCTMutableTreeNode, MCTMutableTreeNode>> okToRemoveManifestations, 
+            Set<String> lastManifestationComponents) {
+        
+        if (!canRemove) {
+            OptionBox.showMessageDialog(actionContext.getWindowManifestation(), 
+                    bundle.getString("RemoveLastManifestationHasDescendantsErrorText"), 
+                    "ERROR: "+ WARNING, 
+                    OptionBox.ERROR_MESSAGE);
+            return;
+        } else {
+            if (lastManifestationComponents.size() > 0) {
+                Object[] options = { "OK" , "Cancel" };
+                int choice = OptionBox.showOptionDialog(actionContext.getWindowManifestation(), 
+                        buildWarningPanel(okToRemoveManifestations, lastManifestationComponents), 
+                        WARNING,
+                        OptionBox.YES_NO_OPTION,
+                        OptionBox.WARNING_MESSAGE,
+                        null,
+                        options,
+                        null);
+                if (choice != 0) {
+                    return;
+                }
+            }
+        }
+        // Remove and/or Delete Objects
+        for (Map<MCTMutableTreeNode, MCTMutableTreeNode> okMap : okToRemoveManifestations) {
+            AbstractComponent parentComponent = ((View) okMap.entrySet().iterator().next().getKey().getUserObject()).getManifestedComponent();
+            AbstractComponent selectedComponent = ((View) okMap.entrySet().iterator().next().getValue().getUserObject()).getManifestedComponent();
+            parentComponent.removeDelegateComponent(selectedComponent);
+            parentComponent.save();
+        }
+
+        for (String selectedComponentId : lastManifestationComponents) {
+            AbstractComponent.getComponentById(selectedComponentId);
+            PlatformAccess.getPlatform().getPersistenceProvider().delete(Collections.singleton(AbstractComponent.getComponentById(selectedComponentId)));
+            PlatformAccess.getPlatform().getWindowManager().closeWindows(selectedComponentId);             
+        }
+        
+    }
+    
+    private JPanel buildWarningPanel(List<Map<MCTMutableTreeNode, MCTMutableTreeNode>> okToRemoveManifestations, 
+            Set<String> lastManifestationComponents) {
+        Set<String> okComps = new HashSet<String>(okToRemoveManifestations.size());
+        List<String> lastComps = new ArrayList<String>(lastManifestationComponents.size());
+        for (Map<MCTMutableTreeNode, MCTMutableTreeNode> okMap : okToRemoveManifestations) {
+            AbstractComponent selectedComponent = ((View) okMap.entrySet().iterator().next().getValue().getUserObject()).getManifestedComponent();
+            okComps.add(selectedComponent.getDisplayName());
+        }
+        for (String comp : lastManifestationComponents) {
+            lastComps.add(AbstractComponent.getComponentById(comp).getDisplayName());
+        }
+        JPanel warning = new JPanel(new GridLayout(3,2, 0, 0));
+        warning.setPreferredSize(new Dimension(600,200));
+        JList okList = new JList(okComps.toArray());
+        JList lastManifestationList = new JList(lastComps.toArray());
+        JScrollPane scrollPane1 = new JScrollPane(okList);
+        scrollPane1.setPreferredSize(new Dimension(180,100));
+        JScrollPane scrollPane2 = new JScrollPane(lastManifestationList);
+        scrollPane2.setPreferredSize(new Dimension(180,100));
+        JLabel okLabel = new JLabel(bundle.getString("SafeToRemoveManifestation"));
+        okLabel.setPreferredSize(new Dimension(200,20));
+        okLabel.setVerticalAlignment(SwingConstants.BOTTOM);
+        JLabel lastManifestationLabel = new JLabel(bundle.getString("RemoveManifestationBecomesDelete"));
+        lastManifestationLabel.setPreferredSize(new Dimension(200,20));
+        lastManifestationLabel.setVerticalAlignment(SwingConstants.BOTTOM);
+        JTextArea warningMessage = new JTextArea(bundle.getString("RemoveLastManifestationWarningTextA"));
+        warningMessage.setWrapStyleWord(true);
+        warningMessage.setLineWrap(true);
+        warningMessage.setOpaque(false);
+        warningMessage.setPreferredSize(new Dimension(200,100));
+        warning.add(new JLabel());
+        warning.add(warningMessage);
+        warning.add(okLabel);
+        warning.add(lastManifestationLabel);
+        warning.add(scrollPane1);
+        warning.add(scrollPane2);
+        return warning;
     }
     
     private boolean isRemovable(TreePath path) {

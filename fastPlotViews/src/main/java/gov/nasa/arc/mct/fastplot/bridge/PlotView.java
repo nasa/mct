@@ -211,15 +211,15 @@ public class PlotView implements PlotAbstraction {
 		public void keyReleased(KeyEvent e) {
 			if(e.getKeyCode() == KeyEvent.VK_CONTROL) {
 				for(AbstractPlottingPackage p : subPlots) {
-					((PlotterPlot) p).localControlsManager.informCtlKeyState(false);
+					((PlotterPlot) p).getLocalControlsManager().informCtlKeyState(false);
 				}
 			} else if(e.getKeyCode() == KeyEvent.VK_ALT) {
 				for(AbstractPlottingPackage p : subPlots) {
-					((PlotterPlot) p).localControlsManager.informAltKeyState(false);
+					((PlotterPlot) p).getLocalControlsManager().informAltKeyState(false);
 				}
 			} else if(e.getKeyCode() == KeyEvent.VK_SHIFT) {
 				for(AbstractPlottingPackage p : subPlots) {
-					((PlotterPlot) p).localControlsManager.informShiftKeyState(false);
+					((PlotterPlot) p).getLocalControlsManager().informShiftKeyState(false);
 				}
 			}
 		}
@@ -229,15 +229,15 @@ public class PlotView implements PlotAbstraction {
 		public void keyPressed(KeyEvent e) {
 			if(e.getKeyCode() == KeyEvent.VK_CONTROL) {
 				for(AbstractPlottingPackage p : subPlots) {
-					((PlotterPlot) p).localControlsManager.informCtlKeyState(true);
+					((PlotterPlot) p).getLocalControlsManager().informCtlKeyState(true);
 				}
 			} else if(e.getKeyCode() == KeyEvent.VK_ALT) {
 				for(AbstractPlottingPackage p : subPlots) {
-					((PlotterPlot) p).localControlsManager.informAltKeyState(true);
+					((PlotterPlot) p).getLocalControlsManager().informAltKeyState(true);
 				}
 			} else if(e.getKeyCode() == KeyEvent.VK_SHIFT) {
 				for(AbstractPlottingPackage p : subPlots) {
-					((PlotterPlot) p).localControlsManager.informShiftKeyState(true);
+					((PlotterPlot) p).getLocalControlsManager().informShiftKeyState(true);
 				}
 			}
 		}

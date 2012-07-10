@@ -67,6 +67,7 @@ import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.DocumentFilter.FilterBypass;
+import javax.swing.text.PlainDocument;
 
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -191,7 +192,7 @@ public class TestPlotSettingsControlPanel {
 										maxTime.getTimeInMillis(), // max time
 										0.5, // time padding
 										0.5, // non time padding max
-										0.5, // non time padding min
+										0.49, // non time padding min
 										true,
 										true,
 										PlotConstants.DEFAULT_PLOT_LINE_DRAW,
@@ -302,7 +303,7 @@ public class TestPlotSettingsControlPanel {
 			}
 			@Override
 			public Document getDocument() {
-				return null;
+				return new PlainDocument();
 			}
 		};
 		try {

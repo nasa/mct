@@ -26,7 +26,7 @@ import java.util.Collection;
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.components.FeedProvider;
 import gov.nasa.arc.mct.evaluator.component.MultiComponent;
-import gov.nasa.arc.mct.gui.OptionBox;
+//import gov.nasa.arc.mct.gui.OptionBox;
 import gov.nasa.arc.mct.policy.ExecutionResult;
 import gov.nasa.arc.mct.policy.Policy;
 import gov.nasa.arc.mct.policy.PolicyContext;
@@ -50,12 +50,12 @@ public class MultiCompositionPolicy implements Policy {
 			if (sources != null) {
 				for (AbstractComponent ac : sources) {
 					if (ac.getCapability(FeedProvider.class) == null) {
-						OptionBox.showMessageDialog(
-		                        null, 
-		                        "Only objects that provide data can be added\nto a new multi",
-		                        "Error", 
-		                        OptionBox.ERROR_MESSAGE);
-						return new ExecutionResult(context, false, "");
+//						OptionBox.showMessageDialog(
+//		                        null, 
+//		                        "Only objects that provide data can be added\nto a new multi",
+//		                        "Error", 
+//		                        OptionBox.ERROR_MESSAGE);
+						return new ExecutionResult(context, false, "Only objects that provide data can be added to a multi");
 					}
 				}
 			}

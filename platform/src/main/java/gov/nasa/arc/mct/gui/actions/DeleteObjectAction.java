@@ -36,12 +36,24 @@ import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.policymgr.PolicyManagerImpl;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
-import java.awt.event.ActionEvent;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.ResourceBundle;
 
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.ActionEvent;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.ResourceBundle;
+import java.util.Set;
+
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTree;
+import javax.swing.SwingConstants;
 import javax.swing.tree.TreePath;
 
 public class DeleteObjectAction extends ContextAwareAction {
@@ -104,34 +116,73 @@ public class DeleteObjectAction extends ContextAwareAction {
     
     @Override
     public void actionPerformed(ActionEvent e) {
+        Set<String> deleteComponents = new HashSet<String>();
         for (TreePath path : selectedTreePaths) {
             MCTMutableTreeNode selectedNode = (MCTMutableTreeNode) path.getLastPathComponent();            
             AbstractComponent selectedComponent = ((View) selectedNode.getUserObject()).getManifestedComponent();
             
             // If has children,  
             if (selectedComponent.getComponents().size() > 0) {
-                OptionBox.showMessageDialog(actionContext.getWindowManifestation(), 
-                        bundle.getString("DeleteErrorHasDescendantsText"), 
-                        "ERROR: "+ WARNING+ " " + selectedComponent.getDisplayName(), 
-                        OptionBox.ERROR_MESSAGE);
+                handleWarnings(false, deleteComponents);
+                return;
             } else {
-                Object[] options = { "Delete Core" , "Cancel" };
-                int choice = OptionBox.showOptionDialog(actionContext.getWindowManifestation(), 
-                        bundle.getString("DeleteWarningText") + " " + selectedComponent.getDisplayName() +
-                        " " + bundle.getString("DeleteWarningText2"),
-                        WARNING,
-                        OptionBox.YES_NO_OPTION,
-                        OptionBox.WARNING_MESSAGE,
-                        null,
-                        options,
-                        null);
-                if (choice == 0) {
-                    PlatformAccess.getPlatform().getPersistenceProvider().delete(Collections.singleton(selectedComponent));
-                    PlatformAccess.getPlatform().getWindowManager().closeWindows(selectedComponent.getComponentId());
-                }
+                deleteComponents.add(selectedComponent.getComponentId());
             }
 
-        }   
+        }
+        handleWarnings(true,deleteComponents);
+    }
+    
+    private void handleWarnings(boolean canRemoveAll, Set<String> deleteComponents) {
+        if (!canRemoveAll) {
+            OptionBox.showMessageDialog(actionContext.getWindowManifestation(), 
+                    bundle.getString("RemoveLastManifestationHasDescendantsErrorText"), 
+                    "ERROR: "+ WARNING, 
+                    OptionBox.ERROR_MESSAGE);
+        } else {
+            Object[] options = { bundle.getString("DeleteCoreText"), bundle.getString("AbortDeleteText") };
+            int choice = OptionBox.showOptionDialog(actionContext.getWindowManifestation(), 
+                    buildWarningPanel(deleteComponents),
+                    WARNING,
+                    OptionBox.YES_NO_OPTION,
+                    OptionBox.WARNING_MESSAGE,
+                    null,
+                    options,
+                    null);
+            if (choice == 0) {
+                Set<AbstractComponent> deleteThese = new HashSet<AbstractComponent>();
+                for (String id : deleteComponents) {
+                    deleteThese.add(AbstractComponent.getComponentById(id));
+                    PlatformAccess.getPlatform().getWindowManager().closeWindows(id);
+                }
+                PlatformAccess.getPlatform().getPersistenceProvider().delete(deleteThese);
+            }
+        }
+    }
+    
+    private JPanel buildWarningPanel(Set<String> componentsToBeDeleted) {
+        List<String> deleteComps = new ArrayList<String>(componentsToBeDeleted.size());
+        for (String comp : componentsToBeDeleted) {
+            deleteComps.add(AbstractComponent.getComponentById(comp).getDisplayName());
+        }
+        JPanel warning = new JPanel(new FlowLayout());
+        warning.setPreferredSize(new Dimension(400,400));
+        JList deleteList = new JList(deleteComps.toArray());
+        JScrollPane scrollPane2 = new JScrollPane(deleteList);
+        scrollPane2.setPreferredSize(new Dimension(300,200));
+        JLabel deletingObjectsLabel = new JLabel(bundle.getString("RemoveManifestationBecomesDelete"));
+        deletingObjectsLabel.setPreferredSize(new Dimension(300,20));
+        deletingObjectsLabel.setVerticalAlignment(SwingConstants.BOTTOM);
+        deletingObjectsLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        JTextArea warningMessage = new JTextArea(bundle.getString("DeleteWarningText"));
+        warningMessage.setWrapStyleWord(true);
+        warningMessage.setLineWrap(true);
+        warningMessage.setOpaque(false);
+        warningMessage.setPreferredSize(new Dimension(300,200));
+        warning.add(warningMessage);
+        warning.add(deletingObjectsLabel);
+        warning.add(scrollPane2);
+        return warning;
     }
     
     private boolean isRemovable(TreePath path) {
