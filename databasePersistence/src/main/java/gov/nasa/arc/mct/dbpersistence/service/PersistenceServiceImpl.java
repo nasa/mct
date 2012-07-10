@@ -28,6 +28,7 @@ import gov.nasa.arc.mct.dbpersistence.dao.ComponentSpec;
 import gov.nasa.arc.mct.dbpersistence.dao.DatabaseIdentification;
 import gov.nasa.arc.mct.dbpersistence.dao.Disciplines;
 import gov.nasa.arc.mct.dbpersistence.dao.MctUsers;
+import gov.nasa.arc.mct.dbpersistence.dao.Tag;
 import gov.nasa.arc.mct.dbpersistence.dao.TagAssociation;
 import gov.nasa.arc.mct.dbpersistence.dao.TagAssociationPK;
 import gov.nasa.arc.mct.dbpersistence.dao.ViewState;
@@ -163,12 +164,18 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 		final String dbConnectionURL = "mct.database_connectionUrl";
 		final String dbName = "mct.database_name";
 		final String dbProperties = "mct.database_properties";
+		final String jdbcUrlProperty = "javax.persistence.jdbc.url";
+		if (System.getProperty(jdbcUrlProperty) != null) {
+			properties.put(jdbcUrlProperty, System.getProperty(jdbcUrlProperty));
+		}
 		properties.put("javax.persistence.jdbc.user", System.getProperty(dbUser, properties.getProperty(dbUser)));
 		properties.put("javax.persistence.jdbc.password",System.getProperty(dbPassword,properties.getProperty(dbPassword)));
 		String connectionURL = System.getProperty(dbConnectionURL, properties.getProperty(dbConnectionURL)) + 
 							   System.getProperty(dbName, properties.getProperty(dbName)) + "?" +
 							   System.getProperty(dbProperties, properties.getProperty(dbProperties));
-		properties.put("javax.persistence.jdbc.url",connectionURL);
+		if (!properties.containsKey(jdbcUrlProperty)) {
+			properties.put(jdbcUrlProperty,connectionURL);
+		}
 		
 		return properties;
 	}
@@ -785,7 +792,7 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 		List<ComponentSpec> cslist = null;
 		EntityManager em = entityManagerFactory.createEntityManager();
 		try {
-			String userId = PlatformAccess.getPlatform().getCurrentUser().getUserId();
+			String userId = PlatformAccess.getPlatform().getCurrentUser() == null ? null : PlatformAccess.getPlatform().getCurrentUser().getUserId();
 			TypedQuery<ComponentSpec> q = em.createQuery("SELECT t.componentSpec FROM TagAssociation t where t.tag.tagId = 'bootstrap:admin' or (t.tag.tagId = 'bootstrap:creator' and t.componentSpec.creatorUserId = :user)", ComponentSpec.class);
 			q.setParameter("user", userId);
 			cslist = q.getResultList();
@@ -830,6 +837,11 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 	 	try {
 	 		em.getTransaction().begin();
 	 		Disciplines group = em.find(Disciplines.class, groupId);
+	 		if (group == null) {
+	 			group = new Disciplines();
+	 			group.setDisciplineId(groupId);
+	 			em.persist(group);
+	 		}
 	 		MctUsers user = new MctUsers();
 	 		user.setUserId(userId);
 	 		user.setDisciplineId(group);
@@ -899,5 +911,37 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 		} finally {
 			em.close();
 		}
+	}
+	
+	@Override
+	public void tagComponents(String tag,
+			Collection<AbstractComponent> components) {
+		EntityManager em = entityManagerFactory.createEntityManager();
+		try {
+			em.getTransaction().begin();
+			Tag t = em.find(Tag.class, tag);
+			if (t == null) {
+				t = new Tag();
+				t.setTagId(tag);
+				em.persist(t);
+			}
+
+			for (AbstractComponent component:components) {
+				ComponentSpec cs = em.find(ComponentSpec.class, component.getComponentId());
+				TagAssociation association = new TagAssociation();
+				TagAssociationPK tagPK = new TagAssociationPK();
+				tagPK.setComponentId(cs.getComponentId());
+				tagPK.setTagId(t.getTagId());
+				association.setTagAssociationPK(tagPK);
+				cs.getTagAssociationCollection().add(association);
+			}
+			
+			em.getTransaction().commit();
+		} finally {
+			if(em.getTransaction().isActive())
+	 			em.getTransaction().rollback();
+			em.close();
+		}
+		
 	}
 }

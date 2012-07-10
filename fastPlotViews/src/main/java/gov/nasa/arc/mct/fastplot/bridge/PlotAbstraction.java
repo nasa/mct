@@ -145,6 +145,18 @@ public interface PlotAbstraction extends PlotObserver {
 	public AxisOrientationSetting getAxisOrientationSetting();
 	
 	/**
+     * Get time system.
+     * @return time system
+     */
+	public String getTimeSystem();
+
+    /**
+     * Get time format.
+     * @return time format
+     */
+    public String getTimeFormat();
+
+	/**
 	 * Return the x-axis maximum location which indicates if the maximum is on the left or right end of this axis.
 	 * @return x-axis maximum location setting.
 	 */
@@ -339,6 +351,12 @@ public interface PlotAbstraction extends PlotObserver {
 		
 		/** Time axis orientation setting. */
 		public AxisOrientationSetting timeAxisSetting = null;
+		
+		/** Time System setting. */
+        public String timeSystemSetting = null;
+
+        /** Time Format setting. */
+        public String timeFormatSetting =  null;
 		
 		/** X-axis maximum location setting. */
 		public XAxisMaximumLocationSetting xAxisMaximumLocation = null;

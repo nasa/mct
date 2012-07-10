@@ -202,6 +202,13 @@ public class MockPlatform implements Platform {
 			}
 
 			@Override
+			public void tagComponents(String tag,
+					Collection<AbstractComponent> components) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
 			public void completeRelatedOperations(boolean save) {
 				// TODO Auto-generated method stub
 				

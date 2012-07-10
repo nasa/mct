@@ -38,9 +38,8 @@ public class ConfigurationService implements ManagedService {
     private static final ConfigurationService INSTANCE = new ConfigurationService();
     
     public static final String UNSUBSCRIPTION_GRACE_PERIOD = "unsubscriptionGracePeriod";
-    public static final String TIMER_SLEEP_TIME = "unsubscriptionSleepTime";
     
-    private Integer timerSleepTime = Integer.valueOf(1000);
+    private final int timerSleepTime = 1000;
     private Integer unsubscriptionGracePeriod = Integer.valueOf(1000);
     
     private ConfigurationService() {
@@ -54,10 +53,6 @@ public class ConfigurationService implements ManagedService {
     @Override
     public void updated(Dictionary dict) throws ConfigurationException {
         if (dict != null) {
-	        timerSleepTime = (Integer) dict.get(TIMER_SLEEP_TIME);
-	        if (timerSleepTime == null) {
-	            throw new ConfigurationException(TIMER_SLEEP_TIME, "property not provided");
-	        }
 	        unsubscriptionGracePeriod = (Integer) dict.get(UNSUBSCRIPTION_GRACE_PERIOD);
 	        if (unsubscriptionGracePeriod == null) {
 	            throw new ConfigurationException(UNSUBSCRIPTION_GRACE_PERIOD, "property not provided");

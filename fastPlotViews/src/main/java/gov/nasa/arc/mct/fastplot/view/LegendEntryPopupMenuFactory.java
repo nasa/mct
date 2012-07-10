@@ -333,6 +333,8 @@ public class LegendEntryPopupMenuFactory {
 				ok    .addActionListener(closer);
 				cancel.addActionListener(closer);			
 				
+				getRootPane().setDefaultButton(ok);
+				
 				final Document doc = field.getDocument();
 				if (doc instanceof AbstractDocument) {
 					AbstractDocument ad = (AbstractDocument) doc;

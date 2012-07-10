@@ -101,6 +101,8 @@ public class PlotView implements PlotAbstraction {
 	
 	// Initial Settings.
 	private AxisOrientationSetting axisOrientation;
+	private String timeSystem;
+    private String timeFormat;
 	private XAxisMaximumLocationSetting xAxisMaximumLocationSetting;
 	private YAxisMaximumLocationSetting yAxisMaximumLocationSetting;
 	private boolean useOrdinalPositionForSubplots;
@@ -450,6 +452,16 @@ public class PlotView implements PlotAbstraction {
 	}
 
 	@Override
+	public String getTimeSystem() {
+		return getLastPlot().getTimeSystemSetting();
+    }
+
+	@Override
+	public String getTimeFormat() {
+		return  getLastPlot().getTimeFormatSetting();
+	}
+
+	@Override
 	public NonTimeAxisSubsequentBoundsSetting getNonTimeAxisSubsequentMaxSetting() {
 		return getLastPlot().getNonTimeAxisSubsequentMaxSetting();
 	}
@@ -621,6 +633,8 @@ public class PlotView implements PlotAbstraction {
 		private int timeAxisIntercept = PlotConstants.DEFAULT_TIME_AXIS_INTERCEPT;
 		private Color timeAxisColor = PlotConstants.DEFAULT_TIME_AXIS_COLOR;
 		private Color timeAxisLabelColor = PlotConstants.DEFAULT_TIME_AXIS_LABEL_COLOR;
+		private String timeSystem = null;
+        private String timeFormat = PlotConstants.DEFAULT_TIME_FORMAT;
 		private String timeAxisDateFormat = PlotConstants.DEFAULT_TIME_AXIS_DATA_FORMAT;
 		private Color nonTimeAxisColor = PlotConstants.DEFAULT_NON_TIME_AXIS_COLOR;
 		private Color gridLineColor = PlotConstants.DEFAULT_GRID_LINE_COLOR;
@@ -821,6 +835,27 @@ public class PlotView implements PlotAbstraction {
 		}
 
 		/**
+         * Set the time system on the builder.
+         * @param theTimeSystem time system
+         * @return the builder the plot view
+         */
+		public Builder timeSystem(String theTimeSystem) {
+			timeSystem = theTimeSystem;
+			return this;
+        }
+
+        /**
+         * Set the time format on the builder.
+         * @param theTimeSystem time format
+         * @return the builder the plot view
+         */
+        public Builder timeFormat(String theTimeFormat) {
+        	timeFormat = theTimeFormat;
+        	return this;
+        }
+
+		
+		/**
 		 * Set the format of how time information is printed on time axis labels.
 		 * @param theTimeAxisDateFormat the format.
 		 * @return the builder the plot view.
@@ -1009,6 +1044,8 @@ public class PlotView implements PlotAbstraction {
 		plotPackage = builder.plotPackage;
 		plotName = builder.plotName;
 		axisOrientation = builder.axisOrientation;
+		timeSystem = builder.timeSystem;
+        timeFormat = builder.timeFormat;
 		xAxisMaximumLocationSetting = builder.xAxisMaximumLocatoinSetting;
 		yAxisMaximumLocationSetting = builder.yAxisMaximumLocationSetting;
 		timeAxisSubsequentSetting = builder.timeAxisSubsequentSetting;
@@ -1090,6 +1127,8 @@ public class PlotView implements PlotAbstraction {
 				boolean isTimeLabelEnabled = i == (numberOfSubPlots -1);
 
 				newPlot.createChart(axisOrientation, 
+						timeSystem,
+                        timeFormat,
 						xAxisMaximumLocationSetting, 
 						yAxisMaximumLocationSetting, 
 						timeAxisSubsequentSetting, 
@@ -1594,6 +1633,4 @@ public class PlotView implements PlotAbstraction {
 	public void setPlotLineConnectionType(PlotLineConnectionType type) {
 		plotLineConnectionType = type;
 	}
-	
-	
 }

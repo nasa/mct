@@ -19,47 +19,37 @@
  * MCT Licenses dialog available at runtime from the MCT Help menu for additional 
  * information. 
  *******************************************************************************/
-package gov.nasa.arc.mct.gui.actions;
+package gov.nasa.arc.mct.buffer.disk.internal;
 
-import gov.nasa.arc.mct.gui.ActionContext;
-import gov.nasa.arc.mct.gui.ContextAwareAction;
-import gov.nasa.arc.mct.gui.View;
-import gov.nasa.arc.mct.gui.housing.Inspector;
+import java.util.Properties;
 
-import java.awt.event.ActionEvent;
-import java.util.Collection;
+import gov.nasa.arc.mct.buffer.config.DataBufferEnv;
+import gov.nasa.arc.mct.buffer.config.DiskBufferEnv;
+import gov.nasa.arc.mct.buffer.internal.DataBufferHelper;
+import gov.nasa.arc.mct.buffer.internal.MetaDataBuffer;
+import gov.nasa.arc.mct.buffer.internal.PartitionDataBuffer;
 
-import javax.swing.SwingUtilities;
-
-@SuppressWarnings("serial")
-public class InspectorPaneRevertToCommitted extends ContextAwareAction {
-    private static final String TEXT = "Revert to Committed";
+public class NonCODDiskDataBufferHelper implements DataBufferHelper {
+    public final PartitionDataBuffer newPartitionBuffer(int partitionNo) {
+        return new PartitionNonCODDiskBuffer(partitionNo);
+    }
     
-    public InspectorPaneRevertToCommitted() {
-        super(TEXT);
+    public final PartitionDataBuffer newPartitionBuffer(DataBufferEnv env) {
+        assert env instanceof DiskBufferEnv;
+        return new PartitionNonCODDiskBuffer((DiskBufferEnv)env);
     }
-
-    private View view;
-    private Inspector inspectionArea;
+    
     @Override
-    public boolean canHandle(ActionContext context) {
-        Collection<View> selectedManifestations = context.getSelectedManifestations();
-        if (selectedManifestations.isEmpty())
-            return false;
-        
-        view = selectedManifestations.iterator().next();
-        inspectionArea = (Inspector) SwingUtilities.getAncestorOfClass(Inspector.class, view);
-        return inspectionArea != null;
+    public MetaDataBuffer newMetaDataBuffer(DataBufferEnv env) {
+        if (env == null) {
+            return new MetaDiskBuffer(new DiskBufferEnv(null));
+        }
+        assert env instanceof DiskBufferEnv;
+        return new MetaDiskBuffer((DiskBufferEnv)env);
     }
-
+    
     @Override
-    public boolean isEnabled() {
-        return view.getManifestedComponent().isStale();
+    public DataBufferEnv newMetaDataBufferEnv(Properties prop) {
+        return new DiskBufferEnv(prop);
     }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        inspectionArea.refreshCurrentlyShowingView();
-    }
-
 }

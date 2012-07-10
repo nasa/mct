@@ -23,8 +23,10 @@ package gov.nasa.arc.mct.buffer.internal;
 
 import gov.nasa.arc.mct.buffer.config.FastDiskBufferEnv;
 import gov.nasa.arc.mct.buffer.config.MemoryBufferEnv;
+import gov.nasa.arc.mct.buffer.config.DiskBufferEnv;
 import gov.nasa.arc.mct.buffer.disk.internal.FastDiskDataBufferHelper;
 import gov.nasa.arc.mct.buffer.memory.internal.MemoryDataBufferHelper;
+import gov.nasa.arc.mct.buffer.disk.internal.NonCODDiskDataBufferHelper;
 
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -32,10 +34,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class DataBufferFactory {
     private final static AtomicBoolean fastDiskBufferInitializeToken = new AtomicBoolean(false);
     private final static AtomicBoolean memoryBufferInitializeToken = new AtomicBoolean(false);
+    private final static AtomicBoolean nonCODDiskBufferInitializeToken = new AtomicBoolean(false);
     private static volatile DataBuffer fastDiskDataBuffer;
     private static volatile DataBuffer memoryDataBuffer;
+    private static volatile DataBuffer nonCODDiskDataBuffer;
     private final static DataBufferHelper fastDiskBufferHelper = new FastDiskDataBufferHelper();
     private final static DataBufferHelper memoryBufferHelper = new MemoryDataBufferHelper();
+    private final static DataBufferHelper nonCODDiskBufferHelper = new NonCODDiskDataBufferHelper();
 
     private DataBufferFactory() {
         //
@@ -64,11 +69,25 @@ public class DataBufferFactory {
         }
         return fastDiskDataBuffer;
     }
+    
+    public static DataBuffer getNonCODDiskDataBuffer(Properties prop) {
+        if (!nonCODDiskBufferInitializeToken.get()) {
+            synchronized(DataBufferFactory.class) {
+                if (nonCODDiskDataBuffer == null) {
+                    nonCODDiskDataBuffer = new NonCODataBuffer(new DiskBufferEnv(prop), nonCODDiskBufferHelper);
+                }
+            }
+            nonCODDiskBufferInitializeToken.compareAndSet(false, true);
+        }
+        return nonCODDiskDataBuffer;
+    }
 
     static void reset() {
         fastDiskDataBuffer = null;
         memoryDataBuffer = null;
+        nonCODDiskDataBuffer = null;
         fastDiskBufferInitializeToken.set(false);
         memoryBufferInitializeToken.set(false);
+        nonCODDiskBufferInitializeToken.set(false);
     }
 }

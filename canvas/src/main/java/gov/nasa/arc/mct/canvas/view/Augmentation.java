@@ -306,14 +306,18 @@ public class Augmentation extends JComponent {
             @Override
             public void mouseMoved(MouseEvent e) {
                 Augmentation augmentation = (Augmentation) e.getSource();
-                for (Panel panel : highlightedPanels) {
-                    int currentCursorType = augmentation.getCursor().getType();
-                    setCursorType(augmentation, panel, e.getPoint());
-                    int newCursorType = augmentation.getCursor().getType();
-                    oldLocation = e.getPoint();
-                    if (currentCursorType != newCursorType) {
-                        return;
-                    }
+                if (highlightedPanels.isEmpty()) {
+                    augmentation.setAugmentationCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                } else {
+                	for (Panel panel : highlightedPanels) {                
+                	    int currentCursorType = augmentation.getCursor().getType();
+                	    setCursorType(augmentation, panel, e.getPoint());
+                	    int newCursorType = augmentation.getCursor().getType();
+                	    oldLocation = e.getPoint();
+                	    if (currentCursorType != newCursorType) {
+                	        return;
+                	    }
+                	}
                 }
                 redispatchEvent(e);
             }

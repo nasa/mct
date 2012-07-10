@@ -59,7 +59,6 @@ public class SubscriptionManagerServiceTest {
 	public void setup() throws ConfigurationException {
 		ConfigurationService cs = ConfigurationService.getInstance();
 		Dictionary<String, Integer> dict = new Hashtable<String, Integer>();
-		dict.put(ConfigurationService.TIMER_SLEEP_TIME, 100);
 		dict.put(ConfigurationService.UNSUBSCRIPTION_GRACE_PERIOD, 0);
 		cs.updated(dict);
 		
@@ -94,7 +93,7 @@ public class SubscriptionManagerServiceTest {
 		subManager.unsubscribe(feedID2);
 		// wait until the unsubscription timer event fires to verify that the unsubscription event was sent
 		Thread.yield();
-		Thread.sleep(400);
+		Thread.sleep(1400);
 		Mockito.verify(eventProvider, Mockito.times(1)).unsubscribeTopics(EventProvider.TELEMETRY_TOPIC_PREFIX+feedID);
 		Mockito.verify(eventProvider, Mockito.times(1)).unsubscribeTopics(EventProvider.TELEMETRY_TOPIC_PREFIX+feedID2);
 	}

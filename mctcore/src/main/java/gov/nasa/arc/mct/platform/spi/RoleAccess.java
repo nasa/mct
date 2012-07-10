@@ -131,6 +131,12 @@ public class RoleAccess {
      */
     public static String[] getAllUsers() {
         Set<String> allUsers = new HashSet<String>();
+        
+        if ( (roleServices.size() == 0) && (PlatformAccess.getPlatform() != null) ) {
+            allUsers.addAll(PlatformAccess.getPlatform().getPersistenceProvider().getAllUsers());
+            return allUsers.toArray(new String[allUsers.size()]);
+        }
+        
         for (RoleService roleService: roleServices) {
             if ((allUsers = roleService.getAllUsers()) != null) {
                 break;

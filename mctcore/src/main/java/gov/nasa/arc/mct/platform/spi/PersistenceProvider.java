@@ -110,4 +110,11 @@ public interface PersistenceProvider extends PersistenceService {
      * @param dropbox the user's dropbox
      */
     void addNewUser(String userId, String groupId, AbstractComponent mysandbox, AbstractComponent dropbox);
+    
+    /**
+     * Add a tag to the specified components
+     * @param tag the specified components
+     * @param components to tag, must already be persistent
+     */
+    void tagComponents(String tag, Collection<AbstractComponent> components);
 }

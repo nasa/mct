@@ -29,13 +29,19 @@ import gov.nasa.arc.mct.fastplot.policy.PlotViewPolicy;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Manages the adding and removing of data feeds for plots.
  */
 public class PlotDataAssigner {
-
+	private final static Logger logger = LoggerFactory.getLogger(PlotDataAssigner.class);
+	
 	private PlotViewManifestation plotViewManifestation;
 	
 	final AtomicReference<Collection<FeedProvider>> feedProvidersRef;
@@ -48,6 +54,78 @@ public class PlotDataAssigner {
 		feedsToPlot = new ArrayList<Collection<FeedProvider>>();
 		predictiveFeeds = new ArrayList<FeedProvider>();
 	}
+	
+	String getTimeSystemDefaultChoice() {
+		if (getTimeSystemChoices() != null) {
+			if (getTimeSystemChoices().iterator().hasNext()) {
+ 				return getTimeSystemChoices().iterator().next();
+ 			}
+ 		}
+ 		return null;
+	}
+
+	Set<String> getTimeSystemChoices() {
+		AbstractComponent[][] matrix = PlotViewPolicy.getPlotComponents(
+ 				plotViewManifestation.getManifestedComponent(), 
+ 				useOrdinalPosition());
+		logger.debug("Time System matrix length: {}", matrix.length);
+ 		return aggregateTimeSystemChoices(matrix);			
+ 	}
+ 	
+ 	static Set<String> aggregateTimeSystemChoices(final AbstractComponent[][] matrix) {
+ 		Set<String> choices = new LinkedHashSet<String>();
+ 
+ 		for (AbstractComponent[] row : matrix) {
+ 			int numberOfItemsOnSubPlot = 0;
+ 			for (AbstractComponent component : row) {
+ 				if (numberOfItemsOnSubPlot < PlotConstants.MAX_NUMBER_OF_DATA_ITEMS_ON_A_PLOT) {
+ 					// Alternate implementation is getCapabilities() from each component, then get time system ID from each of fp.
+ 					FeedProvider fp = component.getCapability(FeedProvider.class);
+ 					if (fp != null) {
+ 						String[] timeSystems = fp.getTimeService().getTimeSystems();
+ 						if (timeSystems != null) {
+ 							for (int i=0; i<timeSystems.length; i++) {
+ 								choices.add(timeSystems[i]);
+ 							}
+ 						}
+ 						numberOfItemsOnSubPlot++;
+ 					} 
+ 				}
+ 			}
+ 		}
+ 		return choices;
+ 	}
+ 	
+ 	Set<String> getTimeFormatChoices() {
+ 		AbstractComponent[][] matrix = PlotViewPolicy.getPlotComponents(
+ 				plotViewManifestation.getManifestedComponent(), 
+ 				useOrdinalPosition());
+ 		logger.debug("Time Formats matrix length: ", matrix.length);
+ 		return aggregateTimeFormatChoices(matrix);			
+ 	}
+ 	
+ 	static Set<String> aggregateTimeFormatChoices(final AbstractComponent[][] matrix) {
+ 		Set<String> choices = new LinkedHashSet<String>();
+ 		
+ 		for (AbstractComponent[] row : matrix) {
+ 			int numberOfItemsOnSubPlot = 0;
+ 			for (AbstractComponent component : row) {
+ 				if (numberOfItemsOnSubPlot < PlotConstants.MAX_NUMBER_OF_DATA_ITEMS_ON_A_PLOT) {
+ 					FeedProvider fp = component.getCapability(FeedProvider.class);
+ 					if (fp != null) {
+ 						String[] timeFormats = fp.getTimeService().getTimeFormats();
+ 						if (timeFormats != null) {
+ 							for (int i=0; i<timeFormats.length; i++) {
+ 								choices.add(timeFormats[i]);
+ 							}
+ 							numberOfItemsOnSubPlot++;
+ 						}
+ 					}
+ 				}
+ 			}
+ 		}
+ 		return choices;
+ 	}
 	
 	Collection<FeedProvider> getVisibleFeedProviders() {
 		if (!hasFeeds()) {

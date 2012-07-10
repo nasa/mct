@@ -73,9 +73,9 @@ public class PlotSettingsControlPanelRobotTest {
 	    public void setUp() {
 	        MockitoAnnotations.initMocks(this);
 	        currentTime.setTimeInMillis(100);
-	       
+
 	        qcPlot = new PlotView.Builder(PlotterPlot.class).build();
-	        
+
 	        Mockito.when(mockPlotMan.getCurrentMCTTime()).thenReturn(100L);
 	        Mockito.when(mockPlotMan.getPlot()).thenReturn(qcPlot);
 	        robot = BasicRobot.robotWithCurrentAwtHierarchy();

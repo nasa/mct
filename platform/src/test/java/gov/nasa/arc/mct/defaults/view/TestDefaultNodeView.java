@@ -125,7 +125,7 @@ public class TestDefaultNodeView {
     	Mockito.when(mockComponent.getComponents()).thenReturn(Arrays.asList(comp1, comp2, comp3));
  
         MCTMutableTreeNode treeNode = new MCTMutableTreeNode();
-        treeNode.setParentTree(new JTree(mockModel));
+        treeNode.setParentTree(new JTree());
         
         MCTMutableTreeNode node1 = new MCTMutableTreeNode(view1, false);
         MCTMutableTreeNode node2 = new MCTMutableTreeNode(view2, false);
@@ -136,15 +136,23 @@ public class TestDefaultNodeView {
     	
     	nodeViewManifestation.addMonitoredGUI(treeNode);    	
 
-    	nodeViewManifestation.updateMonitoredGUI();
-    	Mockito.verify(mockModel, Mockito.never()).nodeStructureChanged(Mockito.any(MCTMutableTreeNode.class));
+        nodeViewManifestation.updateMonitoredGUI();
+        for (int index = 0; index < mockComponent.getComponents().size(); index++) {
+            String expected = mockComponent.getComponents().get(index).getComponentId();
+            View   childView = (View) ((MCTMutableTreeNode) treeNode.getChildAt(index)).getUserObject();
+            Assert.assertEquals(childView.getManifestedComponent().getComponentId(), expected);
+        }
 
     	Mockito.when(mockComponent.getComponents()).thenReturn(Arrays.asList(comp1, comp3, comp2));
 
         nodeViewManifestation.updateMonitoredGUI();
-        Mockito.verify(mockModel, Mockito.atLeastOnce()).nodeStructureChanged(Mockito.any(MCTMutableTreeNode.class));
+        for (int index = 0; index < mockComponent.getComponents().size(); index++) {
+            String expected = mockComponent.getComponents().get(index).getComponentId();
+            View   childView = (View) ((MCTMutableTreeNode) treeNode.getChildAt(index)).getUserObject();
+            Assert.assertEquals(childView.getManifestedComponent().getComponentId(), expected);
+        }
     }
-
+    
     /*
      *  The component's name, because it is mocked, is always XXX.
      *  This will outdate the View's label.  Then we refresh the View and we verify

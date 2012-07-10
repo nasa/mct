@@ -46,16 +46,8 @@ public class ConfigurationServiceTest {
     
     @SuppressWarnings("unchecked")
 	@Test(expectedExceptions=ConfigurationException.class,dependsOnMethods="testDefaults")
-    public void testUpdatedMissingSleepTime() throws Exception {
-       dict.put(ConfigurationService.UNSUBSCRIPTION_GRACE_PERIOD, 1000);
-       configService.updated(dict);
-    }
-    
-    @SuppressWarnings("unchecked")
-	@Test(expectedExceptions=ConfigurationException.class,dependsOnMethods="testDefaults")
     public void testUpdatedMissingGracePeriod() throws Exception {
-    	dict.put(ConfigurationService.TIMER_SLEEP_TIME, 1000);
-        configService.updated(dict);
+       configService.updated(dict);
     }
     
     @SuppressWarnings("unchecked")
@@ -66,11 +58,8 @@ public class ConfigurationServiceTest {
     	Assert.assertEquals(1000,configService.getUnSubscriptionGracePeriod());
     	
     	final int grace = 123;
-    	final int sleep = 456;
     	dict.put(ConfigurationService.UNSUBSCRIPTION_GRACE_PERIOD, grace);
-    	dict.put(ConfigurationService.TIMER_SLEEP_TIME, sleep);
     	configService.updated(dict);
-    	Assert.assertEquals(configService.getTimerSleepTime(), sleep);
     	Assert.assertEquals(configService.getUnSubscriptionGracePeriod(), grace);
     }
 }

@@ -32,6 +32,9 @@ import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PlotLineDrawingFlags;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.TimeAxisSubsequentBoundsSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.XAxisMaximumLocationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSetting;
+import gov.nasa.arc.mct.fastplot.bridge.PlotterPlot;
+import gov.nasa.arc.mct.fastplot.utils.TimeFormatUtils;
+import gov.nasa.arc.mct.services.activity.TimeService;
 import gov.nasa.arc.mct.util.LafColor;
 
 import java.awt.BorderLayout;
@@ -185,7 +188,8 @@ public class PlotSettingsControlPanel extends JPanel {
 	public TimeAxisMaximumsPanel timeAxisMaximumsPanel;
 
 	// Top panel controls: Manipulate controls around static plot image
-    private JComboBox timeDropdown;
+	JComboBox timeSystemDropdown;
+    private JComboBox timeFormatDropdown;
 	JRadioButton xAxisAsTimeRadioButton;
     JRadioButton yAxisAsTimeRadioButton;
     private JRadioButton yMaxAtTop;
@@ -307,6 +311,8 @@ public class PlotSettingsControlPanel extends JPanel {
 
 	// Saved Settings of Plot Settings Panel controls. Used to affect Apply and Reset buttons
 	private Object ssWhichAxisAsTime;
+	private String ssTimeSystemSelection;
+    private String ssTimeFormatSelection;
 	private Object ssXMaxAtWhich;
 	private Object ssYMaxAtWhich;
 	private Object ssTimeMin;
@@ -336,6 +342,8 @@ public class PlotSettingsControlPanel extends JPanel {
 	private boolean timeMaxManualHasBeenSelected = false;
 
 	private boolean ssGroupByCollection = false;
+	
+	private SimpleDateFormat staticAreaTimeFormat = null;
 
 	//===================================================================================
 
@@ -364,7 +372,7 @@ public class PlotSettingsControlPanel extends JPanel {
 		private GregorianCalendar timeInMillis;
 
 		private JRadioButton companionButton;
-
+		
 		public ParenthesizedTimeLabel(JRadioButton button) {
 						
 			companionButton = button;
@@ -380,7 +388,7 @@ public class PlotSettingsControlPanel extends JPanel {
 
 		public void setTime(GregorianCalendar inputTime) {
 			timeInMillis = inputTime;
-			setText("(" + dateFormat.format(inputTime.getTime()) + ")");		
+			setText("(" + getStaticAreaTimeFormat().format(inputTime.getTime()) + ")");		
 		}
 
 		public GregorianCalendar getCalendar() {
@@ -447,6 +455,11 @@ public class PlotSettingsControlPanel extends JPanel {
 		public void setValue(Double input) {
 			
 			String formatNum = nonTimePaddingFormat.format(input);
+			
+			if ( (input.doubleValue() >= PlotConstants.MILLION_VALUES) || (input.doubleValue() <= PlotConstants.NEGATIVE_MILLION_VALUES) ) {
+                formatNum = PlotterPlot.getNumberFormatter(input.doubleValue()).format(input.doubleValue());
+			}
+
 			if (formatNum.equals("0"))
 				formatNum = "0.0";
 			
@@ -1208,7 +1221,9 @@ public class PlotSettingsControlPanel extends JPanel {
 		
 		if (plot!=null){
 		  setControlPanelState(plot.getAxisOrientationSetting(),
-				             plot.getXAxisMaximumLocation(),
+                  			 plot.getTimeSystem(),
+                  			 plot.getTimeFormat(),
+				  			 plot.getXAxisMaximumLocation(),
 				             plot.getYAxisMaximumLocation(),
 				             plot.getTimeAxisSubsequentSetting(),
 				             plot.getNonTimeAxisSubsequentMinSetting(),
@@ -1256,16 +1271,28 @@ public class PlotSettingsControlPanel extends JPanel {
 
 	}
 
+	private String getSelectedTimeSystem() {
+        return timeSystemDropdown.getSelectedItem() != null ?
+                        (String) timeSystemDropdown.getSelectedItem() : BUNDLE.getString("Time.label");
+	}
+
+	
 	/*
 	 * Take a snapshot of the UI controls' settings. ("ss" = saved setting)
 	 * For button groups, only the selected button needs to be recorded.
 	 * For spinners, the displayed text is recorded.
 	 */
 	private void saveUIControlsSettings() {
-		// Time system drop-down box - currently has only one possible value
+		// Time system drop-down box 
 
 		// Choice of axis for Time
 		ssWhichAxisAsTime = findSelectedButton(xAxisAsTimeRadioButton, yAxisAsTimeRadioButton);
+
+        // Time system drop-down box
+        ssTimeSystemSelection = getSelectedTimeSystem();
+		
+        // Time format drop-down box
+        ssTimeFormatSelection = (String) timeFormatDropdown.getSelectedItem();
 
 		// X-axis orientation
 		ssXMaxAtWhich = findSelectedButton(xMaxAtRight, xMaxAtLeft);
@@ -1323,8 +1350,15 @@ public class PlotSettingsControlPanel extends JPanel {
 	boolean isPanelDirty() {
 		 JToggleButton selectedButton = null;
 
-		//	Time system dropdown currently has only one possible selection, so no code is needed yet.
+		 // Time system drop-down.
+		 if (timeSystemDropdown.isEnabled() && !((String)timeSystemDropdown.getSelectedItem()).equals(ssTimeSystemSelection)) {
+			 return true;
+		 }
 
+		 if (timeFormatDropdown.isEnabled() && !((String)timeFormatDropdown.getSelectedItem()).equals(ssTimeFormatSelection)) {
+			 return true;
+		 }
+ 
 		// X or Y Axis As Time
 		selectedButton = findSelectedButton(xAxisAsTimeRadioButton, yAxisAsTimeRadioButton);
 		if (ssWhichAxisAsTime != selectedButton) {
@@ -1352,7 +1386,7 @@ public class PlotSettingsControlPanel extends JPanel {
 		// Note that we convert our time value back to a string to avoid differing evaluations of milliseconds
 		recycledCalendarA.setTimeInMillis(ssTimeMinManualValue);
 		if ( (ssTimeMin == timeAxisMinManual && ssTimeMin.getClass().isInstance(timeAxisMinManual)) &&
-				!dateFormat.format(recycledCalendarA.getTime()).equals(timeAxisMinManualValue.getValue()) ){
+				!getStaticAreaTimeFormat().format(recycledCalendarA.getTime()).equals(timeAxisMinManualValue.getValue()) ){
 			return true;
 		}
 
@@ -1485,12 +1519,23 @@ public class PlotSettingsControlPanel extends JPanel {
 	 * Apply and Reset buttons
 	 */
 	private void setupApplyResetListeners() {
-		timeDropdown.addActionListener(new ActionListener() {
+		timeSystemDropdown.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				updateMainButtons();
+				updateStaticAreaWithTimeSystem();
+            }
+		});
+
+		timeFormatDropdown.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				updateMainButtons();
+				setStaticAreaTimeFormat( (String) timeFormatDropdown.getSelectedItem());
 			}
 		});
+
+		
 		// Add listener to radio buttons not on the axes
 		ActionListener buttonListener = new ActionListener() {
 			@Override
@@ -1511,8 +1556,10 @@ public class PlotSettingsControlPanel extends JPanel {
 
 		nonTimeMinAutoAdjustMode.addActionListener(buttonListener);
 		nonTimeMinFixedMode.addActionListener(buttonListener);
+		nonTimeMinSemiFixedMode.addActionListener(buttonListener);
 		nonTimeMaxAutoAdjustMode.addActionListener(buttonListener);
 		nonTimeMaxFixedMode.addActionListener(buttonListener);
+		nonTimeMaxSemiFixedMode.addActionListener(buttonListener);
 
 		// Add listeners to the Time axis buttons
 		ActionListener timeAxisListener = new ActionListener() {
@@ -1651,6 +1698,8 @@ public class PlotSettingsControlPanel extends JPanel {
 				PlotAbstraction plot = plotViewManifestion.getPlot();	
 				if (plot!=null){
 					setControlPanelState(plot.getAxisOrientationSetting(),
+							plot.getTimeSystem(),
+                            plot.getTimeFormat(),
 							plot.getXAxisMaximumLocation(),
 							plot.getYAxisMaximumLocation(),
 							plot.getTimeAxisSubsequentSetting(),
@@ -1679,7 +1728,9 @@ public class PlotSettingsControlPanel extends JPanel {
                 PlotAbstraction plot = plotViewManifestion.getPlot();    
                 if (plot!=null){
                    setControlPanelState(plot.getAxisOrientationSetting(),
-                                     plot.getXAxisMaximumLocation(),
+                		   			 plot.getTimeSystem(),
+                		   			 plot.getTimeFormat(),
+                		   			 plot.getXAxisMaximumLocation(),
                                      plot.getYAxisMaximumLocation(),
                                      plot.getTimeAxisSubsequentSetting(),
                                      plot.getNonTimeAxisSubsequentMinSetting(),
@@ -1762,7 +1813,8 @@ public class PlotSettingsControlPanel extends JPanel {
     	nonTimeMaxSemiFixedMode.setName("nonTimeMaxSemiFixedMode");
 
         imagePanel.setName("imagePanel");
-        timeDropdown.setName("timeDropdown");
+        timeSystemDropdown.setName("timeSystemDropdown");
+        timeFormatDropdown.setName("timeFormatDropdown");
 
         timeSpanValue.setName("timeSpanValue");
         nonTimeSpanValue.setName("nonTimeSpanValue");
@@ -2244,12 +2296,49 @@ public class PlotSettingsControlPanel extends JPanel {
 		JPanel initTopPanel = new JPanel();
 		initTopPanel.setLayout(new GridBagLayout());
 
-		// Left column
-		timeDropdown = new JComboBox( new Object[]{BUNDLE.getString("GMT.label")});
-        JPanel timenessRow = new JPanel();
-        timenessRow.add(new JLabel(BUNDLE.getString("Time.label")));
-        timenessRow.add(timeDropdown);
-
+		// Time Systems and Formats
+		JPanel timePanel = new JPanel();
+		timePanel.setLayout(new BoxLayout(timePanel, BoxLayout.Y_AXIS)); 
+		timePanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+		
+		JPanel timeSystemPanel = new JPanel();
+		timeSystemPanel.setLayout(new BoxLayout(timeSystemPanel, BoxLayout.X_AXIS)); 
+		timeSystemPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 2, 0));
+		
+		JPanel timeFormatsPanel = new JPanel();
+		timeFormatsPanel.setLayout(new BoxLayout(timeFormatsPanel, BoxLayout.X_AXIS)); 
+		timeFormatsPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 2, 0));
+		
+		timePanel.add(timeSystemPanel);
+		timePanel.add(timeFormatsPanel);
+		
+		String notApplicable = BUNDLE.getString("Time.label");
+		String [] choices = getComponentSpecifiedTimeSystemChoices();
+		if (choices == null || choices.length <= 0) {
+			timeSystemDropdown = new JComboBox(new String[]{TimeService.DEFAULT_TIME_SYSTEM});
+			timeSystemDropdown.setFocusable(false);
+			timeSystemDropdown.setEnabled(false);
+		} else {
+			timeSystemDropdown = new JComboBox(choices);
+		}
+		timeSystemDropdown.setSelectedItem(plotViewManifestion.getPlot().getTimeSystem());
+		ssTimeSystemSelection = (String) timeSystemDropdown.getSelectedItem();
+		timeSystemPanel.add(new JLabel(BUNDLE.getString("TimeSystem.label")));
+		timeSystemPanel.add(timeSystemDropdown);
+		
+		choices = getComponentSpecifiedTimeFormatChoices();
+		if (choices == null || choices.length <= 0) {
+			timeFormatDropdown = new JComboBox(new String[]{TimeService.DEFAULT_TIME_FORMAT});
+			timeFormatDropdown.setFocusable(false);
+			timeFormatDropdown.setEnabled(false);
+		} else {
+			timeFormatDropdown = new JComboBox(choices);
+		}
+		timeFormatDropdown.setSelectedItem(plotViewManifestion.getPlot().getTimeFormat());
+		ssTimeFormatSelection = (String) timeFormatDropdown.getSelectedItem();
+		timeFormatsPanel.add(new JLabel(BUNDLE.getString("TimeFormat.label")));
+		timeFormatsPanel.add(timeFormatDropdown);
+		
         xAxisAsTimeRadioButton = new JRadioButton(BUNDLE.getString("XAxisAsTime.label"));
     	yAxisAsTimeRadioButton = new JRadioButton(BUNDLE.getString("YAxisAsTime.label"));
 
@@ -2270,7 +2359,7 @@ public class PlotSettingsControlPanel extends JPanel {
         // Assemble the top row of cells (combo box, 2 separators and 2 titles)
         GridBagConstraints gbcTopA = new GridBagConstraints();
         gbcTopA.anchor = GridBagConstraints.WEST;
-        initTopPanel.add(timenessRow, gbcTopA);
+        initTopPanel.add(timePanel, gbcTopA);
 
         GridBagConstraints gbcSep1 = new GridBagConstraints();
         gbcSep1.gridheight = 3;
@@ -2330,12 +2419,23 @@ public class PlotSettingsControlPanel extends JPanel {
 
         // Instrument
         initTopPanel.setName("initTopPanel");
-        timenessRow.setName("timenessRow");
+        timePanel.setName("timePanel");
 
         JPanel horizontalSqueeze = new JPanel(new BorderLayout());
         horizontalSqueeze.add(initTopPanel, BorderLayout.WEST);
         return horizontalSqueeze;
 	}
+	
+	String[] getComponentSpecifiedTimeSystemChoices() {
+		return (plotViewManifestion != null) ?
+				plotViewManifestion.getTimeSystemChoices() :  new String[] { PlotConstants.DEFAULT_TIME_SYSTEM };
+	}
+
+	String[] getComponentSpecifiedTimeFormatChoices() {
+		return (plotViewManifestion != null) ?
+				plotViewManifestion.getTimeFormatChoices() : new String[] { PlotConstants.DEFAULT_TIME_FORMAT };
+	}
+
 
 	private void addTopPanelListenersAndState() {
 		xAxisAsTimeRadioButton.addActionListener(new ActionListener() {
@@ -2395,6 +2495,10 @@ public class PlotSettingsControlPanel extends JPanel {
         yDirectionGroup.add(yMaxAtBottom);
 	}
 
+	private void updateStaticAreaWithTimeSystem() {
+		xAxisType.setText("(" + getSelectedTimeSystem() + ")");
+	}
+	
 	private void xAxisAsTimeRadioButtonActionPerformed() {
 		 // Move the time axis panels to the x axis class
 		 // Move the nontime axis panels to the y axis class
@@ -2413,7 +2517,7 @@ public class PlotSettingsControlPanel extends JPanel {
 		 } else {
 			 xMaxAtLeft.doClick();
 		 }
-		 xAxisType.setText("(" + BUNDLE.getString("Time.label") + ")");
+		 xAxisType.setText("(" + ssTimeSystemSelection + ")");
 		 yAxisType.setText("(" + BUNDLE.getString("NonTime.label") + ")");
 		 imagePanel.setImageToTimeOnXAxis(xMaxAtRight.isSelected());
 		 behaviorTimeAxisLetter.setText(BUNDLE.getString("X.label"));
@@ -2491,7 +2595,7 @@ public class PlotSettingsControlPanel extends JPanel {
 		belowXAxisPanel.add(xAxisAdjacentPanel);
 		belowXAxisPanel.add(xAxisButtonsPanel);
         belowXAxisPanel.add(Box.createVerticalStrut(X_AXIS_TYPE_VERTICAL_SPACING));
-		xAxisType = new JLabel("(TIME)");
+        xAxisType = new JLabel("("+ ssTimeSystemSelection +")");
 		belowXAxisPanel.add(xAxisType);
 
 		xAxisType.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -3103,6 +3207,8 @@ public class PlotSettingsControlPanel extends JPanel {
     /**
      * Set the state of the widgets in the setting panel according to those specified in the parameters.
      * @param timeAxisSetting
+     * @param timeSystem
+     * @param timeFormat
      * @param xAxisMaximumLocation
      * @param yAxisMaximumLocation
      * @param timeAxisSubsequentSetting
@@ -3117,7 +3223,9 @@ public class PlotSettingsControlPanel extends JPanel {
 	 * @param plotLineConnectionType the method of connecting lines on the plot
      */
     public void setControlPanelState(AxisOrientationSetting timeAxisSetting,
-			XAxisMaximumLocationSetting xAxisMaximumLocation,
+    		String timeSystem,
+            String timeFormat,
+    		XAxisMaximumLocationSetting xAxisMaximumLocation,
 			YAxisMaximumLocationSetting yAxisMaximumLocation,
 			TimeAxisSubsequentBoundsSetting timeAxisSubsequentSetting,
 			NonTimeAxisSubsequentBoundsSetting nonTimeAxisSubsequentMinSetting,
@@ -3140,6 +3248,8 @@ public class PlotSettingsControlPanel extends JPanel {
     	assert nonTimeMin < nonTimeMax : "Non Time min >= Non Time Max";
     	assert minTime < maxTime : "Time min >= Time Max " + minTime + " " + maxTime;
     	
+    	timeSystemDropdown.setSelectedItem(timeSystem == null ? TimeService.DEFAULT_TIME_SYSTEM : timeSystem);
+        timeFormatDropdown.setSelectedItem(timeFormat == null ? TimeService.DEFAULT_TIME_FORMAT : timeFormat);
 	
     	// Setup time axis setting. 
     	if (timeAxisSetting ==  AxisOrientationSetting.X_AXIS_AS_TIME) {
@@ -3209,7 +3319,7 @@ public class PlotSettingsControlPanel extends JPanel {
     		timeAxisMinCurrent.setSelected(true); 
     		
     		GregorianCalendar minCalendar = new GregorianCalendar();
-    		minCalendar.setTimeZone(dateFormat.getTimeZone());
+    		minCalendar.setTimeZone(getStaticAreaTimeFormat().getTimeZone());
      		minCalendar.setTimeInMillis(minTime);
      		timeAxisMinManualValue.setTime(minCalendar);	
     		
@@ -3335,6 +3445,12 @@ public class PlotSettingsControlPanel extends JPanel {
     		assert false: "Time must be specified as being on either the X or Y axis.";
     	    controller.setTimeAxis(AxisOrientationSetting.X_AXIS_AS_TIME);
     	}	
+    	
+    	// Time System setting
+        controller.setTimeSystem(getSelectedTimeSystem());
+
+        // Time Format setting
+        controller.setTimeFormat((String)timeFormatDropdown.getSelectedItem());
     	
     	// X Max Location setting
     	if (xMaxAtRight.isSelected()) {
@@ -3514,5 +3630,16 @@ public class PlotSettingsControlPanel extends JPanel {
     public void updateControlsToMatchPlot() {
     	resetButton.setEnabled(true);
     	resetButton.doClick(0);
+    }
+    
+    public void setStaticAreaTimeFormat(String dateFormatPattern) {
+    	staticAreaTimeFormat = TimeFormatUtils.makeDataFormat(dateFormatPattern == null ? TimeService.DEFAULT_TIME_FORMAT : dateFormatPattern);
+    }
+
+    public SimpleDateFormat getStaticAreaTimeFormat() {
+    	if (staticAreaTimeFormat == null) {
+    		setStaticAreaTimeFormat(ssTimeFormatSelection);
+    	}
+    	return staticAreaTimeFormat;
     }
 }

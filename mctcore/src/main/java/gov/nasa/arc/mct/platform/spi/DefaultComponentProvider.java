@@ -37,4 +37,23 @@ public interface DefaultComponentProvider {
      * @return class supporting a broken component
      */
     public Class<? extends AbstractComponent> getBrokenComponent();
+    
+    /**
+     * Creates a new dropbox instance for the specified user.
+     * @param userId for the drop box owner
+     * @return new instance of dropbox component
+     */
+    public AbstractComponent createDropbox(String userId);
+    
+    /**
+     * Creates a new sandbox for the specified user.
+     * @param userId for the sandbox owner.
+     * @return new instance of sandbox component
+     */
+    public AbstractComponent createSandbox(String userId);
+    
+    /**
+     * Creates the set of default components. These are the components that should exist when the persistence is initialized.
+     */
+    public void createDefaultComponents();
 }

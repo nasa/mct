@@ -27,6 +27,7 @@ import gov.nasa.arc.mct.util.FilepathReplacer;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
@@ -46,12 +47,14 @@ import com.sleepycat.je.SecondaryDatabase;
 import com.sleepycat.je.SecondaryKeyCreator;
 import com.sleepycat.je.Transaction;
 import com.sleepycat.je.TransactionConfig;
+import com.sleepycat.persist.EntityStore;
+import com.sleepycat.persist.StoreConfig;
 
 public final class DiskBufferEnv implements DataBufferEnv, Cloneable {
     private static final Logger LOGGER = LoggerFactory.getLogger(DiskBufferEnv.class);
     
-    private static final String META_DATABASE_PATH = "metaBuffer";
-    private static final String META_DATABASE_NAME = "meta";
+    private static final String META_DATABASE_PATH = "metaNonCODBuffer";
+    private static final String META_DATABASE_NAME = "metaNonCOD";
 
     private static enum STATE {
         unInitialized, initializing, initialized;
@@ -72,6 +75,7 @@ public final class DiskBufferEnv implements DataBufferEnv, Cloneable {
     
     private TransactionConfig txnConfig;
     private CursorConfig cursorConfig;
+    private List<EntityStore> openStores = new LinkedList<EntityStore>();
     private DiskQuotaHelper diskQuotaHelper;
 
     private static Properties loadDefaultPropertyFile() {
@@ -104,7 +108,7 @@ public final class DiskBufferEnv implements DataBufferEnv, Cloneable {
         }
         this.prop = prop;
         this.currentBufferPartition = 0;
-        File bufferHome = new File(FilepathReplacer.substitute(getPropertyWithPrecedence(prop, "buffer.disk.loc")));     
+        File bufferHome = new File(FilepathReplacer.substitute(getPropertyWithPrecedence(prop, "buffer.disk.loc.non.cod")));     
         if (!bufferHome.exists()) {
             bufferHome.mkdirs();
         }
@@ -132,13 +136,13 @@ public final class DiskBufferEnv implements DataBufferEnv, Cloneable {
         setup(false);
     }
 
-    public DiskBufferEnv(Properties prop, int currentBufferPartition) { //throws Exception {
+    public DiskBufferEnv(Properties prop, int currentBufferPartition) {
         if (prop == null) {
             prop = loadDefaultPropertyFile();
         }
         this.prop = prop;
         this.currentBufferPartition = currentBufferPartition;
-        File bufferHome = new File(FilepathReplacer.substitute(getPropertyWithPrecedence(prop, "buffer.disk.loc")));
+        File bufferHome = new File(FilepathReplacer.substitute(getPropertyWithPrecedence(prop, "buffer.disk.loc.non.cod")));
         if (!bufferHome.exists()) {
             bufferHome.mkdirs();
         }
@@ -179,7 +183,7 @@ public final class DiskBufferEnv implements DataBufferEnv, Cloneable {
         envConfig.setReadOnly(readOnly);
         // If the environment is opened for write, then we want to be able to
         // create the environment if it does not exist.
-        envConfig.setAllowCreate(true);
+        envConfig.setAllowCreate(!readOnly); //true
         
         envConfig.setConfigParam(EnvironmentConfig.CHECKPOINTER_BYTES_INTERVAL, "40000000");
 
@@ -215,7 +219,26 @@ public final class DiskBufferEnv implements DataBufferEnv, Cloneable {
         return systemProp != null ? systemProp.trim() : localProps.getProperty(key, "unset").trim(); 
     }
     
-    public Database openMetaDiskStore() throws DatabaseException {
+    public EntityStore openMetaDiskStore() throws DatabaseException {
+        assertState(STATE.initialized);
+        
+        StoreConfig storeConfig = new StoreConfig();
+        storeConfig.setAllowCreate(true);
+        storeConfig.setDeferredWrite(true);
+        storeConfig.setTransactional(false);
+
+    	// Changes due to timing issues for Apache Felix OSGi
+        // Should have better performance.
+        ClassLoader originalClassloader = Thread.currentThread().getContextClassLoader();
+        try {
+            Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+            return new EntityStore(dbufferEnv, META_DATABASE_NAME, storeConfig);
+        } finally {
+            Thread.currentThread().setContextClassLoader(originalClassloader);
+        }
+    }
+    
+    public Database openMetaDiskDBStore() throws DatabaseException {
         assertState(STATE.initialized);
 
         DatabaseConfig dbConfig = new DatabaseConfig();
@@ -228,7 +251,20 @@ public final class DiskBufferEnv implements DataBufferEnv, Cloneable {
         return diskStore;
     }
 
-    public Database openDiskStore(String dbName, SecondaryKeyCreator... keyCreators) throws DatabaseException {
+    public EntityStore openDiskStore(String dbName) throws DatabaseException {
+        assertState(STATE.initialized);
+        
+        StoreConfig storeConfig = new StoreConfig();
+        storeConfig.setAllowCreate(true);
+        storeConfig.setDeferredWrite(true);
+        storeConfig.setTransactional(false);
+
+        EntityStore store = new EntityStore(dbufferEnv, dbName, storeConfig);
+        openStores.add(store);
+        return store;
+    }
+    
+    public Database openDiskDBStore(String dbName, SecondaryKeyCreator... keyCreators) throws DatabaseException {
         assertState(STATE.initialized);
         
         DatabaseConfig dbConfig = new DatabaseConfig();
@@ -258,7 +294,7 @@ public final class DiskBufferEnv implements DataBufferEnv, Cloneable {
     public boolean isDiskBufferFull() {
         return diskQuotaHelper.isDiskBufferFull();
     }
-
+    
     public Transaction beginTransaction() throws DatabaseException {
         assertState(STATE.initialized);
 
@@ -280,6 +316,31 @@ public final class DiskBufferEnv implements DataBufferEnv, Cloneable {
 
     }
     
+    public void removeAndCloseAllDiskStores() throws DatabaseException {
+        for (EntityStore store: openStores) {
+            store.close();
+        }
+        openStores.clear();
+        removeEnvironment();
+    }
+
+    public void closeDatabase(EntityStore store) throws DatabaseException {
+        if (store == null) { return; }
+        store.close();
+        openStores.remove(store);
+    }
+
+    public void closeAndRestartEnvironment() throws DatabaseException {
+        boolean isReadOnly = dbufferEnv.getConfig().getReadOnly();
+        removeAndCloseAllDiskStores();
+        restartEnvironment(isReadOnly);
+    }
+
+    public void restartEnvironment(boolean isReadOnly) throws DatabaseException {
+        state = STATE.initializing;
+        setup(isReadOnly);
+    }
+    
     public void removeEnvironment() throws DatabaseException {
         dbufferEnv.cleanLog();
         dbufferEnv.close();
@@ -293,17 +354,7 @@ public final class DiskBufferEnv implements DataBufferEnv, Cloneable {
         this.state = STATE.unInitialized;
     }
 
-    public void removeAndCloseAllDiskStores() throws DatabaseException {
-        List<String> dbNames = dbufferEnv.getDatabaseNames();
-        for (String dbName : dbNames) {
-            try {
-                dbufferEnv.removeDatabase(null, dbName);
-            } catch (DatabaseException de) {
-                continue;
-            }
-        }
-        closeEnvironment();
-    }
+    
 
     public void closeDatabase(Database database) throws DatabaseException {
         if (database == null) { return; }
@@ -314,17 +365,7 @@ public final class DiskBufferEnv implements DataBufferEnv, Cloneable {
         database.close();
     }
 
-    public void closeAndRestartEnvironment() throws DatabaseException {
-        boolean isReadOnly = dbufferEnv.getConfig().getReadOnly();
-        removeAndCloseAllDiskStores();
-        restartEnvironment(isReadOnly);
-    }
-
-    public void restartEnvironment(boolean isReadOnly) throws DatabaseException {
-        state = STATE.initializing;
-        setup(isReadOnly);
-    }
-
+    
     public int getConcurrencyDegree() {
         return concurrency;
     }

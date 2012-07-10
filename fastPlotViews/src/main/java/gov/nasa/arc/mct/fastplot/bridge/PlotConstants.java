@@ -81,9 +81,13 @@ public class PlotConstants {
 	
 	public static final String GMT = "GMT";
 	public static final String DEFAULT_TIME_ZONE = GMT;
+	public static final String DEFAULT_TIME_SYSTEM = GMT;
 	public static final String DEFAULT_TIME_AXIS_DATA_FORMAT = "DDD/HH:mm:ss"; // add a z to see the time zone.
-
+	public static String DEFAULT_TIME_FORMAT = DEFAULT_TIME_AXIS_DATA_FORMAT;
+	
 	// Field names for persistence
+	public static final String TIME_SYSTEM_SETTING = "TimeSystem";
+    public static final String TIME_FORMAT_SETTING = "TimeFormat";
 	public static final String TIME_AXIS_SETTING = "PlotTimeAxisSetting";
 	public static final String X_AXIS_MAXIMUM_LOCATION_SETTING = "PlotXAxisMaximumLocation";
 	public static final String Y_AXIS_MAXIMUM_LOCATION_SETTING = "PlotYAxisMaximumLocation";
@@ -170,6 +174,13 @@ public class PlotConstants {
     
     public static final int LOCAL_CONTROL_HEIGHT = 25;
     public static final int LOCAL_CONTROL_WIDTH = 28;
+    
+    /** Use scientific notations to the thousandth decimal places. */
+    public final static String SCIENTIFIC_NUMBER_FORMAT = "0.000E0";
+    public final static DecimalFormat SCIENTIFIC_FORMAT = new DecimalFormat(SCIENTIFIC_NUMBER_FORMAT);
+    public final static double MILLION_VALUES = 1E6;
+    public final static double NEGATIVE_MILLION_VALUES = -MILLION_VALUES;
+
     
     /**
      * Orientation of the time axis. 

@@ -40,13 +40,17 @@ public class PlotViewFactory {
 	 * Create the plot from persisted settings if available. Otherwise, create a default plot. 
 	 */
 	static PlotView createPlot(PlotSettings settings, long currentTime, PlotViewManifestation parentManifestation,
-			                   int numberOfSubPlots, PlotView oldPlot, AbbreviatingPlotLabelingAlgorithm plotLabelingAlgorithm) {		
+			                   int numberOfSubPlots, PlotView oldPlot, AbbreviatingPlotLabelingAlgorithm plotLabelingAlgorithm, String viewStateTimeSystem) {		
         PlotView thePlot;
         
         // Insure we always have at least one plot.
         numberOfSubPlots = Math.max(1,numberOfSubPlots);
         
 		if (!settings.isNull()) {
+			if (settings.timeSystemSetting == null) {
+				settings.timeSystemSetting = viewStateTimeSystem;
+			}
+
 			// The plot has persisted settings so apply them. 
 			if (!settings.pinTimeAxis) {
 				adjustPlotStartAndEndTimeToMatchCurrentTime(settings, currentTime);
@@ -55,7 +59,8 @@ public class PlotViewFactory {
 		} else {
 			// Setup a default plot to view while the user is configuring it.
 			thePlot = new PlotView.Builder(PlotterPlot.class).
-			             numberOfSubPlots(numberOfSubPlots).
+						 timeSystem(viewStateTimeSystem).	
+						 numberOfSubPlots(numberOfSubPlots).
 			             timeVariableAxisMaxValue(currentTime).
 			             timeVariableAxisMinValue(currentTime - PlotConstants.DEFAUlT_PLOT_SPAN).
 			             plotLabelingAlgorithm(plotLabelingAlgorithm).build();
@@ -89,6 +94,8 @@ public class PlotViewFactory {
 	static PlotView createPlotFromSettings(PlotSettings settings, int numberOfSubPlots, AbbreviatingPlotLabelingAlgorithm plotLabelingAlgorithm) {			
 			PlotView newPlot = new PlotView.Builder(PlotterPlot.class)
 			.axisOrientation(settings.timeAxisSetting)
+			.timeSystem(settings.timeSystemSetting)
+            .timeFormat(settings.timeFormatSetting)
 			.xAxisMaximumLocation(settings.xAxisMaximumLocation)
 			.yAxisMaximumLocation(settings.yAxisMaximumLocation)
 			.nonTimeVaribleAxisMaxValue(settings.maxNonTime)

@@ -47,6 +47,8 @@ import gov.nasa.arc.mct.core.policy.SameComponentsCannotBeLinkedPolicy;
 import gov.nasa.arc.mct.core.roles.DropboxCanvasView;
 import gov.nasa.arc.mct.core.roles.UsersManifestation;
 import gov.nasa.arc.mct.platform.spi.DefaultComponentProvider;
+import gov.nasa.arc.mct.platform.spi.Platform;
+import gov.nasa.arc.mct.platform.spi.PlatformAccess;
 import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.policy.PolicyInfo.CategoryType;
 import gov.nasa.arc.mct.services.component.AbstractComponentProvider;
@@ -54,6 +56,8 @@ import gov.nasa.arc.mct.services.component.ComponentTypeInfo;
 import gov.nasa.arc.mct.services.component.ProviderDelegate;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
+import gov.nasa.arc.mct.services.internal.component.ComponentInitializer;
+import gov.nasa.arc.mct.services.internal.component.CoreComponentRegistry;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -145,6 +149,47 @@ public class CoreComponentProvider extends AbstractComponentProvider implements 
        return BrokenComponent.class;
     }
 
+    @Override
+    public AbstractComponent createDropbox(String userId) {
+        Platform platform = PlatformAccess.getPlatform();
+        AbstractComponent dropbox = platform.getComponentRegistry().newInstance(TelemetryUserDropBoxComponent.class.getName());
+        ComponentInitializer dropboxCapability = dropbox.getCapability(ComponentInitializer.class);
+        dropboxCapability.setCreator("admin");
+        dropboxCapability.setOwner(userId);
+        dropbox.setDisplayName(userId + "\'s drop box");
+        
+        return dropbox;
+    }
+    
+    @Override
+    public AbstractComponent createSandbox(String userId) {
+        Platform platform = PlatformAccess.getPlatform();
+        CoreComponentRegistry componentRegistry = platform.getComponentRegistry();
+        AbstractComponent mySandbox = componentRegistry.newInstance(MineTaxonomyComponent.class.getName());
+        ComponentInitializer mysandboxCapability = mySandbox.getCapability(ComponentInitializer.class);
+        mysandboxCapability.setCreator(userId);
+        mysandboxCapability.setOwner(userId);
+        mySandbox.setDisplayName("My Sandbox");
+        
+        return mySandbox;
+    }
+    
+    @Override
+    public void createDefaultComponents() {
+        Platform platform = PlatformAccess.getPlatform();
+        CoreComponentRegistry componentRegistry = platform.getComponentRegistry();
+        
+        AbstractComponent dropBoxes = componentRegistry.newInstance(TelemetryDataTaxonomyComponent.class.getName());
+        dropBoxes.setDisplayName("User Drop Boxes");
+        dropBoxes.setExternalKey("/UserDropBoxes");
+        ComponentInitializer dropBoxesCapability = dropBoxes.getCapability(ComponentInitializer.class);
+        dropBoxesCapability.setCreator("admin");
+        dropBoxesCapability.setOwner("admin");
+        
+        platform.getPersistenceProvider().persist(Collections.singleton(dropBoxes));
+        platform.getPersistenceProvider().tagComponents("bootstrap:admin", Collections.singleton(dropBoxes));
+    }
+    
     @Override
     public ProviderDelegate getProviderDelegate() {
         return new CoreComponentProviderDelegate();

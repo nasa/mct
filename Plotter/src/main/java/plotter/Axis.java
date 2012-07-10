@@ -33,6 +33,9 @@ import javax.swing.JComponent;
 public abstract class Axis extends JComponent {
 	private static final long serialVersionUID = 1L;
 
+	/** Displays the time system axis label name. Defaults to GMT. */
+	protected static final String DEFAULT_TIME_SYSTEM_NAME = "GMT";
+
 	/** Start value. */
 	private double start;
 
@@ -180,4 +183,16 @@ public abstract class Axis extends JComponent {
 	public void setShowLabels(boolean showLabels) {
 		this.showLabels = showLabels;
 	}
+	
+	/**
+	 * Returns the time system axis label name.
+	 * @return time system axis label name.
+	 */
+	public abstract String getTimeSystemAxisLabelName();
+
+	/**
+	 * Sets the time system axis label name.
+	 * @param labelName time system.
+	 */
+	public abstract void setTimeSystemAxisLabelName(String labelName);
 }

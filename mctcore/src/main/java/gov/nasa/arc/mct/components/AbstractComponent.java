@@ -343,11 +343,15 @@ public abstract class AbstractComponent implements Cloneable {
      * implementation delegates to the viewPersisted method. 
      */
     public final void componentSaved() {
-        Set<View> guiComponents = getAllViewManifestations();
+        final Set<View> guiComponents = getAllViewManifestations();
         if (guiComponents != null) {
-            for (View gui : guiComponents) {
-                gui.viewPersisted();
-            }
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    for (View gui : guiComponents) {
+                        gui.viewPersisted();
+                    }
+                }
+            });
         }
     }
     
@@ -610,12 +614,16 @@ public abstract class AbstractComponent implements Cloneable {
         firePropertyChangeEvent(event);
     }
     
-    private void firePropertyChangeEvent(PropertyChangeEvent event) {
-        Set<View> guiComponents = getAllViewManifestations();
+    private void firePropertyChangeEvent(final PropertyChangeEvent event) {
+        final Set<View> guiComponents = getAllViewManifestations();
         if (guiComponents != null) {
-            for (View gui : guiComponents) {
-                gui.updateMonitoredGUI(event);
-            }
+            SwingUtilities.invokeLater(new Runnable() {
+                public void run() {
+                    for (View gui : guiComponents) {
+                        gui.updateMonitoredGUI(event);
+                    }
+                }
+            });
         }
     }
 

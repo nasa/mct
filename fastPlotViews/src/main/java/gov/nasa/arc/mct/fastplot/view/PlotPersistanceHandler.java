@@ -81,6 +81,10 @@ public class PlotPersistanceHandler {
 			} else {
 				settings.timeAxisSubsequent = Enum.valueOf(TimeAxisSubsequentBoundsSetting.class, timeAxisSubsequent);
 			}
+			
+			settings.timeSystemSetting = plotViewManifestation.getViewProperties().getProperty(PlotConstants.TIME_SYSTEM_SETTING, String.class).trim();
+			settings.timeFormatSetting = plotViewManifestation.getViewProperties().getProperty(PlotConstants.TIME_FORMAT_SETTING, String.class).trim();
+
 			settings.nonTimeAxisSubsequentMinSetting = Enum.valueOf(NonTimeAxisSubsequentBoundsSetting.class, plotViewManifestation.getViewProperties().getProperty(PlotConstants.NON_TIME_AXIS_SUBSEQUENT_MIN_SETTING, String.class).trim().toUpperCase());
 			settings.nonTimeAxisSubsequentMaxSetting = Enum.valueOf(NonTimeAxisSubsequentBoundsSetting.class, plotViewManifestation.getViewProperties().getProperty(PlotConstants.NON_TIME_AXIS_SUBSEQUENT_MAX_SETTING, String.class).trim().toUpperCase());
 			
@@ -152,6 +156,8 @@ public class PlotPersistanceHandler {
 	 * @param plotLineDraw 
 	 */
 	void persistPlotSettings(AxisOrientationSetting timeAxisSetting,
+			String timeSystem,
+			String timeFormat,
 			XAxisMaximumLocationSetting xAxisMaximumLocation,
 			YAxisMaximumLocationSetting yAxisMaximumLocation,
 			TimeAxisSubsequentBoundsSetting timeAxisSubsequentSetting,
@@ -182,6 +188,8 @@ public class PlotPersistanceHandler {
 		viewProperties.setProperty(PlotConstants.NON_TIME_MAX_PADDING, "" + nonTimeMaxPadding);
 		viewProperties.setProperty(PlotConstants.NON_TIME_MIN_PADDING, "" + nonTimeMinPadding);
 		viewProperties.setProperty(PlotConstants.GROUP_BY_ORDINAL_POSITION, Boolean.toString(groupByOrdinalPosition));
+		viewProperties.setProperty(PlotConstants.TIME_SYSTEM_SETTING, "" + timeSystem);
+		viewProperties.setProperty(PlotConstants.TIME_FORMAT_SETTING, "" + timeFormat);
 		viewProperties.setProperty(PlotConstants.PIN_TIME_AXIS, Boolean.toString(timeAxisPinned));
 		viewProperties.setProperty(PlotConstants.DRAW_LINES, "" + plotLineDraw.drawLine());
 		viewProperties.setProperty(PlotConstants.DRAW_MARKERS, "" + plotLineDraw.drawMarkers());

@@ -90,6 +90,13 @@ public final class FeedAggregatorService implements FeedDataArchive, FeedAggrega
             }
         },
         
+        noncoddisk() {
+            @Override
+            public DataBuffer getDataBuffer(Properties props) {
+                return DataBufferFactory.getNonCODDiskDataBuffer(props);
+            }
+        },
+
         fastdisk() {
             @Override
             public DataBuffer getDataBuffer(Properties props) {

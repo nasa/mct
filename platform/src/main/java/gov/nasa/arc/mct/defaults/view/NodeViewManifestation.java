@@ -43,6 +43,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -130,12 +131,9 @@ public class NodeViewManifestation extends View {
                 return;
             
             DefaultTreeModel treeModel = (DefaultTreeModel) parentTree.getModel();
-            treeModel.nodeChanged(node);
             
             if (node.isProxy())
                 return;
-
-            AbstractComponent parentComponent = getManifestedComponent();
 
             // Check if a node structure refresh is necessary
             List<AbstractComponent> visibleChildComponents = new ArrayList<AbstractComponent>();
@@ -154,10 +152,18 @@ public class NodeViewManifestation extends View {
                 }
                 if (!changed) return; // Don't continue with refresh if children are unchanged.
             }                
+
+            // Note currently expanded nodes to restore state after re-ordering
+            Set<String> expanded = new HashSet<String>();
+            for (int index = 0; index < node.getChildCount(); index++) {
+                MCTMutableTreeNode childNode = (MCTMutableTreeNode) node.getChildAt(index);
+                View childView = (View) childNode.getUserObject();
+                if (parentTree.isExpanded(childNode.getTreePath()))
+                    expanded.add(childView.getManifestedComponent().getComponentId());               
+            }
             
-            // Needs to refresh node structure; this will cause tree node to collapse
-            node.removeAllChildren(objectStaleListener);
-            for (AbstractComponent childComponent : parentComponent.getComponents()) {
+            // Insert nodes at the bottom which reflect current structure...
+            for (AbstractComponent childComponent : visibleChildComponents) {
                 Set<ViewInfo> viewInfos = childComponent.getViewInfos(ViewType.NODE);
 
                 if (!node.isProxy()) {
@@ -166,7 +172,23 @@ public class NodeViewManifestation extends View {
                     node.addChild(node.getChildCount(), childNode, objectStaleListener);
                 }
             }
-            treeModel.nodeStructureChanged(node);
+            
+            // ...and then remove the old nodes from the top. (Removing first would cause node to collapse.)
+            while (node.getChildCount() > visibleChildComponents.size()) {
+                node.removeChild((MCTMutableTreeNode) node.getChildAt(0), objectStaleListener);
+            }
+            
+            // Finally, restore selection paths.
+            for (int index = 0; index < node.getChildCount(); index++) {
+                MCTMutableTreeNode childNode = (MCTMutableTreeNode) node.getChildAt(index);
+                View childView = (View) childNode.getUserObject();
+                if (expanded.contains(childView.getManifestedComponent().getComponentId())) {
+                    parentTree.expandPath(childNode.getTreePath());
+                    childNode.setProxy(false); // If expanded node is mislabeled as proxy, it will lose updates
+                }
+            }
+
+            treeModel.nodeChanged(node);
         }
     }
 

@@ -28,6 +28,7 @@
  */
 package gov.nasa.arc.mct.platform;
 
+import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.context.GlobalContext;
 import gov.nasa.arc.mct.defaults.view.DefaultViewProvider;
 import gov.nasa.arc.mct.exception.DefaultExceptionHandler;
@@ -304,8 +305,32 @@ public class Startup {
         String whoami = GlobalContext.getGlobalContext().getIdManager().getCurrentUser();
         User currentUser = PlatformAccess.getPlatform().getPersistenceProvider().getUser(whoami);
         if (currentUser == null) {
-            throw new MCTRuntimeException("MCT user '" + whoami
-                    + "' is not in the MCT database. You can load MCT user(s) using MCT's load user tool.");
+            final String ADD_USER_PROP = "automatically.add.user";
+            final String DEFAULT_GROUP_PROP = "default.user.group";
+            if (Boolean.parseBoolean(System.getProperty(ADD_USER_PROP, MCTProperties.DEFAULT_MCT_PROPERTIES.getProperty(ADD_USER_PROP, "false")))) {
+                String userId = whoami;
+                Platform platform = PlatformAccess.getPlatform();
+                
+                // determine if the platform has been initialized
+                if (platform.getBootstrapComponents().isEmpty()) {
+                    platform.getDefaultComponentProvider().createDefaultComponents();
+                    // invoke getting default components again to ensure the platform has been bootstrapped
+                    platform.getBootstrapComponents();
+                }
+                
+                AbstractComponent mySandbox = platform.getDefaultComponentProvider().createSandbox(userId);
+                AbstractComponent dropbox = platform.getDefaultComponentProvider().createDropbox(userId);
+                
+                String group = System.getProperty(DEFAULT_GROUP_PROP, MCTProperties.DEFAULT_MCT_PROPERTIES.getProperty(DEFAULT_GROUP_PROP, ""));
+                if (group.isEmpty()) {
+                    throw new MCTRuntimeException("Default group not specified, set the default group in mct.properties using the " + DEFAULT_GROUP_PROP + " property.");
+                }
+                platform.getPersistenceProvider().addNewUser(userId, group, mySandbox, dropbox);
+                currentUser = platform.getPersistenceProvider().getUser(whoami);
+            } else {
+                throw new MCTRuntimeException("MCT user '" + whoami
+                        + "' is not in the MCT database. You can load MCT user(s) using MCT's load user tool.");
+            }
         }
         GlobalContext.getGlobalContext().switchUser(currentUser, null);
         return true;

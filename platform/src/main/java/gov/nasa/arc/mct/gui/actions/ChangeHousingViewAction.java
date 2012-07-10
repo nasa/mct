@@ -22,9 +22,11 @@
 package gov.nasa.arc.mct.gui.actions;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
+import gov.nasa.arc.mct.defaults.view.MCTHousingViewManifestation;
 import gov.nasa.arc.mct.gui.ActionContext;
 import gov.nasa.arc.mct.gui.ActionContextImpl;
 import gov.nasa.arc.mct.gui.GroupAction;
+import gov.nasa.arc.mct.gui.OptionBox;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.housing.MCTHousing;
 import gov.nasa.arc.mct.gui.housing.MCTStandardHousing;
@@ -33,11 +35,14 @@ import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 
 import java.awt.event.ActionEvent;
+import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.Set;
 
 import javax.swing.Action;
@@ -50,7 +55,11 @@ import javax.swing.Action;
  */
 @SuppressWarnings("serial")
 public class ChangeHousingViewAction extends GroupAction {
-    
+    private static final ResourceBundle BUNDLE = 
+            ResourceBundle.getBundle(
+                    MCTStandardHousing.class.getName().substring(0, 
+                            MCTStandardHousing.class.getName().lastIndexOf("."))+".Bundle");
+
     private Map<AbstractComponent, List<? extends RadioAction>> componentActionsMap = new HashMap<AbstractComponent, List<? extends RadioAction>>();
 
     public ChangeHousingViewAction() {
@@ -122,9 +131,32 @@ public class ChangeHousingViewAction extends GroupAction {
             return true;
         }
 
+        private void commitOrAbortPendingChanges() {
+            MCTHousingViewManifestation housingView = (MCTHousingViewManifestation) context.getWindowManifestation();
+            View view = housingView.getContentArea().getHousedViewManifestation();
+            Object[] options = {
+                    BUNDLE.getString("view.modified.alert.save"),
+                    BUNDLE.getString("view.modified.alert.abort"),
+                };
+        
+            int answer = OptionBox.showOptionDialog(view, 
+                    MessageFormat.format(BUNDLE.getString("view.modified.alert.text"), view.getInfo().getViewName(), view.getManifestedComponent().getDisplayName()),                         
+                    BUNDLE.getString("view.modified.alert.title"),
+                    OptionBox.YES_NO_OPTION,
+                    OptionBox.WARNING_MESSAGE,
+                    null,
+                    options, options[0]);
+            
+            if (answer == OptionBox.YES_OPTION) {
+                PlatformAccess.getPlatform().getPersistenceProvider().persist(Collections.singleton(view.getManifestedComponent()));
+            }                    
+        }
+
         @Override
         public void actionPerformed(ActionEvent event) {
-            MCTStandardHousing housing = (MCTStandardHousing) context.getTargetHousing();
+            MCTStandardHousing housing = (MCTStandardHousing) context.getTargetHousing();            
+            if (housing.getContentArea().getHousedViewManifestation().getManifestedComponent().isDirty())
+                commitOrAbortPendingChanges();
             
             View currentCanvasViewManifestation = housing.getContentArea().getHousedViewManifestation();
             if (!viewInfo.equals(currentCanvasViewManifestation.getInfo())) {

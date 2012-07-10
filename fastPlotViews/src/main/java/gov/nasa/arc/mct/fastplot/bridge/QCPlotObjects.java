@@ -27,11 +27,15 @@ import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.TimeAxisSubsequentBoundsSe
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.XAxisMaximumLocationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSetting;
 
+import gov.nasa.arc.mct.fastplot.utils.TimeFormatUtils;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Rectangle;
+import java.text.NumberFormat;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.GregorianCalendar;
 import java.util.TimeZone;
@@ -52,7 +56,8 @@ import plotter.xy.XYPlotContents;
  */
 public class QCPlotObjects {
 	PlotterPlot plot;
-
+	private String timeSystemId;
+	
 	public QCPlotObjects(PlotterPlot thePlot) {
 		plot = thePlot;
 		createPlotInstance();		
@@ -112,6 +117,10 @@ public class QCPlotObjects {
 		assert(plot.endTime != null): "End time should not have been intialized by this point";
 	}
 
+	private NumberFormat getNumberFormatter() {
+		return new DecimalFormat(PlotConstants.SCIENTIFIC_NUMBER_FORMAT);
+	}
+	
 	private void setupAxis() {
 		assert plot.plotView !=null : "Plot Object not initalized";
 
@@ -146,6 +155,7 @@ public class QCPlotObjects {
 			
 			xAxis.setForeground(plot.timeAxisColor);
 			yAxis.setForeground(plot.nonTimeAxisColor);
+			yAxis.setFormat(getNumberFormatter());
 			plot.plotView.setXAxis(xAxis);
 			plot.plotView.setYAxis(yAxis);
 			plot.plotView.add(xAxis);
@@ -153,9 +163,9 @@ public class QCPlotObjects {
 
 			// Setup the axis labels.
 			if (plot.isTimeLabelEnabled) {
-				SimpleDateFormat format = new SimpleDateFormat(plot.timeAxisDateFormat);
-				format.setTimeZone(TimeZone.getTimeZone("GMT"));
+				SimpleDateFormat format = TimeFormatUtils.makeDataFormat(plot.timeFormatSetting);
 				xAxis.setFormat(new DateNumberFormat(format));
+                xAxis.setTimeSystemAxisLabelName(timeSystemId);
 			} else {
 				xAxis.setShowLabels(false);
 			}
@@ -199,6 +209,8 @@ public class QCPlotObjects {
 			xAxis.setForeground(plot.nonTimeAxisColor);
 			yAxis.setForeground(plot.timeAxisColor);
 			
+			xAxis.setFormat(getNumberFormatter());
+			
 			xAxis.setPreferredSize(new Dimension(1, 20));
 			yAxis.setPreferredSize(new Dimension(60, 1));
 			plot.plotView.setXAxis(xAxis);
@@ -208,9 +220,9 @@ public class QCPlotObjects {
 
 			// Setup the axis labels.
 			if (plot.isTimeLabelEnabled) {
-				SimpleDateFormat format = new SimpleDateFormat(plot.timeAxisDateFormat);
-				format.setTimeZone(TimeZone.getTimeZone("GMT"));
-				yAxis.setFormat(new DateNumberFormat(format));
+				SimpleDateFormat format = TimeFormatUtils.makeDataFormat(plot.timeFormatSetting);
+                yAxis.setFormat(new DateNumberFormat(format));
+                yAxis.setTimeSystemAxisLabelName(timeSystemId);
 			} else {
 				yAxis.setShowLabels(false);
 			}

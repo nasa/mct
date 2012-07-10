@@ -234,8 +234,7 @@ Notes:
 		    	<jvmarg value="-Xmx${mct.runtime.memory}m" />
 	            <jvmarg value="-Dmct.db.check-schema-version=${mct.db.check-schema-version}" />
 	        	<jvmarg value="-DMCCreconID=${mct.imars.MCCreconID}" />
-	        	<jvmarg value="-DparameterFile=${mct.imars.parameterFile}" />
-	        	<jvmarg value="-DterfFile=${mct.imars.terfFile}" />
+	        	<jvmarg value="-Dorg.jboss.logging.provider=slf4j" />
 	        </mct.java>
 	    </target>
 	

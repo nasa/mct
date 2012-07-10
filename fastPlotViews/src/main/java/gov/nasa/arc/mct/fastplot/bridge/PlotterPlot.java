@@ -35,11 +35,14 @@ import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSettin
 import gov.nasa.arc.mct.fastplot.utils.AbbreviatingPlotLabelingAlgorithm;
 import gov.nasa.arc.mct.fastplot.view.Axis;
 import gov.nasa.arc.mct.fastplot.view.Pinnable;
+import gov.nasa.arc.mct.services.activity.TimeService;
 
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
@@ -89,6 +92,12 @@ public class PlotterPlot implements AbstractPlottingPackage {
 	// Chart settings
 	/** Axis orientation setting. */
 	AxisOrientationSetting axisOrientation;
+	
+	/** Time System. */
+    String timeSystemSetting;
+
+    /** Time Format. */
+    String timeFormatSetting;
 	
 	/** X-Axis max location setting. */
 	XAxisMaximumLocationSetting xAxisSetting;
@@ -249,6 +258,8 @@ public class PlotterPlot implements AbstractPlottingPackage {
 	}
     
 	public void createChart(AxisOrientationSetting theAxisOrientation, 
+			String theTimeSystem,
+            String theTimeFormat,
 			XAxisMaximumLocationSetting theXAxisSetting, 
 			YAxisMaximumLocationSetting theYAxisSetting, 
 			TimeAxisSubsequentBoundsSetting theTimeAxisSubsequentSetting, 
@@ -283,6 +294,8 @@ public class PlotterPlot implements AbstractPlottingPackage {
 			AbbreviatingPlotLabelingAlgorithm thePlotLabelingAlgorithm) {
 
 		axisOrientation = theAxisOrientation;
+		timeSystemSetting = theTimeSystem;
+        timeFormatSetting = theTimeFormat;
 		xAxisSetting = theXAxisSetting;
 		yAxisSetting = theYAxisSetting;
 		timeAxisSubsequentSetting = theTimeAxisSubsequentSetting;
@@ -958,7 +971,7 @@ public class PlotterPlot implements AbstractPlottingPackage {
 		assert plotView !=null : "Plot Object not initalized";
 		assert plotDataManager.dataSeries !=null : "Plot Data not initalized";
 
-		final String DATE_FORMAT = "D/HH:mm:ss";
+		final String DATE_FORMAT = TimeService.DEFAULT_TIME_FORMAT;
 		SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT);
 		dateFormat.setTimeZone(TimeZone.getTimeZone(PlotConstants.DEFAULT_TIME_ZONE));
 		
@@ -971,6 +984,8 @@ public class PlotterPlot implements AbstractPlottingPackage {
 		stringRepresentation.append("Implmentation Package: Quinn-Curtis RT\n");
 		stringRepresentation.append("Plot Configuration\n");
 		stringRepresentation.append("  Axis Orientation: " + axisOrientation + "\n");
+		stringRepresentation.append("  Time System: " + timeSystemSetting + "\n");
+        stringRepresentation.append("  Time Format: " + timeFormatSetting + "\n");
 		stringRepresentation.append("  X Axis Max: " + xAxisSetting + "\n");
 		stringRepresentation.append("  Y Axis Max: " + yAxisSetting + "\n");
 		stringRepresentation.append("  Time Axis Subsequent: " + timeAxisSubsequentSetting + "\n");
@@ -1283,5 +1298,26 @@ public class PlotterPlot implements AbstractPlottingPackage {
 
 	public void setLocalControlsManager(PlotLocalControlsManager localControlsManager) {
 		this.localControlsManager = localControlsManager;
+	}
+	
+	public String getTimeSystemSetting() {
+		return timeSystemSetting;
+	}
+
+	public String getTimeFormatSetting() {
+		return timeFormatSetting;
+	}
+
+	public static NumberFormat getNumberFormatter(double value) {
+		NumberFormat format = PlotConstants.DECIMAL_FORMAT;
+
+		try {
+			if ( (value >= PlotConstants.MILLION_VALUES) || (value <= PlotConstants.NEGATIVE_MILLION_VALUES) ) {
+				format = new DecimalFormat(PlotConstants.SCIENTIFIC_NUMBER_FORMAT);
+			}
+		} catch (NumberFormatException nfe) {
+			logger.error("NumberFormatException in very large numbers: {}", nfe);
+		}
+        return format;
 	}
 }

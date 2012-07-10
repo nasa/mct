@@ -21,6 +21,7 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.fastplot.bridge;
 
+import plotter.Axis;
 import plotter.TimeTickMarkCalculator;
 import plotter.xy.LinearXYAxis;
 import plotter.xy.XYDimension;
@@ -29,14 +30,26 @@ import plotter.xy.XYDimension;
 public class TimeXYAxis extends LinearXYAxis {
 	private long startLong;
 	private long endLong;
-	// TODO: Write me
+	
+	/** Displays the time system axis label name. Defaults to GMT. */
+    private String timeSystemLabelName = Axis.DEFAULT_TIME_SYSTEM_NAME;
 
 	public TimeXYAxis(XYDimension d) {
 		super(d);
 		setTickMarkCalculator(new TimeTickMarkCalculator());
 	}
 
+	@Override
+    public String getTimeSystemAxisLabelName() {
+		return timeSystemLabelName;
+    }
 
+    @Override
+    public void setTimeSystemAxisLabelName(String labelName) {
+    	super.setTimeSystemAxisLabelName(labelName);
+    	timeSystemLabelName = labelName;
+    }
+	
 	public long getStartAsLong() {
 		return startLong;
 	}

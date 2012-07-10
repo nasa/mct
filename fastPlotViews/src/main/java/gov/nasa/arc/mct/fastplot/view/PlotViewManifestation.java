@@ -26,6 +26,7 @@ import gov.nasa.arc.mct.components.FeedProvider;
 import gov.nasa.arc.mct.fastplot.bridge.AbstractPlottingPackage;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants;
 import gov.nasa.arc.mct.fastplot.bridge.PlotterPlot;
+import gov.nasa.arc.mct.fastplot.bridge.PlotAbstraction.PlotSettings;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.NonTimeAxisSubsequentBoundsSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PlotLineConnectionType;
@@ -42,12 +43,11 @@ import gov.nasa.arc.mct.gui.NamingContext;
 import gov.nasa.arc.mct.roles.events.AddChildEvent;
 import gov.nasa.arc.mct.roles.events.PropertyChangeEvent;
 import gov.nasa.arc.mct.roles.events.RemoveChildEvent;
+import gov.nasa.arc.mct.services.activity.TimeService;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.KeyboardFocusManager;
-import java.awt.Window;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.beans.PropertyChangeListener;
@@ -58,6 +58,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -153,6 +154,42 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 		assert thePlot != null : "Plot should not be null at this point";		
 	}
 
+	/**
+	 * Retrieval of a per-component feed provider is done by getting a list of FeedProvider capabilities, and filtering
+	 * by the view-state. Thus if the component has capabilities  "A", "B" and "C", and current view-state is "A", a feed provider associated 
+	 * with time system A is returned.
+	 * 
+	 * The determination of the view-state from the state data model, a combination of persisted state and controller state. 
+	 * Otherwise, initialize the filter from the default time system for the feed providers that have been assigned to the plot.
+	 * @param component - AbstractComponent
+	 */
+	@Override
+	public FeedProvider getFeedProvider(AbstractComponent component) {
+	
+		List<FeedProvider> feedProviders = component.getCapabilities(FeedProvider.class);
+	
+		String viewStateFilter = null;
+		PlotSettings settings = plotPersistanceHandler.loadPlotSettingsFromPersistance();
+		String persistedState = settings != null ? settings.timeSystemSetting : null; 
+		String assignedComponentState = (plotDataAssigner != null) ? plotDataAssigner.getTimeSystemDefaultChoice() : null; 
+	
+		if (persistedState != null && !persistedState.isEmpty()) {
+			viewStateFilter = persistedState;
+		} else {
+			// We do not yet have persisted state nor controller state; init by component type. Eg ERT for chill or GMT for example
+			viewStateFilter = assignedComponentState; 
+		}
+	
+		if (viewStateFilter != null && feedProviders != null && feedProviders.size() > 0) {
+			for (FeedProvider fp : feedProviders) {
+				String timeSystem = fp.getTimeService().getTimeSystemId();
+				if (viewStateFilter.equals(timeSystem) || TimeService.WILDCARD_SERVICE_ID.equals(timeSystem)) {
+					return fp;
+				} 
+			}
+		}
+		return component.getCapability(FeedProvider.class);
+	}
 	
 	@Override
 	protected void handleNamingContextChange() {
@@ -173,6 +210,8 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 	 * Create plot with specified settings and persist setting.
 	 */
 	public void setupPlot(AxisOrientationSetting timeAxisSetting,
+			String timeSystemSetting,
+            String timeFormatSetting,
 			XAxisMaximumLocationSetting xAxisMaximumLocation,
 			YAxisMaximumLocationSetting yAxisMaximumLocation,
 			TimeAxisSubsequentBoundsSetting timeAxisSubsequentSetting,
@@ -189,7 +228,8 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 			PlotLineConnectionType plotLineConnectionType) {
 
 		// Persist plot setting and rely on updatedMoinitoredGUI to update this (and all other) manifestations.
-		plotPersistanceHandler.persistPlotSettings(timeAxisSetting, xAxisMaximumLocation, yAxisMaximumLocation,
+		plotPersistanceHandler.persistPlotSettings(timeAxisSetting, timeSystemSetting, timeFormatSetting, 
+				xAxisMaximumLocation, yAxisMaximumLocation,
 				timeAxisSubsequentSetting, nonTimeAxisSubsequentMinSetting,
 				nonTimeAxisSubsequentMaxSetting, nonTimeMax, nonTimeMin,
 				minTime, maxTime, timePadding, nonTimeMaxPadding, nonTimeMinPadding, groupByOrdinalPosition, timeAxisPinned, 
@@ -242,6 +282,16 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 		}
 	}
 	
+	String[] getTimeSystemChoices() {
+		Set<String> s = plotDataAssigner.getTimeSystemChoices();
+		return (String[])s.toArray(new String[s.size()]);
+	}
+ 	
+	String[] getTimeFormatChoices() {
+		Set<String> s = plotDataAssigner.getTimeFormatChoices();
+		return (String[])s.toArray(new String[s.size()]);
+	}
+
 	private void generatePlot() {
 		plotDataAssigner.informFeedProvidersHaveChanged();
 		createPlotAndAddItToPanel();
@@ -277,6 +327,11 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 		for (FeedProvider fp:getVisibleFeedProviders()) {
 			List<Map<String,String>> points = expandedData.get(fp.getSubscriptionId());
 			if (points != null && !points.isEmpty()) {
+				
+				if (fp.isNonCODDataBuffer()) {
+                    continue;
+				}
+
 				List<Map<String,String>> expandedPoints = new ArrayList<Map<String,String>>();
 				expandedData.put(fp.getSubscriptionId(), expandedPoints);
 				long now = fp.getTimeService().getCurrentTime();
@@ -485,7 +540,7 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 	private void createPlot(){			
 		thePlot = PlotViewFactory.createPlot(plotPersistanceHandler.loadPlotSettingsFromPersistance(), 
 								             getCurrentMCTTime(),
-								             this, plotDataAssigner.returnNumberOfSubPlots(), null, plotLabelingAlgorithm);
+								             this, plotDataAssigner.returnNumberOfSubPlots(), null, plotLabelingAlgorithm, plotDataAssigner.getTimeSystemDefaultChoice());
 	}
 	
     private void addPlotToPanel() {

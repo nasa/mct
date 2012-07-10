@@ -27,9 +27,9 @@ import static org.testng.Assert.assertTrue;
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.context.GlobalContext;
 import gov.nasa.arc.mct.defaults.view.MCTHousingViewManifestation;
+import gov.nasa.arc.mct.gui.housing.Inspector;
 import gov.nasa.arc.mct.gui.housing.MCTControlArea;
 import gov.nasa.arc.mct.gui.housing.MCTHousing;
-import gov.nasa.arc.mct.gui.housing.MCTInspectionArea;
 import gov.nasa.arc.mct.gui.util.TestSetupUtilities;
 import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
@@ -127,7 +127,7 @@ public class TestMCTHousingViewRole {
         // false));
         // viewManifestation.setContentArea(new MCTContentArea(housing,
         // (ViewRole) null));
-        viewManifestation.setInspectionArea(new MCTInspectionArea(Mockito.mock(AbstractComponent.class), Mockito.mock(ViewInfo.class)));
+        viewManifestation.setInspectionArea(new Inspector(Mockito.mock(AbstractComponent.class), Mockito.mock(ViewInfo.class)));
         assertTrue(housing.getSelectionProvider().getSelectedManifestations().isEmpty());
         assertNotNull(viewManifestation.getInspectionArea());
         assertNull(viewManifestation.getDirectoryArea());

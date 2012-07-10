@@ -521,6 +521,7 @@ public class MCTDirectoryArea extends View implements ViewProvider, SelectionPro
                 } finally {
                     persistenceProvider.completeRelatedOperations(successfulAction);
                 }
+                targetViewManifestation.updateMonitoredGUI(); // Ensure change is reflected promptly
                 
                 // Update selection in the target window to be the set of dragged components.
                 // This is consistent with the usability requirement of feeding back the results of user actions.                
@@ -551,8 +552,13 @@ public class MCTDirectoryArea extends View implements ViewProvider, SelectionPro
             context.setProperty(PolicyContext.PropertyName.ACTION.getName(), Character.valueOf( DRAG_DROP_POLICY_ACTION_CODE ));
             context.setProperty(PolicyContext.PropertyName.VIEW_MANIFESTATION_PROVIDER.getName(), targetViewManifesation);
             String compositionKey = PolicyInfo.CategoryType.COMPOSITION_POLICY_CATEGORY.getKey();
+            String acceptDelegateKey = PolicyInfo.CategoryType.ACCEPT_DELEGATE_MODEL_CATEGORY.getKey();
             // Execute policy
-            return PlatformAccess.getPlatform().getPolicyManager().execute(compositionKey, context);
+            ExecutionResult result = PlatformAccess.getPlatform().getPolicyManager().execute(compositionKey, context);
+            if (result.getStatus()) {
+                result = PlatformAccess.getPlatform().getPolicyManager().execute(acceptDelegateKey, context);
+            }
+            return result;
         }   
         
         

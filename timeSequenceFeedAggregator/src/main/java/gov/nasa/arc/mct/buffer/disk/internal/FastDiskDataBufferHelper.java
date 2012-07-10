@@ -42,7 +42,7 @@ public class FastDiskDataBufferHelper implements DataBufferHelper {
     @Override
     public MetaDataBuffer newMetaDataBuffer(DataBufferEnv env) {
         if (env == null) {
-            return new MetaDiskBuffer();
+            return new MetaDiskBuffer(new FastDiskBufferEnv(null));
         }
         assert env instanceof FastDiskBufferEnv;
         return new MetaDiskBuffer((FastDiskBufferEnv)env);

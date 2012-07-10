@@ -37,7 +37,7 @@ public class XYLocationDisplay extends JLabel implements MouseMotionListener, Mo
 	private static final long serialVersionUID = 1L;
 
 	/** Formats the point for display.  The format is given two arguments, the X and Y coordinates. */
-	private MessageFormat format = new MessageFormat("X: {0}  Y: {1}");
+	private MessageFormat format = new MessageFormat("(X: {0}  Y: {1})");
 
 	/** True if the mouse cursor is within the plot contents area. */
 	private boolean haveMouse;

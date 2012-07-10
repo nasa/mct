@@ -84,6 +84,8 @@ public class TestQuinnCurtisPlot {
 		// Create a simple plot with time on X axis.
 		originalPlotTimeOnXAxis = new PlotterPlot();
 		originalPlotTimeOnXAxis.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+				PlotConstants.DEFAULT_TIME_SYSTEM,
+                PlotConstants.DEFAULT_TIME_FORMAT,
 				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				TimeAxisSubsequentBoundsSetting.JUMP,
@@ -122,6 +124,8 @@ public class TestQuinnCurtisPlot {
 		// create s simple plot with time on y axis.
 		originalPlotTimeOnYAxis = new PlotterPlot();
 		originalPlotTimeOnYAxis.createChart(AxisOrientationSetting.Y_AXIS_AS_TIME, 
+				PlotConstants.DEFAULT_TIME_SYSTEM,
+                PlotConstants.DEFAULT_TIME_FORMAT,
 				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				TimeAxisSubsequentBoundsSetting.JUMP,
@@ -206,6 +210,8 @@ public class TestQuinnCurtisPlot {
 	void testPlotBufferSize() {
 		PlotterPlot testPlot = new PlotterPlot();
 		testPlot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+				PlotConstants.DEFAULT_TIME_SYSTEM,
+                PlotConstants.DEFAULT_TIME_FORMAT,
 				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				TimeAxisSubsequentBoundsSetting.JUMP,
@@ -252,6 +258,8 @@ public class TestQuinnCurtisPlot {
 		
 		PlotterPlot testPlot = new PlotterPlot();
 		testPlot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+				PlotConstants.DEFAULT_TIME_SYSTEM,
+                PlotConstants.DEFAULT_TIME_FORMAT,
 				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				TimeAxisSubsequentBoundsSetting.JUMP,
@@ -309,6 +317,8 @@ public class TestQuinnCurtisPlot {
 		
 		PlotterPlot testPlot = new PlotterPlot();
 		testPlot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+				PlotConstants.DEFAULT_TIME_SYSTEM,
+                PlotConstants.DEFAULT_TIME_FORMAT,
 				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				TimeAxisSubsequentBoundsSetting.JUMP,
@@ -358,6 +368,8 @@ public class TestQuinnCurtisPlot {
 		
 		PlotterPlot testXAsTimePlot = new PlotterPlot();
 		testXAsTimePlot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+				PlotConstants.DEFAULT_TIME_SYSTEM,
+                PlotConstants.DEFAULT_TIME_FORMAT,
 				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				TimeAxisSubsequentBoundsSetting.JUMP,
@@ -395,6 +407,8 @@ public class TestQuinnCurtisPlot {
 		 
 		 PlotterPlot testYAsTimePlot = new PlotterPlot();
 			testYAsTimePlot.createChart(AxisOrientationSetting.Y_AXIS_AS_TIME, 
+					PlotConstants.DEFAULT_TIME_SYSTEM,
+	                PlotConstants.DEFAULT_TIME_FORMAT,
 					XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 					YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 					TimeAxisSubsequentBoundsSetting.SCRUNCH,
@@ -458,6 +472,8 @@ public class TestQuinnCurtisPlot {
 
 		PlotterPlot testPlot = new PlotterPlot();
 		testPlot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+				PlotConstants.DEFAULT_TIME_SYSTEM,
+                PlotConstants.DEFAULT_TIME_FORMAT,
 				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				TimeAxisSubsequentBoundsSetting.JUMP,

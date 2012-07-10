@@ -62,6 +62,8 @@ public class ShellPlotPackageImplementation implements AbstractPlottingPackage{
 	@Override
 	public void createChart(
 			AxisOrientationSetting theAxisOrientation,
+			String theTimeSystem,
+            String theTimeFormat,
 			XAxisMaximumLocationSetting theXAxisSetting,
 			YAxisMaximumLocationSetting theYAxisSetting,
 			TimeAxisSubsequentBoundsSetting theTimeAxisSubsequentSetting,
@@ -425,6 +427,18 @@ public class ShellPlotPackageImplementation implements AbstractPlottingPackage{
 	@Override
 	public void updateCompressionRatio() {
 		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public String getTimeSystemSetting() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getTimeFormatSetting() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

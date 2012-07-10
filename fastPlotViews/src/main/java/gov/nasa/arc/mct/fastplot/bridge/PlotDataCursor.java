@@ -22,6 +22,7 @@
 package gov.nasa.arc.mct.fastplot.bridge;
 
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
+import gov.nasa.arc.mct.fastplot.utils.TimeFormatUtils;
 import gov.nasa.arc.mct.fastplot.view.Pinnable;
 
 import java.awt.Dimension;
@@ -35,6 +36,7 @@ import java.util.TimeZone;
 
 import javax.swing.SpringLayout;
 
+import plotter.TimeSystemFormattedLabel;
 import plotter.xy.SlopeLine;
 import plotter.xy.SlopeLineDisplay;
 import plotter.xy.XYLocationDisplay;
@@ -50,6 +52,8 @@ import plotter.xy.XYPlotContents;
  * The slope line is initiated with a mousePress, moves with mouseDragged, and ends with a mouseReleased event. 
  */
 class PlotDataCursor {
+	private final static String HTML_WHITESPACES = "&nbsp;&nbsp;&nbsp;";
+	
 	@SuppressWarnings("serial")
 	private static final NumberFormat TIME_SPAN_FORMAT = new NumberFormat() {
 
@@ -82,7 +86,8 @@ class PlotDataCursor {
 
 	private SimpleDateFormat dateFormat;
 	private XYLocationDisplay pointerXYValueLabel = new XYLocationDisplay();
-
+	private TimeSystemFormattedLabel timeSystemFormattedLabel = new TimeSystemFormattedLabel();
+	
 	private SlopeLineDisplay slopeLabel = new SlopeLineDisplay();
 	private SlopeLine slopeLine; // TODO: Use one SlopeLine across multiple plots
 	private boolean slopeLineEnabled = false;
@@ -90,9 +95,13 @@ class PlotDataCursor {
 
 	PlotDataCursor (PlotterPlot plot)  {
 		parentPlot = plot;
-		dateFormat = new SimpleDateFormat(parentPlot.timeAxisDateFormat);
-		dateFormat.setTimeZone(TimeZone.getTimeZone(PlotConstants.DEFAULT_TIME_ZONE));	
+		dateFormat = TimeFormatUtils.makeDataFormat(parentPlot.timeFormatSetting);
+		
+		if (plot.timeSystemSetting != null) {
+            timeSystemFormattedLabel.setTimeSystemAxisLabelName(parentPlot.timeSystemSetting);
+		}
 
+		setupTimeSystemLabel();
 		setupXYDisplay();
 		setupMarqueeZoom();
 		setupSlopeLineDisplay();
@@ -105,6 +114,18 @@ class PlotDataCursor {
 		parentPlot.plotView.getContents().addMouseMotionListener(marqueeZoomListener);
 	}
 
+	private void setupTimeSystemLabel() {
+		timeSystemFormattedLabel.setSize((int) timeSystemFormattedLabel.getPreferredSize().getWidth(),
+				(int) timeSystemFormattedLabel.getPreferredSize().getHeight());
+		timeSystemFormattedLabel.setFont(parentPlot.timeAxisFont);
+		timeSystemFormattedLabel.setForeground(PlotConstants.DATA_CURSOR_COLOR);
+
+		MessageFormat format = new MessageFormat("<html><body style=\"white-space:nowrap\"><B>" + HTML_WHITESPACES + timeSystemFormattedLabel.getTimeSystemAxisLabelName()
+				+ HTML_WHITESPACES
+				+ "</B></body></html>");
+		timeSystemFormattedLabel.setFormat(format);
+	}
+	
 	/**
 	 * Setup the mouse position x,y label that will be positioned at the top of the plot. 
 	 */
@@ -115,14 +136,14 @@ class PlotDataCursor {
 		pointerXYValueLabel.setForeground(PlotConstants.DATA_CURSOR_COLOR);
 		pointerXYValueLabel.attach(parentPlot.plotView);
 		
-		if(parentPlot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
-			MessageFormat format = new MessageFormat("<html><body style=\"white-space:nowrap\"><B>X:</B> {0}&nbsp&nbsp&nbsp<B>Y:</B> {1}</body></html>");
-			format.setFormatByArgumentIndex(0, dateFormat);			
-			format.setFormatByArgumentIndex(1, PlotConstants.DECIMAL_FORMAT);
+		if (parentPlot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+			MessageFormat format = new MessageFormat("<html><body style=\"white-space:nowrap\"><B>(X:</B> {0}" + HTML_WHITESPACES + "<B>Y:</B> {1})</body></html>");
+			format.setFormatByArgumentIndex(0, dateFormat);
+			format.setFormatByArgumentIndex(1, PlotConstants.SCIENTIFIC_FORMAT);
 			pointerXYValueLabel.setFormat(format);
 		} else {
-			MessageFormat format = new MessageFormat("<html><body style=\"white-space:nowrap\"><B>Y:</B> {1}&nbsp&nbsp&nbsp<B>X:</B> {0}</body></html>");
-			format.setFormatByArgumentIndex(0, PlotConstants.DECIMAL_FORMAT);
+			MessageFormat format = new MessageFormat("<html><body style=\"white-space:nowrap\"><B>(Y:</B> {1}" + HTML_WHITESPACES + "<B>X:</B> {0})</body></html>");
+			format.setFormatByArgumentIndex(0, PlotConstants.SCIENTIFIC_FORMAT);
 			format.setFormatByArgumentIndex(1, dateFormat);
 			pointerXYValueLabel.setFormat(format);
 		}
@@ -138,11 +159,18 @@ class PlotDataCursor {
 		XYPlot plot = parentPlot.plotView;
 		XYPlotContents contents = plot.getContents();
 		plot.add(pointerXYValueLabel);
+		plot.add(timeSystemFormattedLabel);
+		
 		SpringLayout layout2 = (SpringLayout) plot.getLayout();
-		layout2.putConstraint(SpringLayout.NORTH, pointerXYValueLabel, 0, SpringLayout.NORTH, plot);
-		layout2.putConstraint(SpringLayout.WEST, pointerXYValueLabel, 0, SpringLayout.WEST, contents);
-		layout2.putConstraint(SpringLayout.NORTH, contents, 0, SpringLayout.SOUTH, pointerXYValueLabel);
-		plot.getYAxis().setEndMargin(pointerXYValueLabel.getPreferredSize().height);
+        layout2.putConstraint(SpringLayout.NORTH, pointerXYValueLabel, 0, SpringLayout.NORTH, plot);
+        layout2.putConstraint(SpringLayout.WEST, pointerXYValueLabel, 0, SpringLayout.WEST, contents);
+        layout2.putConstraint(SpringLayout.WEST, timeSystemFormattedLabel, 0, SpringLayout.WEST, contents);
+        layout2.putConstraint(SpringLayout.NORTH, timeSystemFormattedLabel, 0, SpringLayout.NORTH, plot);
+        layout2.putConstraint(SpringLayout.WEST, pointerXYValueLabel, 10, SpringLayout.EAST, timeSystemFormattedLabel);
+        layout2.putConstraint(SpringLayout.NORTH, contents, 0, SpringLayout.SOUTH, pointerXYValueLabel);
+        layout2.putConstraint(SpringLayout.NORTH, contents, 0, SpringLayout.SOUTH, timeSystemFormattedLabel);
+        plot.getYAxis().setEndMargin(pointerXYValueLabel.getPreferredSize().height);
+        plot.getYAxis().setEndMargin(timeSystemFormattedLabel.getPreferredSize().height);
 	}
 	/**
 	 * Setup the slope dx, dy label that will be positioned at the top of the plot
@@ -174,11 +202,12 @@ class PlotDataCursor {
 		slopeLabel.setFont(parentPlot.timeAxisFont);
 		slopeLabel.setForeground(PlotConstants.DATA_CURSOR_COLOR);
 
-		if(parentPlot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
-			MessageFormat format = new MessageFormat("<html><body style=\"white-space:nowrap\"><B>&#916;X:</B> {0}&nbsp&nbsp&nbsp<B>&#916;Y:</B> {1}&nbsp&nbsp&nbsp<B>"
+		if (parentPlot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+			MessageFormat format = new MessageFormat("<html><body style=\"white-space:nowrap\"><B>&#916;X:</B> {0}" + HTML_WHITESPACES 
+					+ "<B>&#916;Y:</B> {1}" + HTML_WHITESPACES + "<B>"
 					+ BUNDLE.getString("Slope.label") + ":</B> {2}" + PlotConstants.SLOPE_UNIT + "</body></html>");
 			format.setFormatByArgumentIndex(0, TIME_SPAN_FORMAT);
-			format.setFormatByArgumentIndex(1, PlotConstants.DECIMAL_FORMAT);
+			format.setFormatByArgumentIndex(1, PlotConstants.SCIENTIFIC_FORMAT);
 			format.setFormatByArgumentIndex(2, new NumberFormat() {
 				@Override
 				public Number parse(String source, ParsePosition parsePosition) {
@@ -188,22 +217,23 @@ class PlotDataCursor {
 
 				@Override
 				public StringBuffer format(long number, StringBuffer toAppendTo, FieldPosition pos) {
-					toAppendTo.append(PlotConstants.DECIMAL_FORMAT.format(number * PlotConstants.SLOPE_UNIT_DIVIDER_IN_MS));
+					toAppendTo.append(PlotConstants.SCIENTIFIC_FORMAT.format(number * PlotConstants.SLOPE_UNIT_DIVIDER_IN_MS));
 					return toAppendTo;
 				}
 
 
 				@Override
 				public StringBuffer format(double number, StringBuffer toAppendTo, FieldPosition pos) {
-					toAppendTo.append(PlotConstants.DECIMAL_FORMAT.format(number * PlotConstants.SLOPE_UNIT_DIVIDER_IN_MS));
+					toAppendTo.append(PlotConstants.SCIENTIFIC_FORMAT.format(number * PlotConstants.SLOPE_UNIT_DIVIDER_IN_MS));
 					return toAppendTo;
 				}
 			});
 			slopeLabel.setFormat(format);
 		} else {
-			MessageFormat format = new MessageFormat("<html><body style=\"white-space:nowrap\"><B>&#916;Y:</B> {0}&nbsp&nbsp&nbsp<B>&#916;X:</B> {1}&nbsp&nbsp&nbsp<B>"
+			MessageFormat format = new MessageFormat("<html><body style=\"white-space:nowrap\"><B>&#916;Y:</B> {0}" 
+					+ HTML_WHITESPACES + "<B>&#916;X:</B> {1}" + HTML_WHITESPACES + "<B>"
 					+ BUNDLE.getString("Slope.label") + ":</B> {2}" + PlotConstants.SLOPE_UNIT + "</body></html>");
-			format.setFormatByArgumentIndex(0, PlotConstants.DECIMAL_FORMAT);
+			format.setFormatByArgumentIndex(0, PlotConstants.SCIENTIFIC_FORMAT);
 			format.setFormatByArgumentIndex(1, TIME_SPAN_FORMAT);
 			format.setFormatByArgumentIndex(2, new NumberFormat() {
 				@Override
@@ -214,35 +244,39 @@ class PlotDataCursor {
 
 				@Override
 				public StringBuffer format(long number, StringBuffer toAppendTo, FieldPosition pos) {
-					toAppendTo.append(PlotConstants.DECIMAL_FORMAT.format(PlotConstants.SLOPE_UNIT_DIVIDER_IN_MS / (double) number));
+					toAppendTo.append(PlotConstants.SCIENTIFIC_FORMAT.format(PlotConstants.SLOPE_UNIT_DIVIDER_IN_MS / (double) number));
 					return toAppendTo;
 				}
 
 
 				@Override
 				public StringBuffer format(double number, StringBuffer toAppendTo, FieldPosition pos) {
-					toAppendTo.append(PlotConstants.DECIMAL_FORMAT.format(PlotConstants.SLOPE_UNIT_DIVIDER_IN_MS / number));
+					toAppendTo.append(PlotConstants.SCIENTIFIC_FORMAT.format(PlotConstants.SLOPE_UNIT_DIVIDER_IN_MS / number));
 					return toAppendTo;
 				}
 			});
 			slopeLabel.setFormat(format);
 		}
 		
-		// This is a hack to set the preferred height to the normal height so the component doesn't collapse to height 0 when the text is empty.
-		// Note that mimimumSize does not work for some reason.
+		// Sets the preferred height to the normal height so the component doesn't collapse to height 0 when the text is empty.
+        // Note that mimimumSize does not work for some reason.
 		slopeLabel.setText("Ag");
 		Dimension size = slopeLabel.getPreferredSize();
 		size.width = 100;
 		slopeLabel.setText("");
 		slopeLabel.setPreferredSize(size);
-		// End hack
 
 		XYPlot plot = parentPlot.plotView;
 		plot.add(slopeLabel);
 		XYPlotContents contents = plot.getContents();
 		SpringLayout layout2 = (SpringLayout) plot.getLayout();
 		layout2.putConstraint(SpringLayout.NORTH, slopeLabel, 0, SpringLayout.NORTH, plot);
-		layout2.putConstraint(SpringLayout.EAST, slopeLabel, 0, SpringLayout.EAST, contents);
+        layout2.putConstraint(SpringLayout.EAST, slopeLabel, 0, SpringLayout.EAST, contents);
+        layout2.putConstraint(SpringLayout.WEST, timeSystemFormattedLabel, 0, SpringLayout.WEST, contents);
+        layout2.putConstraint(SpringLayout.NORTH, timeSystemFormattedLabel, 0, SpringLayout.NORTH, plot);
+        layout2.putConstraint(SpringLayout.WEST, pointerXYValueLabel, 10, SpringLayout.EAST, timeSystemFormattedLabel);
+        layout2.putConstraint(SpringLayout.NORTH, contents, 0, SpringLayout.SOUTH, pointerXYValueLabel);
+        layout2.putConstraint(SpringLayout.NORTH, contents, 0, SpringLayout.SOUTH, timeSystemFormattedLabel);
 	}
 
 	

@@ -51,7 +51,7 @@ public class MCTPopupOpenerForInspector extends MouseAdapter {
 
     private final static MCTLogger logger = MCTLogger.getLogger(MCTPopupOpenerForInspector.class);
 
-    private MCTInspectionArea inspector = null;
+    private Inspector inspector = null;
 
     /**
      * This mouse listener uses the MCT component and view manifestation to build an Action context;
@@ -59,7 +59,7 @@ public class MCTPopupOpenerForInspector extends MouseAdapter {
      * This version has the ability to reach back into the calling class to get the latest list of manifestations.
      * @param comp An MCT component.
      */
-    public MCTPopupOpenerForInspector(MCTInspectionArea inspector) {
+    public MCTPopupOpenerForInspector(Inspector inspector) {
         this.inspector = inspector;
     }
 

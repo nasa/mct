@@ -51,6 +51,8 @@ public interface AbstractPlottingPackage extends PlotSubject {
    /**
     * Construct a plot
     * @param theAxisOrientation the axis on which time appears
+    * @param theTimeSystem the time system
+    * @param theTimeFormat the time format
     * @param theXAxisSetting the location of the max and minimum points on the x-axis
     * @param theYAxisSetting the location of the max and minimum points on the y-axis
     * @param theTimeAxisSubsequentSetting specify how the time axis behaves after it is initially setup
@@ -85,7 +87,9 @@ public interface AbstractPlottingPackage extends PlotSubject {
     * @param thePlotLabelingAlgorithm the plot labeling abbreviation algorithm.
     */
 	public void createChart(AxisOrientationSetting theAxisOrientation, 
-			                XAxisMaximumLocationSetting theXAxisSetting, 
+							String theTimeSystem,
+							String theTimeFormat,
+							XAxisMaximumLocationSetting theXAxisSetting, 
 			                YAxisMaximumLocationSetting theYAxisSetting, 
 			                TimeAxisSubsequentBoundsSetting theTimeAxisSubsequentSetting, 
 			                NonTimeAxisSubsequentBoundsSetting theNonTimeAxisMinSubsequentSetting,
@@ -237,6 +241,18 @@ public interface AbstractPlottingPackage extends PlotSubject {
      */
 	public AxisOrientationSetting getAxisOrientationSetting();
 	
+	/**
+	 * Return the time system setting.
+	 * @return time system setting.
+	 */
+	public String getTimeSystemSetting();
+
+	/**
+	 * Return the time format setting.
+	 * @return time format setting.
+	 */
+	public String getTimeFormatSetting();
+
 	/**
 	 * Return the x-axis maximum location which indicates if the maximum is on the left or right end of this axis.
 	 * @return X-axis maximum location setting.

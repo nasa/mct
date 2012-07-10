@@ -22,6 +22,7 @@
 package gov.nasa.arc.mct.fastplot.view;
 
 import gov.nasa.arc.mct.fastplot.bridge.PlotAbstraction.PlotSettings;
+import gov.nasa.arc.mct.fastplot.bridge.PlotConstants;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.NonTimeAxisSubsequentBoundsSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.TimeAxisSubsequentBoundsSetting;
@@ -86,7 +87,7 @@ public class TestPlotViewFactory {
 	
 	@Test(dataProvider="plotViewFactoryData")
 	public void testCreatePlot(PlotSettings settings, long currentTime, long expectedMinTime, long expectedMaxTime, boolean pinned) {
-		PlotView plotView = PlotViewFactory.createPlot(settings, currentTime, plotManifestation, 1, null, labelingAlgorithm);
+		PlotView plotView = PlotViewFactory.createPlot(settings, currentTime, plotManifestation, 1, null, labelingAlgorithm, PlotConstants.DEFAULT_TIME_SYSTEM);
 		Assert.assertEquals(plotView.getTimeAxisUserPin().isPinned(), pinned);
 		Assert.assertEquals(plotView.getMinTime().getTimeInMillis(), expectedMinTime);
 		Assert.assertEquals(plotView.getMaxTime().getTimeInMillis(), expectedMaxTime);

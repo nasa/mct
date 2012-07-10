@@ -253,17 +253,27 @@ public class LegendEntry extends JPanel implements MouseListener {
 
 			 updateLabelText();
 		 }
-			     
+		
+	     valueString = formatNumericStringToScientificNotation(valueString);
+	     
 	     thisBaseDisplayName = theBaseDisplayName.replaceAll(PlotConstants.WORD_DELIMITERS, " ");
 	     currentToolTipTxt = "<HTML>" + thisBaseDisplayName.replaceAll(PlotConstants.LEGEND_NEWLINE_CHARACTER, "<BR>") + "<BR>" + valueString + "<HTML>";
 	     this.setToolTipText(currentToolTipTxt);	
 	}
 
+	private String formatNumericStringToScientificNotation(String valueString) {
+		if (valueString != null && !valueString.isEmpty()) {
+            valueString = PlotterPlot.getNumberFormatter(Double.parseDouble(valueString)).format(Double.parseDouble(valueString));
+        }
+		return valueString;
+	}
+	
 	void setData(FeedProvider.RenderingInfo info) {
 		this.renderingInfo = info;
 		String valueText = info.getValueText();
 		if (!"".equals(valueText)) {
 			valueString = PlotConstants.DECIMAL_FORMAT.format(Double.parseDouble(valueText));
+			valueString = formatNumericStringToScientificNotation(valueString);
 		}
 		updateLabelFont();
 		updateLabelText();

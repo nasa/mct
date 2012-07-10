@@ -58,7 +58,10 @@ public abstract class XYAxis extends Axis {
 	/** Specifies how the labels are oriented. */
 	private Rotation labelRotation;
 
+	/** Displays the time system axis label name. Defaults to GMT. */
+ 	private String timeSystemLabelName = Axis.DEFAULT_TIME_SYSTEM_NAME;
 
+	
 	/**
 	 * Creates an axis.
 	 * @param d dimension controlled by this axis
@@ -248,4 +251,23 @@ public abstract class XYAxis extends Axis {
 		 */
 		public void ticksChanged(XYAxis a);
 	}
+	
+	/**
+	 * Returns the time system axis label name.
+	 * @return time system axis label name.
+	 */
+	@Override
+	public String getTimeSystemAxisLabelName() {
+		return timeSystemLabelName;
+	}
+	 
+	/**
+	 * Sets the time system axis label name.
+	 * @param labelName time system.
+	 */
+	@Override
+	public void setTimeSystemAxisLabelName(String labelName) {
+		timeSystemLabelName = labelName;
+	}
+
 }

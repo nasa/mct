@@ -50,7 +50,9 @@ public class TableViewProvider extends AbstractComponentProvider {
 	public TableViewProvider() {
 		policyInfos = Collections.singleton(new PolicyInfo(PolicyInfo.CategoryType.FILTER_VIEW_ROLE.getKey(), TableViewPolicy.class));
 		viewInfos = Arrays.asList(
-				new ViewInfo(TableViewManifestation.class, TableViewManifestation.VIEW_ROLE_NAME, "gov.nasa.arc.mct.table.view.TableViewRole", ViewType.OBJECT),
+				new ViewInfo(TableViewManifestation.class, TableViewManifestation.VIEW_ROLE_NAME, "gov.nasa.arc.mct.table.view.TableViewRole", ViewType.OBJECT,
+						new ImageIcon(getClass().getResource("/images/alphaViewButton-OFF.png")),
+						new ImageIcon(getClass().getResource("/images/alphaViewButton-ON.png"))),
 				new ViewInfo(TableViewManifestation.class, TableViewManifestation.VIEW_ROLE_NAME, "gov.nasa.arc.mct.table.view.TableViewRole", ViewType.EMBEDDED,
 						new ImageIcon(getClass().getResource("/images/alphaViewButton-OFF.png")),
 						new ImageIcon(getClass().getResource("/images/alphaViewButton-ON.png"))));

@@ -4,7 +4,7 @@
   <artifactId>mct-platform</artifactId>
   <packaging>pom</packaging>
   <name>MCT Platform Packaging</name>
-  <version>1.1.0</version>
+  <version>1.7b2</version>
   <parent>
   	<artifactId>mct-superpom</artifactId>
   	<groupId>mct</groupId>

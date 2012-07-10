@@ -55,6 +55,8 @@ public class PlotSettingController {
 	    double nonTimeMinPadding = 0;
 	    double nonTimeMaxPadding = 0;
 	    boolean useOrdinalPositionForSubplots;
+	    String timeSystemSetting;
+	    String timeFormatSetting;
 	    boolean timeAxisPinned;
 		PlotLineDrawingFlags plotLineDraw;
 	    PlotLineConnectionType plotLineConnectionType;
@@ -78,6 +80,14 @@ public class PlotSettingController {
 	    	    
 	    public void setTimeAxis(AxisOrientationSetting setting) {
 	    	timeAxisSetting = setting;
+	    }
+	    
+	    public void setTimeSystem(String setting) {
+	    	timeSystemSetting = setting;
+	    }
+ 	    
+	    public void setTimeFormat(String setting) {
+	    	timeFormatSetting = setting;
 	    }
 	    
 	    public void setXAxisMaximumLocation(XAxisMaximumLocationSetting setting) {
@@ -214,8 +224,10 @@ public class PlotSettingController {
 	    	if (badStateMessage != null) {
 	    		logger.error(badStateMessage);
 	    	} else {
-	    		// The state is good so that we can crate the plot. 		
+	    		// The state is good so that we can create the plot. 		
 	    		panel.getPlot().setupPlot(timeAxisSetting,
+	    				timeSystemSetting,
+                        timeFormatSetting,
 	    				xAxisMaximumLocation,
 	    				yAxisMaximumLocation,
 	    				timeAxisSubsequentSetting,

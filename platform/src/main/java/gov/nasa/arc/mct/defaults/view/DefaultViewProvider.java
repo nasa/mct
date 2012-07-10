@@ -22,8 +22,8 @@
 package gov.nasa.arc.mct.defaults.view;
 
 import gov.nasa.arc.mct.gui.housing.InspectionArea;
+import gov.nasa.arc.mct.gui.housing.Inspector;
 import gov.nasa.arc.mct.gui.housing.MCTDirectoryArea;
-import gov.nasa.arc.mct.gui.housing.MCTInspectionArea;
 import gov.nasa.arc.mct.services.component.AbstractComponentProvider;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
@@ -48,7 +48,7 @@ public class DefaultViewProvider extends AbstractComponentProvider {
 	    List<ViewInfo> viewInfos = new ArrayList<ViewInfo>();
 	    viewInfos.add(new ViewInfo(NodeViewManifestation.class, NodeViewManifestation.DEFAULT_NODE_VIEW_ROLE_NAME, ViewType.NODE));
         viewInfos.add(new ViewInfo(MCTHousingViewManifestation.class, MCTHousingViewManifestation.VIEW_ROLE_NAME, ViewType.LAYOUT));
-        viewInfos.add(new ViewInfo(MCTInspectionArea.class, MCTInspectionArea.DEFAULT_INSPECTOR_VIEW_PROP_KEY, ViewType.INSPECTOR));
+        viewInfos.add(new ViewInfo(Inspector.class, Inspector.DEFAULT_INSPECTOR_VIEW_PROP_KEY, ViewType.INSPECTOR));
         viewInfos.add(new ViewInfo(MCTDirectoryArea.class, MCTDirectoryArea.VIEW_NAME, ViewType.NAVIGATOR));
         viewInfos.add(new ViewInfo(LabelViewManifestation.class, bundle.getString("LabelViewRoleName"), ViewType.TITLE));
         viewInfos.add(new ViewInfo(InspectionArea.class, InspectionArea.INSPECTION_AREA_VIEW_PROP_KEY, ViewType.RIGHT));

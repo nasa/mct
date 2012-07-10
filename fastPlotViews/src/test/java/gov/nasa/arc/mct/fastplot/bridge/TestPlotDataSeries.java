@@ -23,7 +23,6 @@ package gov.nasa.arc.mct.fastplot.bridge;
 
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PlotLineConnectionType;
-import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PlotLineDrawingFlags;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.TimeAxisSubsequentBoundsSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.XAxisMaximumLocationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSetting;
@@ -92,6 +91,8 @@ public class TestPlotDataSeries {
 		timeTwo.add(Calendar.MINUTE, 10);
 		PlotterPlot testPlot = new PlotterPlot();
 		testPlot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+				PlotConstants.DEFAULT_TIME_SYSTEM,
+                PlotConstants.DEFAULT_TIME_FORMAT,
 				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				TimeAxisSubsequentBoundsSetting.JUMP,
@@ -150,6 +151,8 @@ public class TestPlotDataSeries {
 		timeTwo.add(Calendar.MINUTE, 30);
 		PlotterPlot testPlot = new PlotterPlot();
 		testPlot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+				PlotConstants.DEFAULT_TIME_SYSTEM,
+                PlotConstants.DEFAULT_TIME_FORMAT,
 				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				TimeAxisSubsequentBoundsSetting.JUMP,
@@ -284,6 +287,8 @@ public class TestPlotDataSeries {
 		PlotterPlot testPlot = new PlotterPlot();
 		// Yaxis as time
 		testPlot.createChart(AxisOrientationSetting.Y_AXIS_AS_TIME, 
+				PlotConstants.DEFAULT_TIME_SYSTEM,
+                PlotConstants.DEFAULT_TIME_FORMAT,
 				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				TimeAxisSubsequentBoundsSetting.JUMP,
@@ -405,6 +410,8 @@ public class TestPlotDataSeries {
 		timeTwo.add(Calendar.MINUTE, 30);
 		PlotterPlot testPlot = new PlotterPlot();
 		testPlot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+				PlotConstants.DEFAULT_TIME_SYSTEM,
+                PlotConstants.DEFAULT_TIME_FORMAT,
 				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				TimeAxisSubsequentBoundsSetting.JUMP,

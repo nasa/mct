@@ -22,6 +22,7 @@
 package gov.nasa.arc.mct.platform;
 
 import gov.nasa.arc.mct.api.feed.FeedAggregator;
+import gov.nasa.arc.mct.api.feed.FeedDataArchive;
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.context.GlobalContext;
 import gov.nasa.arc.mct.gui.MenuExtensionManager;
@@ -36,6 +37,7 @@ import gov.nasa.arc.mct.platform.spi.WindowManager;
 import gov.nasa.arc.mct.policymgr.PolicyManagerImpl;
 import gov.nasa.arc.mct.registry.ExternalComponentRegistryImpl;
 import gov.nasa.arc.mct.services.activity.TimeService;
+import gov.nasa.arc.mct.services.component.FeedManager;
 import gov.nasa.arc.mct.services.component.MenuManager;
 import gov.nasa.arc.mct.services.component.PolicyManager;
 import gov.nasa.arc.mct.services.component.ProviderDelegateService;
@@ -56,7 +58,6 @@ import org.osgi.framework.ServiceRegistration;
  * Provides the MCT Platform which supports the MCT API set. The platform is intended to decouple the MCT APIs
  * from the implementation. This allows for alternate implementations of the platform to be supplied, but the
  * intention is to loosely couple the APIs and their implementation. 
- * @author chris.webster@nasa.gov
  *
  */
 public class PlatformImpl implements Platform {
@@ -68,7 +69,6 @@ public class PlatformImpl implements Platform {
     private final RootComponent rootComponent = new RootComponent();
     
     private AbstractComponent mysanboxComponent; // initialized from the bootstrapping components loaded from the database
-    private String mySandboxId;
     private String userDropboxesId;
     
     private PlatformImpl() {}
@@ -194,7 +194,6 @@ public class PlatformImpl implements Platform {
             // Assuming that there's only one My Sandbox among the bootstrap components. 
             if ("gov.nasa.arc.mct.core.components.MineTaxonomyComponent".equals(ac.getComponentTypeID())) {
                 mysanboxComponent = ac;
-                mySandboxId = ac.getComponentId();
             }
             if ("/UserDropBoxes".equals(ac.getExternalKey())) {
                 userDropboxesId = ac.getComponentId();
@@ -212,6 +211,24 @@ public class PlatformImpl implements Platform {
 
     @Override
     public AbstractComponent getUserDropboxes() {
-        return getPersistenceProvider().getComponent(userDropboxesId);
+        return userDropboxesId == null ? null : getPersistenceProvider().getComponent(userDropboxesId);
+    }
+    
+    /**
+     * Gets the OSGi FeedManager reference.
+     * @return FeedManager reference.
+     */
+    public FeedManager getFeedManager() {
+        OSGIRuntime osgiRuntime = EquinoxOSGIRuntimeImpl.getOSGIRuntime();
+        return osgiRuntime.getService(FeedManager.class, null);
+    }
+    
+    /**
+     * Gets the OSGi FeedDataArchive reference.
+     * @return FeedDataArchive reference.
+     */
+    public FeedDataArchive getFeedDataArchive() {
+        OSGIRuntime osgiRuntime = EquinoxOSGIRuntimeImpl.getOSGIRuntime();
+        return osgiRuntime.getService(FeedDataArchive.class, null);
     }
 }

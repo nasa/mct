@@ -51,7 +51,8 @@ public class ConveniencesMenu extends ContextAwareMenu {
     protected void populate() {
         addMenuItemInfos("/conveniences/open.window.ext", Arrays.asList(
                 new MenuItemInfo("CONVENIENCES_OPEN_MINE_GROUP", MenuItemType.NORMAL),
-                new MenuItemInfo("CONVENIENCES_OPEN_USER_ENV", MenuItemType.NORMAL)));
+                new MenuItemInfo("CONVENIENCES_OPEN_USER_ENV", MenuItemType.NORMAL),
+                new MenuItemInfo("RESET_FEED_VIEWS_ACTION", MenuItemType.NORMAL)));
     }
 
 }

@@ -22,6 +22,7 @@
 package gov.nasa.arc.mct.buffer.disk.internal;
 
 import gov.nasa.arc.mct.buffer.config.FastDiskBufferEnv;
+import gov.nasa.arc.mct.buffer.config.DiskBufferEnv;
 import gov.nasa.arc.mct.buffer.internal.MetaDataBuffer;
 import gov.nasa.arc.mct.buffer.internal.PartitionMetaData;
 
@@ -40,13 +41,36 @@ public class MetaDiskBuffer extends MetaDataBuffer {
     private static final Logger LOGGER = LoggerFactory.getLogger(MetaDiskBuffer.class);
 
     private FastDiskBufferEnv metaEnv;
+    private DiskBufferEnv nonCODMetaEnv;
     private EntityStore metaDatabase;
     private final Timer updateTimer;
 
-    public MetaDiskBuffer() {
-        this(new FastDiskBufferEnv(null));
+    public MetaDiskBuffer(DiskBufferEnv env) {
+        super(env);
+        nonCODMetaEnv = env;
+        metaDatabase = nonCODMetaEnv.openMetaDiskStore();
+               
+        loadAllPartitionsInformation();
+         
+        long metaRefreshTime = nonCODMetaEnv.getMetaRefresh();
+        if (metaRefreshTime == -1) {
+            updateTimer = null;
+        } else {
+            updateTimer = new Timer("Meta Non-COD Data Buffer Update timer");
+            updateTimer.schedule(new TimerTask() {
+        
+                @Override
+                public void run() {
+                    for (int i = 0; i < partitionMetaDatas.length; i++) {
+                        if (partitionMetaDatas[i] != null) {
+                            writePartitionMetaData(i);
+                        }
+                    }
+                }
+            }, metaRefreshTime, metaRefreshTime);
+        }
     }
-
+    
     public MetaDiskBuffer(FastDiskBufferEnv env) {
         super(env);
         metaEnv = env;
@@ -118,7 +142,14 @@ public class MetaDiskBuffer extends MetaDataBuffer {
         } catch (Exception e) {
             LOGGER.error("Exception in getData", e);
         } finally {
-            metaEnv.flush();
+            if (metaEnv != null) {
+                metaEnv.flush();
+            }
+            
+            if (nonCODMetaEnv != null) {
+                nonCODMetaEnv.flush();
+            }
+            
             LOGGER.info("Removing partition {} timestamp", bufferPartition);
         }
         return pObj;
@@ -133,7 +164,13 @@ public class MetaDiskBuffer extends MetaDataBuffer {
             } catch (Exception e) {
                 LOGGER.error("Exception in getData", e);
             } finally {
-                metaEnv.flush();
+                if (metaEnv != null) {
+                    metaEnv.flush();
+                }
+                
+                if (nonCODMetaEnv != null) {
+                    nonCODMetaEnv.flush();
+                }
                 LOGGER.info("Removing partition {} timestamp", bufferPartition);
             }
         }
@@ -152,7 +189,13 @@ public class MetaDiskBuffer extends MetaDataBuffer {
         } catch (Exception e) {
             LOGGER.error("Exception in getData", e);
         } finally {
-            metaEnv.flush();
+            if (metaEnv != null) {
+                metaEnv.flush();
+            }
+            
+            if (nonCODMetaEnv != null) {
+                nonCODMetaEnv.flush();
+            }
             LOGGER.debug("Putting start time and end time of partition {}", bufferPartition);
         }
     }
@@ -184,7 +227,13 @@ public class MetaDiskBuffer extends MetaDataBuffer {
             failed = true;
         } finally {
             if (!failed) {
-                metaEnv.flush();
+                if (metaEnv != null) {
+                    metaEnv.flush();
+                }
+                
+                if (nonCODMetaEnv != null) {
+                    nonCODMetaEnv.flush();
+                }
                 this.currentPartition = newCurrentBufferPartition;
                 LOGGER.info("moving to partition {}", newCurrentBufferPartition);
             }
@@ -192,17 +241,38 @@ public class MetaDiskBuffer extends MetaDataBuffer {
     }
 
     public void close() {
-        metaEnv.closeDatabase(metaDatabase);
+        if (metaEnv != null) {
+            metaEnv.closeDatabase(metaDatabase);
+        }
+               
+        if (nonCODMetaEnv != null) {
+            nonCODMetaEnv.closeDatabase(metaDatabase);
+        }
         super.close();
     }
 
     public void closeDatabase() {
-        metaEnv.closeDatabase(metaDatabase);
+        if (metaEnv != null) {
+            metaEnv.closeDatabase(metaDatabase);
+        }
+               
+        if (nonCODMetaEnv != null) {
+            nonCODMetaEnv.closeDatabase(metaDatabase);
+        }
         super.closeDatabase();
     }
     
     public void restart() {
-        int numOfBufferPartitions = metaEnv.getNumOfBufferPartitions();
+        int numOfBufferPartitions = 0;
+        
+        if (metaEnv != null) {
+            numOfBufferPartitions = metaEnv.getNumOfBufferPartitions();
+        }
+             
+        if (nonCODMetaEnv != null) {
+            numOfBufferPartitions = nonCODMetaEnv.getNumOfBufferPartitions();
+        }
+
         for (int i=0; i<numOfBufferPartitions; i++) {
             removePartitionMetaData(i);
         }

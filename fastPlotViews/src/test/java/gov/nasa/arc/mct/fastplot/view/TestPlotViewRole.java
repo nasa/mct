@@ -31,7 +31,6 @@ import gov.nasa.arc.mct.fastplot.bridge.PlotConstants;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.NonTimeAxisSubsequentBoundsSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PlotLineConnectionType;
-import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PlotLineDrawingFlags;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.TimeAxisSubsequentBoundsSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.XAxisMaximumLocationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSetting;
@@ -159,6 +158,7 @@ public class TestPlotViewRole {
 	@Test
 	public void testSettingPersistance() {			
 		    // Test SetupPlot
+			final String anyTimeSystem = "anyTimeSystem";
 	        MockitoAnnotations.initMocks(this);
 			TestersComponent component = new TestersComponent("x");
 			PlotViewManifestation originalPlotMan = new PlotViewManifestation(component, new ViewInfo(PlotViewManifestation.class,"",ViewType.OBJECT));
@@ -167,7 +167,9 @@ public class TestPlotViewRole {
 			GregorianCalendar nowPlus = new GregorianCalendar();
 			nowPlus.add(Calendar.MINUTE, 1);
 						
-			originalPlotMan.setupPlot(AxisOrientationSetting.X_AXIS_AS_TIME, 
+			originalPlotMan.setupPlot(AxisOrientationSetting.X_AXIS_AS_TIME,
+					 anyTimeSystem,
+                     TimeService.DEFAULT_TIME_FORMAT,
 			         XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 			         YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 			         TimeAxisSubsequentBoundsSetting.JUMP, 
@@ -190,6 +192,8 @@ public class TestPlotViewRole {
 			Assert.assertNotSame(thePlotView, secondPlotView);
 			
 			originalPlotMan.setupPlot(AxisOrientationSetting.X_AXIS_AS_TIME, 
+					 anyTimeSystem,
+                     TimeService.DEFAULT_TIME_FORMAT,
 			         XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 			         YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 			         TimeAxisSubsequentBoundsSetting.SCRUNCH, 
@@ -381,6 +385,8 @@ public class TestPlotViewRole {
 		GregorianCalendar maxTime = new GregorianCalendar();
 		maxTime.setTimeInMillis(System.currentTimeMillis()+1);
 		panel.setupPlot(AxisOrientationSetting.X_AXIS_AS_TIME, 
+						 PlotConstants.DEFAULT_TIME_SYSTEM,
+						 PlotConstants.DEFAULT_TIME_FORMAT,
 				         XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				         YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				         TimeAxisSubsequentBoundsSetting.JUMP, 

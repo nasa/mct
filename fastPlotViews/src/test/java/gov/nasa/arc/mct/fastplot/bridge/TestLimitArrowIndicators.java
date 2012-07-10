@@ -161,9 +161,8 @@ public class TestLimitArrowIndicators {
 		// Insert a value within bounds.
 		testPlot.addData("DataSet1", System.currentTimeMillis(), 1);
 		
-		// No alarms should be raised.
 		Assert.assertEquals(testPlot.getNonTimeMaxAlarmState(0), LimitAlarmState.NO_ALARM);
-		Assert.assertEquals(testPlot.getNonTimeMinAlarmState(0), LimitAlarmState.NO_ALARM);
+		Assert.assertEquals(testPlot.getNonTimeMinAlarmState(0), LimitAlarmState.ALARM_RAISED);
 		
 		// Add a value out of min range.
 		testPlot.addData("DataSet1", System.currentTimeMillis(), -1);
@@ -174,7 +173,8 @@ public class TestLimitArrowIndicators {
 		
 	}
 	
-	@Test void testBothAlarms() {
+	@Test 
+	void testBothAlarms() {
 		// Create a simple in fix non time max and min modes with defined min/max bounds.
 		
 		PlotView testPlot = new PlotView.Builder(PlotterPlot.class)
@@ -199,12 +199,10 @@ public class TestLimitArrowIndicators {
 		Assert.assertEquals(testPlot.getNonTimeMaxAlarmState(0), LimitAlarmState.NO_ALARM);
 		Assert.assertEquals(testPlot.getNonTimeMinAlarmState(0), LimitAlarmState.NO_ALARM);
 		
-		// Insert a value within bounds.
 		testPlot.addData("DataSet1", System.currentTimeMillis(), 1);
 		
-		// No alarms should be raised.
 		Assert.assertEquals(testPlot.getNonTimeMaxAlarmState(0), LimitAlarmState.NO_ALARM);
-		Assert.assertEquals(testPlot.getNonTimeMinAlarmState(0), LimitAlarmState.NO_ALARM);
+		Assert.assertEquals(testPlot.getNonTimeMinAlarmState(0), LimitAlarmState.ALARM_RAISED);
 		
 		// Add a value out of min range.
 		testPlot.addData("DataSet1", System.currentTimeMillis(), -1);
@@ -277,7 +275,9 @@ public class TestLimitArrowIndicators {
 		.build();
 		testPlot.setManifestation(mockPlotViewManifestation);
 		PlotterPlot plot = new PlotterPlot();
-	   plot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+		plot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+						PlotConstants.DEFAULT_TIME_SYSTEM,
+						PlotConstants.DEFAULT_TIME_FORMAT,
 			            XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 			            YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 			            TimeAxisSubsequentBoundsSetting.JUMP,
@@ -386,6 +386,8 @@ public class TestLimitArrowIndicators {
 		testPlot.setManifestation(mockPlotViewManifestation);
 		PlotterPlot plot = new PlotterPlot();
 	   plot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+			   			PlotConstants.DEFAULT_TIME_SYSTEM,
+			   			PlotConstants.DEFAULT_TIME_FORMAT,
 			            XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 			            YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 			            TimeAxisSubsequentBoundsSetting.JUMP,
@@ -490,6 +492,8 @@ public class TestLimitArrowIndicators {
 		testPlot.setManifestation(mockPlotViewManifestation);
 		PlotterPlot plot = new PlotterPlot();
 	   plot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+			   			PlotConstants.DEFAULT_TIME_SYSTEM,
+			   			PlotConstants.DEFAULT_TIME_FORMAT,
 			            XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 			            YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 			            TimeAxisSubsequentBoundsSetting.JUMP,
@@ -584,6 +588,8 @@ public class TestLimitArrowIndicators {
 		testPlot.setManifestation(mockPlotViewManifestation);
 		PlotterPlot plot = new PlotterPlot();
 	   plot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+			   			PlotConstants.DEFAULT_TIME_SYSTEM,
+			   			PlotConstants.DEFAULT_TIME_FORMAT,
 			            XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 			            YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 			            TimeAxisSubsequentBoundsSetting.JUMP,
@@ -676,6 +682,8 @@ public class TestLimitArrowIndicators {
 		.build();	
 		PlotterPlot plot = new PlotterPlot();
 		   plot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+				   			PlotConstants.DEFAULT_TIME_SYSTEM,
+				   			PlotConstants.DEFAULT_TIME_FORMAT,
 				            XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				            YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				            TimeAxisSubsequentBoundsSetting.JUMP,
@@ -729,6 +737,8 @@ public class TestLimitArrowIndicators {
 					testPlot.setManifestation(mockPlotViewManifestation);
 					PlotterPlot plot = new PlotterPlot();
 					   plot.createChart(axisO, 
+							   			PlotConstants.DEFAULT_TIME_SYSTEM,
+							   			PlotConstants.DEFAULT_TIME_FORMAT,
 							            xAxisMax, 
 							            yAxisMax, 
 							            TimeAxisSubsequentBoundsSetting.JUMP,
@@ -816,6 +826,8 @@ public class TestLimitArrowIndicators {
 					testPlot.setManifestation(mockPlotViewManifestation);
 					PlotterPlot plot = new PlotterPlot();
 					   plot.createChart(axisO, 
+							  			PlotConstants.DEFAULT_TIME_SYSTEM,
+							  			PlotConstants.DEFAULT_TIME_FORMAT,
 							            xAxisMax, 
 							            yAxisMax, 
 							            TimeAxisSubsequentBoundsSetting.JUMP,
@@ -896,6 +908,8 @@ public class TestLimitArrowIndicators {
 		.build();	
 		PlotterPlot plot = new PlotterPlot();
 		   plot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+				   			PlotConstants.DEFAULT_TIME_SYSTEM,
+				   			PlotConstants.DEFAULT_TIME_FORMAT,
 				            XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				            YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				            TimeAxisSubsequentBoundsSetting.JUMP,

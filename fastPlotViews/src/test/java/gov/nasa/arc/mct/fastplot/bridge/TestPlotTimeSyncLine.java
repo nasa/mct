@@ -87,6 +87,8 @@ public class TestPlotTimeSyncLine {
 		
 		final PlotterPlot plot = new PlotterPlot();
 		plot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+				PlotConstants.DEFAULT_TIME_SYSTEM,
+                PlotConstants.DEFAULT_TIME_FORMAT,
 				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				TimeAxisSubsequentBoundsSetting.JUMP,
@@ -188,6 +190,8 @@ public class TestPlotTimeSyncLine {
 	public void testMouseExit() {
 		final PlotterPlot plot = new PlotterPlot();
 		plot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+				PlotConstants.DEFAULT_TIME_SYSTEM,
+                PlotConstants.DEFAULT_TIME_FORMAT,
 				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				TimeAxisSubsequentBoundsSetting.JUMP,
@@ -274,6 +278,8 @@ public class TestPlotTimeSyncLine {
 		
 		PlotterPlot plot = new PlotterPlot();
 		plot.createChart(AxisOrientationSetting.Y_AXIS_AS_TIME, 
+				PlotConstants.DEFAULT_TIME_SYSTEM,
+                PlotConstants.DEFAULT_TIME_FORMAT,
 				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				TimeAxisSubsequentBoundsSetting.JUMP,
@@ -375,6 +381,8 @@ public class TestPlotTimeSyncLine {
 		// Click and hold mouse button to start vertical line, then press shift to enter time sync mode. 
 		final PlotterPlot plot = new PlotterPlot();
 		plot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
+				PlotConstants.DEFAULT_TIME_SYSTEM,
+                PlotConstants.DEFAULT_TIME_FORMAT,
 				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
 				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
 				TimeAxisSubsequentBoundsSetting.JUMP,

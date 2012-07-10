@@ -4,4 +4,9 @@
   <service pid="gov.nasa.arc.mct.abbreviation.impl.AbbreviationService">
     <property name="abbreviations-file" value="resources/properties/abbreviations.properties" />
   </service>
+  <service pid="gov.nasa.arc.mct.subscribe.manager.config.ConfigurationService">
+   <!-- Minimum number of milliseconds that must elapse between the last reference to a parameter and the unsubscription of that symbol.
+     -->
+    <property name="unsubscriptionGracePeriod" type="Integer" value="5000" />
+  </service>
 </service-configuration>

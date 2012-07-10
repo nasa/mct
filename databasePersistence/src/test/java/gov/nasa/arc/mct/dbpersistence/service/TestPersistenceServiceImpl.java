@@ -230,6 +230,17 @@ public class TestPersistenceServiceImpl {
 		Assert.assertEquals(serviceImpl.hasComponentsTaggedBy(tag),expectedResult);
 	}
 	
+	@Test
+	public void testTagComponents() {
+		em.getTransaction().begin();
+		em.persist(createComponentSpec("123", "xyz", "123", "123", "xyz", Collections.<Tag>emptyList(), Collections.<String,String>emptyMap()));
+		em.getTransaction().commit();
+		
+		Assert.assertFalse(serviceImpl.hasComponentsTaggedBy("testTag"));
+		serviceImpl.tagComponents("testTag", Collections.singleton(serviceImpl.getComponent("123")));
+		Assert.assertTrue(serviceImpl.hasComponentsTaggedBy("testTag"));
+	}
+	
 	public static class TestAbstractComponent extends AbstractComponent {
 		private AtomicReference<TestModel> model = new AtomicReference<TestModel>(new TestModel());
 		
