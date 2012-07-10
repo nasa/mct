@@ -1560,6 +1560,12 @@ public class PlotSettingsControlPanel extends JPanel {
 		nonTimeMaxAutoAdjustMode.addActionListener(buttonListener);
 		nonTimeMaxFixedMode.addActionListener(buttonListener);
 		nonTimeMaxSemiFixedMode.addActionListener(buttonListener);
+		
+		linesOnly.addActionListener(buttonListener);
+		markersAndLines.addActionListener(buttonListener);
+		markersOnly.addActionListener(buttonListener);
+		direct.addActionListener(buttonListener);
+		step.addActionListener(buttonListener);
 
 		// Add listeners to the Time axis buttons
 		ActionListener timeAxisListener = new ActionListener() {
