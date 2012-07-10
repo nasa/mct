@@ -232,6 +232,7 @@ public class Inspector extends View {
         content = inspectorScrollPane;
         add(inspectorScrollPane, BorderLayout.CENTER);
         revalidate();
+        this.view.requestFocusInWindow();
     }
 
     private void registerSelectionChange() {
@@ -366,7 +367,9 @@ public class Inspector extends View {
                     viewControls = null;
                     if (controllerTwistie != null)
                         controllerTwistie.changeState(false);
+                    view.requestFocusInWindow();
                 }
+                
             });
             setIcon(viewInfo.getIcon() == null ? BUTTON_ICON : viewInfo.getIcon());
             setPressedIcon(viewInfo.getIcon() == null ? BUTTON_ICON : viewInfo.getIcon());

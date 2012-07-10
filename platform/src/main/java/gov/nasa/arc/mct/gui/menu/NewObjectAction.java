@@ -30,7 +30,6 @@ import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.dialogs.DefaultWizardUI;
 import gov.nasa.arc.mct.gui.dialogs.NewObjectDialog;
 import gov.nasa.arc.mct.gui.housing.MCTDirectoryArea;
-import gov.nasa.arc.mct.platform.spi.PlatformAccess;
 import gov.nasa.arc.mct.policy.PolicyContext;
 import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.policymgr.PolicyManagerImpl;
@@ -85,7 +84,6 @@ public class NewObjectAction extends CompositeAction {
                 if (PolicyManagerImpl.getInstance().execute(compositionKey, policyContext).getStatus()) {
                     subActions.add(new NewTypeAction(info.getDisplayName(), info.getComponentClass(), targetComponent, info.getWizardUI(), info.getIcon()));
                 } 
-                PlatformAccess.getPlatform().getPersistenceProvider().delete(Collections.singleton(tempComponent));
             }
         }
         setActions(subActions.toArray(new Action[subActions.size()]));

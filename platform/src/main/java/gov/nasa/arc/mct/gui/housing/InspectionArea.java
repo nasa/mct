@@ -123,7 +123,6 @@ public class InspectionArea extends View implements SelectionProvider {
             if (isLocked())
                 exitLockedState();
             add(inspectorView, BorderLayout.CENTER);
-            inspectorView.requestFocusInWindow();
             revalidate();
         }
 
