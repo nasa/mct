@@ -30,6 +30,9 @@ import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.dialogs.DefaultWizardUI;
 import gov.nasa.arc.mct.gui.dialogs.NewObjectDialog;
 import gov.nasa.arc.mct.gui.housing.MCTDirectoryArea;
+import gov.nasa.arc.mct.policy.PolicyContext;
+import gov.nasa.arc.mct.policy.PolicyInfo;
+import gov.nasa.arc.mct.policymgr.PolicyManagerImpl;
 import gov.nasa.arc.mct.registry.ExternalComponentRegistryImpl;
 import gov.nasa.arc.mct.registry.ExternalComponentRegistryImpl.ExtendedComponentTypeInfo;
 import gov.nasa.arc.mct.roles.events.PropertyChangeEvent;
@@ -39,6 +42,7 @@ import gov.nasa.arc.mct.util.logging.MCTLogger;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -71,7 +75,15 @@ public class NewObjectAction extends CompositeAction {
         List<Action> subActions = new ArrayList<Action>(componentInfos.size());
         for (ExtendedComponentTypeInfo info : componentInfos) {
             if (info.isCreatable()) {
-                subActions.add(new NewTypeAction(info.getDisplayName(), info.getComponentClass(), targetComponent, info.getWizardUI(), info.getIcon()));
+                PolicyContext policyContext = new PolicyContext();
+                policyContext.setProperty(PolicyContext.PropertyName.TARGET_COMPONENT.getName(), targetComponent);
+                policyContext.setProperty(PolicyContext.PropertyName.ACTION.getName(), 'w');
+                String compositionKey = PolicyInfo.CategoryType.COMPOSITION_POLICY_CATEGORY.getKey();
+                AbstractComponent tempComponent =  extCompRegistry.newInstance(info);
+                policyContext.setProperty(PolicyContext.PropertyName.SOURCE_COMPONENTS.getName(), Collections.singleton(tempComponent));
+                if (PolicyManagerImpl.getInstance().execute(compositionKey, policyContext).getStatus()) {
+                    subActions.add(new NewTypeAction(info.getDisplayName(), info.getComponentClass(), targetComponent, info.getWizardUI(), info.getIcon()));
+                } 
             }
         }
         setActions(subActions.toArray(new Action[subActions.size()]));

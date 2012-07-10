@@ -177,6 +177,10 @@ public class PlotSettingController {
 	    		return "PlotSettingsPanel of "+ nonTimeMinPadding + " passed a nonTimeMinPadding outside the range 0.0 .. 1.0 to PlotSettingsController. Panel needs to validate this.";
 	    	}
 	    	
+	    	if (nonTimeMinPadding + nonTimeMaxPadding >= 1.0) {
+	    		return "The minimum and maximum non-Time axis padding must total less than 1";
+	    	}
+	    	
 	    	if (nonTimeMaxPadding > 1.0 || nonTimeMaxPadding < 0.0) {
 	    		return "PlotSettingsPanel of "+ nonTimeMaxPadding + " passed a nonTimeMaxPadding outside the range 0.0 .. 1.0 to PlotSettingsController. Panel needs to validate this.";
 	    	}
