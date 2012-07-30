@@ -75,8 +75,8 @@ public class Inspector extends View {
 
     private static final Color BACKGROUND_COLOR = LafColor.WINDOW_BORDER.darker();
     private static final Color FOREGROUND_COLOR = LafColor.WINDOW.brighter();
-    private static final ImageIcon BUTTON_ICON = new ImageIcon(ClassLoader.getSystemResource("images/infoViewButton-OFF.png"));
-    private static final ImageIcon BUTTON_PRESSED_ICON = new ImageIcon(ClassLoader.getSystemResource("images/infoViewButton-ON.png"));
+    private static final ImageIcon BUTTON_ICON = new ImageIcon(Inspector.class.getResource("/images/infoViewButton-OFF.png"));
+    private static final ImageIcon BUTTON_PRESSED_ICON = new ImageIcon(Inspector.class.getResource("/images/infoViewButton-ON.png"));
     
     private static final String DASH = " - ";
     

@@ -15,7 +15,6 @@
 	<classpathentry kind="var" path="M2_REPO/org/testng/testng/5.8/testng-5.8-jdk15.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/tests"/>
 	<classpathentry exported="true" kind="var" path="M2_REPO/org/mockito/mockito-all/1.8.2/mockito-all-1.8.2.jar"/>
-	<classpathentry exported="true" kind="src" path="/evaluatorComponent"/>
 	<classpathentry kind="var" path="/M2_REPO/batik/batik-awt-util/1.6/batik-awt-util-1.6.jar"/>
 	<classpathentry kind="var" path="/M2_REPO/batik/batik-bridge/1.6/batik-bridge-1.6.jar"/>
 	<classpathentry kind="var" path="/M2_REPO/batik/batik-css/1.6/batik-css-1.6.jar"/>

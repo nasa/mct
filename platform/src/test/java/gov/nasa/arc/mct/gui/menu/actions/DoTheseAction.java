@@ -23,8 +23,8 @@ package gov.nasa.arc.mct.gui.menu.actions;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.gui.ActionContext;
-import gov.nasa.arc.mct.gui.ActionContextImpl;
 import gov.nasa.arc.mct.gui.GroupAction;
+import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
 
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;

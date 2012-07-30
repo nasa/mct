@@ -22,7 +22,6 @@
 package gov.nasa.arc.mct.defaults.view;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
-import gov.nasa.arc.mct.gui.MCTSplitPaneFactory;
 import gov.nasa.arc.mct.gui.SelectionProvider;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.housing.MCTContentArea;
@@ -31,6 +30,7 @@ import gov.nasa.arc.mct.gui.housing.MCTHousingFactory;
 import gov.nasa.arc.mct.gui.housing.MCTStandardHousing;
 import gov.nasa.arc.mct.gui.housing.MCTStatusArea;
 import gov.nasa.arc.mct.gui.housing.SelectionManager;
+import gov.nasa.arc.mct.gui.impl.MCTSplitPaneFactory;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
 import gov.nasa.arc.mct.roles.events.PropertyChangeEvent;
 import gov.nasa.arc.mct.services.component.ViewInfo;

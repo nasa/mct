@@ -42,7 +42,6 @@ import java.awt.Component;
 import java.awt.GraphicsConfiguration;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -164,17 +163,6 @@ public class MockPlatform implements Platform {
 		return null;
 	}
 
-	@Override
-	public void registerService(Class<?> serviceClass, Object serviceObject,
-			Dictionary<String, Object> props) throws IllegalArgumentException {
-		// do nothing
-	}
-
-	@Override
-	public void unregisterService(Object serviceObject) {
-		// do nothing
-	}
-	
 	@Override
 	public TimeService getTimeService() {
 		return null;

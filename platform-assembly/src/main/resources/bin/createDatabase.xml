@@ -228,7 +228,7 @@ Notes:
 		
 	 <target name="start-mct" description="Start the MCT system.">
 	        <fail message="Usage: ant -Dmct.user=username -DrwRoot=readWriteRootPath start-mct" unless="mct.user" />
-	        <mct.java classname="gov.nasa.arc.mct.platform.Startup">
+	        <mct.java classname="gov.nasa.arc.mct.launch.Startup">
 	            <jvmarg value="-Dmct.user=${mct.user}" />
 	            <jvmarg value="-DrwRoot=${rwRoot}" />
 	            <jvmarg value="-Xms${mct.runtime.memory}m" />

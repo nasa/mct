@@ -22,10 +22,10 @@
 package gov.nasa.arc.mct.gui.monitors;
 
 import gov.nasa.arc.mct.gui.ActionContext;
-import gov.nasa.arc.mct.gui.ActionContextImpl;
 import gov.nasa.arc.mct.gui.ContextAwareMenu;
 import gov.nasa.arc.mct.gui.MenuItemInfo;
 import gov.nasa.arc.mct.gui.MenuItemInfo.MenuItemType;
+import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
 import gov.nasa.arc.mct.components.DetectGraphicsDevices;
 
 import java.util.ArrayList;

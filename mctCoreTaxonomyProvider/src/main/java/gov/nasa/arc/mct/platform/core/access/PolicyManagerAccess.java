@@ -28,7 +28,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public final class PolicyManagerAccess {
     private static AtomicReference<PolicyManager> manager = new AtomicReference<PolicyManager>();
     
-    public void setPolciyManager(PolicyManager policyManager) {
+    public void setPolicyManager(PolicyManager policyManager) {
         manager.set(policyManager);
     }
     

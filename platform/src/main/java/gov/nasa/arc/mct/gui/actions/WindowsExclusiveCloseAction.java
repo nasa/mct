@@ -22,10 +22,10 @@
 package gov.nasa.arc.mct.gui.actions;
 
 import gov.nasa.arc.mct.gui.ActionContext;
-import gov.nasa.arc.mct.gui.ActionContextImpl;
 import gov.nasa.arc.mct.gui.ContextAwareAction;
 import gov.nasa.arc.mct.gui.housing.MCTAbstractHousing;
 import gov.nasa.arc.mct.gui.housing.registry.UserEnvironmentRegistry;
+import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
 
 import java.awt.event.ActionEvent;
 import java.util.Collection;

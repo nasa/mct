@@ -3,7 +3,6 @@ Bundle-ManifestVersion: 2
 Bundle-Name: MctCoreTaxonomyProvider
 Bundle-SymbolicName: mctCoreTaxonomyProvider
 Bundle-Version: 1.1.0
-Bundle-Activator: gov.nasa.arc.mct.coreTaxonomyProvider.Activator
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: gov.nasa.arc.mct.components;version="1.1.0",
  gov.nasa.arc.mct.components.collection;version="1.1.0",
@@ -18,3 +17,4 @@ Import-Package: gov.nasa.arc.mct.components;version="1.1.0",
  gov.nasa.arc.mct.services.internal.component;version="1.1.0",
  gov.nasa.arc.mct.util;version="1.1.0",
  org.osgi.framework;version="1.4.0"
+Service-Component: OSGI-INF/service.xml

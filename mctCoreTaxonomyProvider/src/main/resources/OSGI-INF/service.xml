@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0">
+<scr:component name="gov.nasa.arc.mct.platform.core.access.PlatformAccess" immediate="true">
+   <implementation class="gov.nasa.arc.mct.platform.core.access.PlatformAccess" />
+   <reference bind="setPlatform" cardinality="1..1" interface="gov.nasa.arc.mct.platform.spi.Platform" name="PlatformAccess" policy="dynamic" unbind="releasePlatform"/>
+</scr:component>
+<scr:component name="gov.nasa.arc.mct.platform.core.access.PolicyManagerAccess">
+   <implementation class="gov.nasa.arc.mct.platform.core.access.PolicyManagerAccess" />
+   <reference bind="setPolicyManager" cardinality="1..1" interface="gov.nasa.arc.mct.services.component.PolicyManager" name="PolicyManager" policy="dynamic" unbind="releasePolicyManager"/>
+</scr:component>
+<scr:component name="gov.nasa.arc.mct.core.provider.CoreComponentProvider">
+   <implementation class="gov.nasa.arc.mct.core.provider.CoreComponentProvider" />
+   <service>
+   	  <provide interface="gov.nasa.arc.mct.services.component.ComponentProvider"/>
+   	  <provide interface="gov.nasa.arc.mct.platform.spi.DefaultComponentProvider"/>
+   </service>
+</scr:component>
+</root>

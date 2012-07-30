@@ -22,9 +22,9 @@
 package gov.nasa.arc.mct.gui.actions;
 
 import gov.nasa.arc.mct.gui.ActionContext;
-import gov.nasa.arc.mct.gui.ActionContextImpl;
 import gov.nasa.arc.mct.gui.ContextAwareAction;
 import gov.nasa.arc.mct.gui.housing.MCTHousing;
+import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
 
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;

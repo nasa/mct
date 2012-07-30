@@ -1,29 +1,34 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: mctcore
-Bundle-SymbolicName: mctcore
+Bundle-Name: MCT APIs
+Bundle-SymbolicName: gov.nasa.arc.mct
 Bundle-Version: 1.1.0
-Fragment-Host: system.bundle
-Export-Package: gov.nasa.arc.mct.api.feed;version="1.1.0",
- gov.nasa.arc.mct.api.persistence;version="1.1.0",
- gov.nasa.arc.mct.components;version="1.1.0",
- gov.nasa.arc.mct.components.collection;version="1.1.0",
- gov.nasa.arc.mct.gui;version="1.1.0",
- gov.nasa.arc.mct.lock.manager;version="1.1.0",
- gov.nasa.arc.mct.platform.spi;version="1.1.0",
- gov.nasa.arc.mct.policy;version="1.1.0",
- gov.nasa.arc.mct.roles;version="1.1.0",
- gov.nasa.arc.mct.roles.events;version="1.1.0",
- gov.nasa.arc.mct.services.activity;version="1.1.0",
- gov.nasa.arc.mct.services.adapter;version="1.1.0",
- gov.nasa.arc.mct.services.component;version="1.1.0",
- gov.nasa.arc.mct.services.internal.component;version="1.1.0",
- gov.nasa.arc.mct.services.serviceLocator;version="1.1.0",
- org.slf4j;version="1.5.0",
- org.slf4j.helpers;version="1.5.0",
- com.mysql.jdbc;version="5.1.16",
- org.slf4j.spi;version="1.5.0"
+Export-Package: 
+  gov.nasa.arc.mct.services.adapter; version="1.1.0",
+  gov.nasa.arc.mct.services.component; version="1.1.0",
+  gov.nasa.arc.mct.services.internal.component; version="1.1.0",
+  gov.nasa.arc.mct.components; version="1.1.0",
+  gov.nasa.arc.mct.components.collection;version="1.1.0",
+  gov.nasa.arc.mct.roles; version="1.1.0",
+  gov.nasa.arc.mct.roles.events; version="1.1.0",
+  gov.nasa.arc.mct.registry; version="1.1.0",
+  gov.nasa.arc.mct.gui; version="1.1.0",
+  gov.nasa.arc.mct.policy; version="1.1.0",
+  gov.nasa.arc.mct.platform.spi; version="1.1.0",
+  gov.nasa.arc.mct.lock.manager;version="1.1.0",
+  gov.nasa.arc.mct.services.activity;version="1.1.0",
+  gov.nasa.arc.mct.services.serviceLocator;version="1.1.0",
+  gov.nasa.arc.mct.api.persistence;version="1.1.0",
+  gov.nasa.arc.mct.api.feed;version="1.1.0",
+  gov.nasa.arc.mct.context;version="1.1.0",
+  gov.nasa.arc.mct.identitymgr;version="1.1.0",
+  org.slf4j;version="1.5.0",
+  org.slf4j.helpers;version="1.5.0",
+  org.slf4j.spi;version="1.5.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
-Bundle-ClassPath: M2_REPO/org/slf4j/slf4j-api/1.5.6/slf4j-api-1.5.6.jar,
- M2_REPO/mysql/mysql-connector-java/5.1.16/mysql-connector-java-5.1.16.jar,
- .
+Bundle-ClassPath: ., slf4j-api-1.5.6.jar, jcl-over-slf4j-1.5.6.jar, slf4j-log4j12-1.5.6.jar
+Import-Package: gov.nasa.arc.mct.util;version="1.1.0",
+ gov.nasa.arc.mct.util.exception;version="1.1.0",
+ gov.nasa.arc.mct.util.internal;version="1.1.0",
+ gov.nasa.arc.mct.util.logging;version="1.1.0",
+ gov.nasa.arc.mct.util.property;version="1.1.0"

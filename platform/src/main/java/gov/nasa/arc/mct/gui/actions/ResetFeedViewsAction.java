@@ -23,8 +23,8 @@ package gov.nasa.arc.mct.gui.actions;
 
 import gov.nasa.arc.mct.api.feed.FeedDataArchive;
 import gov.nasa.arc.mct.gui.ActionContext;
-import gov.nasa.arc.mct.gui.ActionContextImpl;
 import gov.nasa.arc.mct.gui.ContextAwareAction;
+import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
 import gov.nasa.arc.mct.platform.PlatformImpl;
 import gov.nasa.arc.mct.platform.spi.SubscriptionManager;
 import gov.nasa.arc.mct.services.component.FeedManager;

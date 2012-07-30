@@ -21,8 +21,6 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.osgi.platform;
 
-import gov.nasa.arc.mct.util.FilepathReplacer;
-import gov.nasa.arc.mct.util.exception.MCTRuntimeException;
 import gov.nasa.arc.mct.util.logging.MCTLogger;
 import gov.nasa.arc.mct.util.property.MCTProperties;
 
@@ -35,38 +33,18 @@ import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.ServiceLoader;
 import java.util.Set;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.Constants;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
-import org.osgi.framework.launch.Framework;
-import org.osgi.framework.launch.FrameworkFactory;
-import org.osgi.service.log.LogReaderService;
-import org.osgi.util.tracker.ServiceTracker;
 
 public class EquinoxOSGIRuntimeImpl implements OSGIRuntime {
     private static final MCTLogger logger = MCTLogger.getLogger(EquinoxOSGIRuntimeImpl.class);
-
-    /**
-     * A directory along the classpath where we expect to find base OSGi
-     * bundles.
-     */
-    private static final String OSGI_BUNDLE_DIR = "osgi";
-    private static final String OSGI_BUNDLE_SYS_PROPERTY = "osgiPluginsList";
-
-    /** A directory along the classpath where we expect to find MCT plugins. */
-    private static final String PLATFORM_BUNDLE_DIR = "platform";
-    private static final String PLATFORM_BUNDLE_SYS_PROPERTY = "platformPluginsList";
 
     /**
      * A directory along the classpath where we expect to find additional
@@ -85,146 +63,12 @@ public class EquinoxOSGIRuntimeImpl implements OSGIRuntime {
         return osgiRuntime;
     }
 
-    private Framework framework = null;
     private BundleContext bc = null;
-    private File cacheDir = null;
-
-    @Override
-    public MCTProperties getConfig() {
-        return MCTProperties.DEFAULT_MCT_PROPERTIES;
-    }
-
-    @Override
-    public void startOSGi() {
-        configOSGI();
-        startOSGI();
-    }
     
-    private void configOSGI() throws MCTRuntimeException {
-        MCTProperties config = getConfig();
-
-        String filePath = FilepathReplacer.substitute(config.getProperty("cacheDir") );
-        logger.info("OSGI cache location {0}", filePath);
-        
-        // Want to make sure that any old bundles are cleared out.
-        cacheDir = getFile(filePath);
-
-        if (cacheDir.exists()) {
-            if (!deleteDir(cacheDir)) {
-                logger.warn("Could not delete OSGi cache directory");
-            }
-        }
-
-        // (Re)create the cache directory.
-        if (!cacheDir.mkdirs()) {
-            throw new MCTRuntimeException("Could not create osgi cache dir (" + cacheDir
-                    + "). Ensure that the directory is writable and executable.");
-        }
-
+    public void setBundleContext(BundleContext context) {
+        bc = context;
     }
 
-    private boolean deleteDir(File f) {
-        if (f.isDirectory()) {
-            for (File child : f.listFiles()) {
-                if (!deleteDir(child)) {
-                    return false;
-                }
-            }
-        }
-
-        // The directory is now empty so delete it
-        return f.delete(); 
-    }
-
-    private void startOSGI() {
-        logger.debug("Starting osgi framework");
-
-        Map<String, String> props = new HashMap<String, String>();
-        
-        // Start with a clean bundle cache.
-        props.put(Constants.FRAMEWORK_STORAGE_CLEAN, Constants.FRAMEWORK_STORAGE_CLEAN_ONFIRSTINIT);
-        
-        // Set the cache directory path.
-        props.put(Constants.FRAMEWORK_STORAGE, cacheDir.getAbsolutePath());
-        
-        // Bundles should have the extension classloader as their parent classloader.
-        props.put(Constants.FRAMEWORK_BUNDLE_PARENT, Constants.FRAMEWORK_BUNDLE_PARENT_EXT);
-        
-        // felix specific properties
-        props.put("org.osgi.framework.bootdelegation", getConfig().getProperty("org.osgi.framework.bootdelegation", ""));
-        //props.put("felix.log.level","4");
-
-        // Add all system properties that seem to be OSGi property names.
-        for (String key : System.getProperties().stringPropertyNames()) {
-            if (key.startsWith("osgi.") || key.startsWith("org.osgi.")) {
-                props.put(key, System.getProperty(key));
-            }
-        }
-        logger.debug("osgi launch properties {0}", props);
-
-        // Iterate over frameworks on the classpath to see if one matches. See the
-        // Javadoc for org.osgi.framework.launch.FrameworkFactory for information
-        // about using ServiceLoader to find the available framework implementations.
-        for (FrameworkFactory factory : ServiceLoader.load(FrameworkFactory.class)) {
-            framework = factory.newFramework(props);
-        }
-
-        if (framework == null) {
-            throw new MCTRuntimeException("Cannot find an OSGi framework");
-        }
-        try {
-            framework.start();
-        } catch (BundleException e) {
-            throw new MCTRuntimeException("Cannot start OSGi framework", e);
-        }
-        
-        bc = framework.getBundleContext();
-
-        // Install a listener to get framework and bundle events so we can log
-        // them.
-        bc.addFrameworkListener(OSGiFrameworkListener.getInstance());
-        bc.addBundleListener(OSGiFrameworkListener.getInstance());
-
-        // Install a tracker for the OSGi log service to add a log listener.
-        trackService(LogReaderService.class.getName(), new ServicesChanged() {
-            @Override
-            public void servicesChanged(Map<String, Collection<Object>> services) {
-                // do nothing
-            }
-
-            @Override
-            public void serviceAdded(String bundleId, Object service) {
-                ((LogReaderService) service).addLogListener(OSGiLogListener.getInstance());
-            }
-
-            @Override
-            public void serviceRemoved(String bundleId, Object service) {
-                ((LogReaderService) service).removeLogListener(OSGiLogListener.getInstance());
-            }
-
-        });
-
-        startOSGIBundles();
-    }
-
-    private void startOSGIBundles() {
-        List<String> osgiBundleList = getBundleList(new DirectoryBundlesListTracker(), OSGI_BUNDLE_SYS_PROPERTY,
-                OSGI_BUNDLE_DIR, Collections.<String>emptySet());
-        logger.debug("osgi bundles to be started {0}", osgiBundleList);
-        // load fragments first, to ensure libraries that are used by the platform that are not
-        // imported will give precedence to the fragment bundle
-        String systemExportBundle = null;
-        for (String bundleName : osgiBundleList) {
-            if (bundleName.contains("systemExports")) {
-                systemExportBundle = bundleName;
-            }
-        }
-        assert systemExportBundle != null;
-        osgiBundleList.remove(systemExportBundle);
-        osgiBundleList.add(0,systemExportBundle);
-        loadBundles(osgiBundleList);
-    }
-    
     private Set<String> getExcludeBundles() {
         String propertyVal = MCTProperties.DEFAULT_MCT_PROPERTIES.getProperty(EXCLUDE_BUNDLES_SYS_PROPERTY);
         Set<String> excludeBundles = new HashSet<String>();
@@ -358,17 +202,9 @@ public class EquinoxOSGIRuntimeImpl implements OSGIRuntime {
     }
 
     @Override
-    public void startPlatformBundles() {
-        List<String> platformBundles = getBundleList(new DirectoryBundlesListTracker(), PLATFORM_BUNDLE_SYS_PROPERTY,
-                PLATFORM_BUNDLE_DIR, Collections.<String>emptySet());
-        assert platformBundles != null && platformBundles.size() > 0;
-        loadBundles(platformBundles);
-    }
-
-    @Override
     public void startExternalBundles() {
         Set<String> excludeBundles = getExcludeBundles();
-        List<String> externalBundles = getBundleList(new ExternalBundlesListTracker(), EXTERNAL_BUNDLE_SYS_PROPERTY,
+        List<String> externalBundles = getBundleList(new DirectoryBundlesListTracker(), EXTERNAL_BUNDLE_SYS_PROPERTY,
                 EXTERNAL_BUNDLE_DIR, excludeBundles);
         loadBundles(externalBundles);
     }
@@ -398,29 +234,16 @@ public class EquinoxOSGIRuntimeImpl implements OSGIRuntime {
 
     @Override
     public void stopOSGI() throws BundleException, InterruptedException {
-        framework.stop();
-        framework.waitForStop(FRAMEWORK_STOP_WAIT_TIME);
-        framework = null;
+        //framework.stop();
+        //framework.waitForStop(FRAMEWORK_STOP_WAIT_TIME);
+        //framework = null;
         bc = null;
     }
 
-    @Override
-    public void openServiceTracker(ServiceTracker tracker) {
-        tracker.open();
-    }
-
-    @Override
-    public void closeServiceTracker(ServiceTracker tracker) {
-        tracker.close();
-    }
-
-    @Override
-    public Object getService(ServiceTracker tracker, ServiceReference reference) {
-        return tracker.getService(reference);
-    }
-
     private URL getResourceURL(String path) {
-        return getClass().getClassLoader().getResource(path);
+        System.err.println("getting resource for " + path);
+        System.err.println(ClassLoader.getSystemResource(path));
+        return ClassLoader.getSystemResource(path);
     }
 
     private File getFile(String path) {
@@ -429,85 +252,6 @@ public class EquinoxOSGIRuntimeImpl implements OSGIRuntime {
 
     private File getFile(URL url) throws URISyntaxException {
         return new File(url.toURI());
-    }
-
-    @Override
-    public void registerService(String[] serviceInterfaces, Object serviceInstance, Dictionary props) {
-        getBundleContext().registerService(serviceInterfaces, serviceInstance, props);
-    }
-
-    private String getSymbolicName(Bundle bundle) {
-        String symbolicName = bundle.getSymbolicName();
-
-        return symbolicName;
-    }
-
-    private void dispatchServiceTrackerChanges(ServicesChanged handler, ServiceReference[] aRefs) {
-        if (aRefs != null) {
-            Map<String, Collection<Object>> services = new HashMap<String, Collection<Object>>();
-            for (int i = 0; i < aRefs.length; i++) {
-                final String symbolicName = getSymbolicName(aRefs[i].getBundle());
-                Collection<Object> currentServices = services.get(symbolicName);
-                Object service = bc.getService(aRefs[i]);
-                if (currentServices == null) {
-                    currentServices = new ArrayList<Object>();
-                    services.put(symbolicName, currentServices);
-                }
-
-                currentServices.add(service);
-            }
-            handler.servicesChanged(services);
-        }
-    }
-
-    @Override
-    public void trackService(final String anInterface, final ServicesChanged handler) {
-        final BundleContext bc = getBundleContext();
-        ServiceTracker st = new ServiceTracker(bc, anInterface, null) {
-
-            void refreshAllServices() {
-                ServiceReference[] refs = null;
-                try {
-                    refs = bc.getAllServiceReferences(anInterface, null);
-                } catch (InvalidSyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-                dispatchServiceTrackerChanges(handler, refs);
-            }
-
-            @Override
-            public Object addingService(ServiceReference reference) {
-                Object obj = super.addingService(reference);
-                refreshAllServices();
-
-                Object service = bc.getService(reference);
-                handler.serviceAdded(getSymbolicName(reference.getBundle()), service);
-
-                return obj;
-            }
-
-            @Override
-            public void remove(ServiceReference reference) {
-                super.remove(reference);
-                refreshAllServices();
-            }
-
-            @Override
-            public void modifiedService(ServiceReference reference, Object service) {
-                super.modifiedService(reference, service);
-                refreshAllServices();
-            }
-
-            @Override
-            public void removedService(ServiceReference reference, Object service) {
-                super.removedService(reference, service);
-                refreshAllServices();
-
-                handler.serviceRemoved(getSymbolicName(reference.getBundle()), service);
-                bc.ungetService(reference);
-            }
-        };
-        openServiceTracker(st);
     }
 
 }

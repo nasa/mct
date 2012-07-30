@@ -23,13 +23,13 @@ package gov.nasa.arc.mct.gui.menu;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.gui.ActionContext;
-import gov.nasa.arc.mct.gui.ActionContextImpl;
 import gov.nasa.arc.mct.gui.CompositeAction;
 import gov.nasa.arc.mct.gui.MCTMutableTreeNode;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.dialogs.DefaultWizardUI;
 import gov.nasa.arc.mct.gui.dialogs.NewObjectDialog;
 import gov.nasa.arc.mct.gui.housing.MCTDirectoryArea;
+import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
 import gov.nasa.arc.mct.policy.PolicyContext;
 import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.policymgr.PolicyManagerImpl;

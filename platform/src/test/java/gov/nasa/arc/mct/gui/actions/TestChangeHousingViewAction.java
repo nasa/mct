@@ -21,7 +21,7 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.gui.actions;
 
-import gov.nasa.arc.mct.gui.ActionContextImpl;
+import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;

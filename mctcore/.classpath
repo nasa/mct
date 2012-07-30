@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src/main/java"/>
-	<classpathentry including="mysql-connector-java-5.1.16.jar" kind="src" path="M2_REPO/mysql/mysql-connector-java/5.1.16"/>
+	<classpathentry including="slf4j-log4j12-1.5.6.jar" kind="src" path="M2_REPO/org/slf4j/slf4j-log4j12/1.5.6"/>
+	<classpathentry including="jcl-over-slf4j-1.5.6.jar" kind="src" path="M2_REPO/org/slf4j/jcl-over-slf4j/1.5.6"/>
+	<classpathentry excluding="M2_REPO/org/slf4j/slf4j-api/1.5.6/|src/main/java/|src/main/resources/|src/test/java/|src/test/resources/|M2_REPO/org/slf4j/jcl-over-slf4j/1.5.6/|M2_REPO/org/slf4j/slf4j-log4j12/1.5.6/" including="META-INF/" kind="src" path=""/>
 	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="src" path="src/test/resources"/>
 	<classpathentry including="slf4j-api-1.5.6.jar" kind="src" path="M2_REPO/org/slf4j/slf4j-api/1.5.6"/>
 	<classpathentry kind="src" path="src/test/java"/>
 	<classpathentry exported="true" kind="lib" path="M2_REPO/org/slf4j/slf4j-api/1.5.6/slf4j-api-1.5.6.jar"/>
-	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/util"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="var" path="M2_REPO/org/mockito/mockito-all/1.8.2/mockito-all-1.8.2.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/testng/testng/5.8/testng-5.8-jdk15.jar"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry kind="lib" path="M2_REPO/mysql/mysql-connector-java/5.1.16/mysql-connector-java-5.1.16.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

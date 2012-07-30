@@ -37,10 +37,10 @@ public class RoleAccess {
     private static final ConcurrentLinkedQueue<RoleService>  roleServices = new ConcurrentLinkedQueue<RoleService>();
 
     /**
-     * Add a role service registered via osgi service tracker.
+     * Add a role service 
      * @param roleService registered roleService 
      */
-    public static void addRoleService(RoleService roleService) {
+    public void addRoleService(RoleService roleService) {
         roleServices.add(roleService);
     }
     
@@ -152,7 +152,7 @@ public class RoleAccess {
         roleServices.clear();
     }
     
-    public static void removeRoleService(RoleService roleService) {
+    public void removeRoleService(RoleService roleService) {
         roleServices.remove(roleService);
     }
 }

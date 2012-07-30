@@ -23,8 +23,8 @@ package gov.nasa.arc.mct.gui.actions;
 
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
-import gov.nasa.arc.mct.gui.ActionContextImpl;
 import gov.nasa.arc.mct.gui.housing.MCTHousing;
+import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
 
 import java.awt.event.ActionEvent;
 

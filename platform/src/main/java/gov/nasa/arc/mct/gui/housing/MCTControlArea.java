@@ -29,7 +29,7 @@
 
 package gov.nasa.arc.mct.gui.housing;
 
-import gov.nasa.arc.mct.gui.ActionContextImpl;
+import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
 
 import java.awt.BorderLayout;
 

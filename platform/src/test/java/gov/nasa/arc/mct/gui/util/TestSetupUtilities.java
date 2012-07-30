@@ -23,6 +23,7 @@ package gov.nasa.arc.mct.gui.util;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.context.GlobalContext;
+import gov.nasa.arc.mct.db.util.IdGenerator;
 import gov.nasa.arc.mct.defaults.view.MCTHousingViewManifestation;
 import gov.nasa.arc.mct.gui.actions.MockPolicy;
 import gov.nasa.arc.mct.gui.housing.MCTHousing;
@@ -42,7 +43,6 @@ import gov.nasa.arc.mct.services.component.AbstractComponentProvider;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 import gov.nasa.arc.mct.services.internal.component.User;
-import gov.nasa.arc.mct.util.IdGenerator;
 
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;

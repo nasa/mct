@@ -383,13 +383,6 @@
 											<include name="images/*.*" />
 		  								</fileset>
 		  							</copy>
-		  							<mkdir dir="${findbugs.project.dir}/platform-assembly/target/site/mctLastBundleMarker" />
-		  							<copy failonerror="false" todir="${findbugs.project.dir}/platform-assembly/target/site/mctLastBundleMarker" >
-		  								<fileset dir="${findbugs.project.dir}/mctLastBundleMarker/target/site/">
-		  									<include name="*.html" />
-											<include name="images/*.*" />
-		  								</fileset>
-		  							</copy>
 		  							<mkdir dir="${findbugs.project.dir}/platform-assembly/target/site/tests" />
 		  							<copy failonerror="false" todir="${findbugs.project.dir}/platform-assembly/target/site/tests" >
 		  								<fileset dir="${findbugs.project.dir}/tests/target/site/">

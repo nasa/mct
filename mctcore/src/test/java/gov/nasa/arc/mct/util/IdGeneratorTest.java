@@ -23,6 +23,7 @@ package gov.nasa.arc.mct.util;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
+import gov.nasa.arc.mct.db.util.IdGenerator;
 import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
 

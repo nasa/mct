@@ -29,7 +29,6 @@
 package gov.nasa.arc.mct.gui.housing;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
-import gov.nasa.arc.mct.gui.ActionContextImpl;
 import gov.nasa.arc.mct.gui.MCTMutableTreeNode;
 import gov.nasa.arc.mct.gui.OptionBox;
 import gov.nasa.arc.mct.gui.SelectionProvider;
@@ -38,6 +37,7 @@ import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.ViewListener;
 import gov.nasa.arc.mct.gui.ViewProvider;
 import gov.nasa.arc.mct.gui.ViewRoleSelection;
+import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
 import gov.nasa.arc.mct.gui.menu.MenuFactory;
 import gov.nasa.arc.mct.gui.util.GUIUtil;
 import gov.nasa.arc.mct.platform.spi.PersistenceProvider;

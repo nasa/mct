@@ -28,6 +28,7 @@
  */
 package gov.nasa.arc.mct.components;
 
+import gov.nasa.arc.mct.db.util.IdGenerator;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.platform.spi.PersistenceProvider;
 import gov.nasa.arc.mct.platform.spi.Platform;
@@ -45,7 +46,6 @@ import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 import gov.nasa.arc.mct.services.internal.component.ComponentInitializer;
 import gov.nasa.arc.mct.services.internal.component.Updatable;
-import gov.nasa.arc.mct.util.IdGenerator;
 import gov.nasa.arc.mct.util.MCTIcons;
 import gov.nasa.arc.mct.util.WeakHashSet;
 import gov.nasa.arc.mct.util.exception.MCTRuntimeException;

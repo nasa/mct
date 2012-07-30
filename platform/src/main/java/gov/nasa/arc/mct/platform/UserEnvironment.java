@@ -30,7 +30,6 @@ package gov.nasa.arc.mct.platform;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.components.DetectGraphicsDevices;
-import gov.nasa.arc.mct.gui.ActionManager;
 import gov.nasa.arc.mct.gui.actions.AboutMCT;
 import gov.nasa.arc.mct.gui.actions.AboutMCTLicenses;
 import gov.nasa.arc.mct.gui.actions.ChangeHousingViewAction;
@@ -57,6 +56,7 @@ import gov.nasa.arc.mct.gui.actions.ViewShowControlAreaAction;
 import gov.nasa.arc.mct.gui.actions.WindowsExclusiveCloseAction;
 import gov.nasa.arc.mct.gui.formatting.actions.AlignToDecimalAction;
 import gov.nasa.arc.mct.gui.formatting.actions.ShowCanvasTitleBarAction;
+import gov.nasa.arc.mct.gui.impl.ActionManager;
 import gov.nasa.arc.mct.gui.menu.NewMenu;
 import gov.nasa.arc.mct.gui.menu.NewObjectAction;
 import gov.nasa.arc.mct.gui.menu.housing.ConveniencesMenu;

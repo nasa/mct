@@ -28,12 +28,12 @@
  */
 package gov.nasa.arc.mct.gui.menu;
 
-import gov.nasa.arc.mct.gui.ActionContextImpl;
-import gov.nasa.arc.mct.gui.ActionManager;
 import gov.nasa.arc.mct.gui.ContextAwareMenu;
-import gov.nasa.arc.mct.gui.MenuExtensionManager;
 import gov.nasa.arc.mct.gui.MenuItemInfo;
 import gov.nasa.arc.mct.gui.housing.MCTStandardHousing;
+import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
+import gov.nasa.arc.mct.gui.impl.ActionManager;
+import gov.nasa.arc.mct.gui.impl.MenuExtensionManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;

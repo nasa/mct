@@ -42,8 +42,8 @@ import javax.swing.JLabel;
 @SuppressWarnings("serial")
 public abstract class Twistie extends JLabel {
     
-    private static final String COLLAPSE_ICON = "images/controlToggleClosed.png";
-    private static final String EXPAND_ICON = "images/controlToggleOpen.png";
+    private static final String COLLAPSE_ICON = "/images/controlToggleClosed.png";
+    private static final String EXPAND_ICON = "/images/controlToggleOpen.png";
     
     private Icon onIcon;
     private Icon offIcon;
@@ -54,8 +54,8 @@ public abstract class Twistie extends JLabel {
      * to represent toggle open and closed, respectively.
      */
     protected Twistie() {
-        this(new ImageIcon(Twistie.class.getClassLoader().getResource(COLLAPSE_ICON)), 
-             new ImageIcon(Twistie.class.getClassLoader().getResource(EXPAND_ICON)));
+        this(new ImageIcon(Twistie.class.getResource(COLLAPSE_ICON)), 
+             new ImageIcon(Twistie.class.getResource(EXPAND_ICON)));
         getAccessibleContext().setAccessibleName("Control Area Toggle");
         getAccessibleContext().setAccessibleDescription("This toggle opens and closes the control area.");
     }

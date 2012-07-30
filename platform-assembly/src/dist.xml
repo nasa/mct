@@ -15,7 +15,6 @@
    			<includes>
    				<include>local.properties</include>
    				<include>bin/createDatabase.xml</include>
-   				<include>bin/my.cnf.in</include>
    			</includes>
     		<fileMode>0777</fileMode>
     		<directoryMode>0777</directoryMode>
@@ -68,18 +67,12 @@
     		<outputDirectory>lib</outputDirectory>
     		<useProjectArtifact>true</useProjectArtifact>
     		<includes>
-				<include>gov.nasa.arc.mct:mctcore</include>
-				<include>gov.nasa.arc.mct:platform</include>
-				<include>gov.nasa.arc.mct:util</include>
 				<include>org.apache.felix:org.apache.felix.framework</include>
-				<include>org.apache.felix:org.osgi.compendium</include>
-				<include>mysql:mysql-connector-java</include>
-				<include>org.slf4j:*</include>
+				<include>gov.nasa.arc.mct:startup</include>
     		</includes>
     		<excludes>
     			<!-- Exclude the OSGi bundles and their libraries. -->
     			<exclude>log4j:log4j</exclude>
-    			<exclude>org.apache.felix:javax.servlet</exclude>
     		</excludes>
     		<useTransitiveDependencies>true</useTransitiveDependencies>
     		<useTransitiveFiltering>true</useTransitiveFiltering>
@@ -90,6 +83,7 @@
     		<useProjectArtifact>false</useProjectArtifact>
     		<includes>
 				<include>log4j:log4j</include>
+				<include>mysql:mysql-connector-java</include>
     		</includes>
     		<useTransitiveDependencies>true</useTransitiveDependencies>
     		<useTransitiveFiltering>true</useTransitiveFiltering>
@@ -101,10 +95,10 @@
     		<outputDirectory>resources/osgi</outputDirectory>
     		<useProjectArtifact>false</useProjectArtifact>
     		<includes>
-    			<include>gov.nasa.arc.mct:systemExports</include>
     			<include>org.apache.felix:org.apache.felix.scr</include>
     			<include>org.apache.felix:org.apache.felix.configadmin</include>
     			<include>org.apache.felix:org.apache.felix.log</include>
+    			<include>org.apache.felix:org.osgi.compendium</include>
     		</includes>
     		<useTransitiveDependencies>false</useTransitiveDependencies>
     		<fileMode>0777</fileMode>
@@ -113,6 +107,9 @@
     		<outputDirectory>resources/platform</outputDirectory>
     		<useProjectArtifact>false</useProjectArtifact>
     		<includes>
+    			<include>gov.nasa.arc.mct:mctcore</include>
+				<include>gov.nasa.arc.mct:platform</include>
+				<include>gov.nasa.arc.mct:util</include>
     			<include>gov.nasa.arc.mct:serviceConfigurator</include>
     			<include>gov.nasa.arc.mct:databasePersistence</include>
     			<include>gov.nasa.arc.mct:mctCoreTaxonomyProvider</include>
@@ -128,7 +125,6 @@
     		<outputDirectory>resources/plugins</outputDirectory>
     		<useProjectArtifact>false</useProjectArtifact>
     		<includes>
-    			<include>gov.nasa.arc.mct:mctLastBundleMarker</include>
     			<include>gov.nasa.arc.mct:canvasView</include>
     			<include>gov.nasa.arc.mct:evaluatorComponent</include>
     			<include>gov.nasa.arc.mct:tableViews</include>

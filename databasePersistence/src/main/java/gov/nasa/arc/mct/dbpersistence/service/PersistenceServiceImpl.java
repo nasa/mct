@@ -35,6 +35,7 @@ import gov.nasa.arc.mct.dbpersistence.dao.ViewState;
 import gov.nasa.arc.mct.dbpersistence.dao.ViewStatePK;
 import gov.nasa.arc.mct.dbpersistence.search.QueryResult;
 import gov.nasa.arc.mct.platform.spi.PersistenceProvider;
+import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
 import gov.nasa.arc.mct.services.internal.component.ComponentInitializer;
 import gov.nasa.arc.mct.services.internal.component.Updatable;
@@ -657,6 +658,10 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 	}
 	
 	private Date getCurrentTimeFromDatabase() {
+		Platform p = PlatformAccess.getPlatform();
+		if (p==null) {
+			return null;
+		}
 		User currentUser = PlatformAccess.getPlatform().getCurrentUser();
 		if (currentUser == null)
 			return null;

@@ -24,13 +24,11 @@ package gov.nasa.arc.mct.platform;
 import gov.nasa.arc.mct.api.feed.FeedAggregator;
 import gov.nasa.arc.mct.api.feed.FeedDataArchive;
 import gov.nasa.arc.mct.components.AbstractComponent;
-import gov.nasa.arc.mct.gui.housing.MCTAbstractHousing;
 import gov.nasa.arc.mct.context.GlobalContext;
-import gov.nasa.arc.mct.gui.MenuExtensionManager;
-import gov.nasa.arc.mct.gui.WindowManagerImpl;
+import gov.nasa.arc.mct.gui.housing.MCTAbstractHousing;
 import gov.nasa.arc.mct.gui.housing.registry.UserEnvironmentRegistry;
-import gov.nasa.arc.mct.osgi.platform.EquinoxOSGIRuntimeImpl;
-import gov.nasa.arc.mct.osgi.platform.OSGIRuntime;
+import gov.nasa.arc.mct.gui.impl.MenuExtensionManager;
+import gov.nasa.arc.mct.gui.impl.WindowManagerImpl;
 import gov.nasa.arc.mct.platform.spi.DefaultComponentProvider;
 import gov.nasa.arc.mct.platform.spi.PersistenceProvider;
 import gov.nasa.arc.mct.platform.spi.Platform;
@@ -47,15 +45,12 @@ import gov.nasa.arc.mct.services.internal.component.CoreComponentRegistry;
 import gov.nasa.arc.mct.services.internal.component.User;
 
 import java.util.Collection;
-import java.util.Dictionary;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
+import org.osgi.framework.InvalidSyntaxException;
+import org.osgi.framework.ServiceReference;
 
 /**
  * Provides the MCT Platform which supports the MCT API set. The platform is intended to decouple the MCT APIs
@@ -67,18 +62,21 @@ public class PlatformImpl implements Platform {
 
     private static final PlatformImpl INSTANCE = new PlatformImpl();
     
-    private Map<Object, Set<ServiceRegistration>> serviceRegistrations = new HashMap<Object, Set<ServiceRegistration>>();
-    
     private final RootComponent rootComponent = new RootComponent();
     
     private AbstractComponent mysanboxComponent; // initialized from the bootstrapping components loaded from the database
     private String userDropboxesId;
+    private final AtomicReference<BundleContext> bundleContext = new AtomicReference<BundleContext>();
     
     private PlatformImpl() {}
     
     
     public static PlatformImpl getInstance() {
         return INSTANCE;
+    }
+    
+    public void setBundleContext(BundleContext bc) {
+        bundleContext.set(bc);
     }
     
     @Override
@@ -88,8 +86,7 @@ public class PlatformImpl implements Platform {
     
     @Override
     public PersistenceProvider getPersistenceProvider() {
-        OSGIRuntime osgiRuntime = EquinoxOSGIRuntimeImpl.getOSGIRuntime();
-        return osgiRuntime.getService(PersistenceProvider.class,null);
+        return getService(PersistenceProvider.class,null);
     }
     
     @Override
@@ -107,62 +104,38 @@ public class PlatformImpl implements Platform {
         return PolicyManagerImpl.getInstance();
     }
 
+    public <T> T getService(Class<T> serviceClass, String filter) {
+        BundleContext bc = bundleContext.get();
+        if (bc == null) { return null; }
+        ServiceReference[] srs;
+        try {
+            srs = bc.getServiceReferences(serviceClass.getName(), filter);
+        } catch (InvalidSyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (srs != null && srs.length > 0) {
+            ServiceReference sr = srs[0];
+            return serviceClass.cast(bc.getService(sr));
+
+        }
+        return null;
+    }
+    
+    
     @Override
     public DefaultComponentProvider getDefaultComponentProvider() {
-        OSGIRuntime osgiRuntime = EquinoxOSGIRuntimeImpl.getOSGIRuntime();
-        return osgiRuntime.getService(DefaultComponentProvider.class,null);
+        return getService(DefaultComponentProvider.class,null);
     }
 
-    // This method just calls the default-access method below, passing the OSGi
-    // runtime implementation.
-    @Override
-    public void registerService(Class<?> serviceClass, Object serviceObject, Dictionary<String,Object> props) throws IllegalArgumentException {
-        registerService(EquinoxOSGIRuntimeImpl.getOSGIRuntime(), serviceClass, serviceObject, props);
-    }
-    
-    /**
-     * Registers a service using a specific OSGi runtime implementation.
-     * This method is called by unit tests, to mock the OSGi implementation.
-     * 
-     * @param osgiRuntime the OSGi runtime to use
-     * @param serviceClass the class under which name the service should be registered
-     * @param serviceObject the object providing the service
-     * @param props the properties for the new service
-     * @throws IllegalArgumentException if the service object does not implement the service class
-     */
-    synchronized void registerService(OSGIRuntime osgiRuntime, Class<?> serviceClass, Object serviceObject, Dictionary<String,Object> props) throws IllegalArgumentException {
-        if (!serviceClass.isInstance(serviceObject)) {
-            throw new IllegalArgumentException("Service object is not instance of service class " + serviceClass.getName());
-        }
-        BundleContext bc = osgiRuntime.getBundleContext();
-        ServiceRegistration reg = bc.registerService(serviceClass.getName(), serviceObject, props);
-        Set<ServiceRegistration> existingRegistrations = serviceRegistrations.get(serviceObject);
-        if (existingRegistrations == null) {
-            existingRegistrations = new HashSet<ServiceRegistration>();
-            serviceRegistrations.put(serviceObject, existingRegistrations);
-        }
-        existingRegistrations.add(reg);
-    }
-
-    @Override
-    public synchronized void unregisterService(Object serviceObject) {
-        Set<ServiceRegistration> existingRegistrations = serviceRegistrations.get(serviceObject);
-        for (ServiceRegistration reg : existingRegistrations) {
-            reg.unregister();
-        }
-        serviceRegistrations.remove(serviceObject);
-    }
-    
     @Override
     public SubscriptionManager getSubscriptionManager() {
-        OSGIRuntime osgiRuntime = EquinoxOSGIRuntimeImpl.getOSGIRuntime();
-        return osgiRuntime.getService(SubscriptionManager.class, null);
+        return getService(SubscriptionManager.class, null);
     }
     
     @Override
     public TimeService getTimeService() {
-        OSGIRuntime osgiRuntime = EquinoxOSGIRuntimeImpl.getOSGIRuntime();
-        return osgiRuntime.getService(TimeService.class, null);
+        return getService(TimeService.class, null);
     }
 
     @Override
@@ -177,8 +150,7 @@ public class PlatformImpl implements Platform {
 
     @Override
     public FeedAggregator getFeedAggregator() {
-        OSGIRuntime osgiRuntime = EquinoxOSGIRuntimeImpl.getOSGIRuntime();
-        return osgiRuntime.getService(FeedAggregator.class, null);
+        return getService(FeedAggregator.class, null);
     }
 
 
@@ -222,8 +194,7 @@ public class PlatformImpl implements Platform {
      * @return FeedManager reference.
      */
     public FeedManager getFeedManager() {
-        OSGIRuntime osgiRuntime = EquinoxOSGIRuntimeImpl.getOSGIRuntime();
-        return osgiRuntime.getService(FeedManager.class, null);
+        return getService(FeedManager.class, null);
     }
     
     /**
@@ -231,8 +202,7 @@ public class PlatformImpl implements Platform {
      * @return FeedDataArchive reference.
      */
     public FeedDataArchive getFeedDataArchive() {
-        OSGIRuntime osgiRuntime = EquinoxOSGIRuntimeImpl.getOSGIRuntime();
-        return osgiRuntime.getService(FeedDataArchive.class, null);
+        return getService(FeedDataArchive.class, null);
     }
     
     /**

@@ -11,6 +11,19 @@
   	<version>2.0.0</version>
   	<relativePath>../superpom</relativePath>
   </parent>
+  <build>
+    <plugins>
+      <plugin>
+  			<groupId>org.apache.maven.plugins</groupId>
+  			<artifactId>maven-jar-plugin</artifactId>
+  			<configuration>
+  				<archive>
+  					<manifestFile>./META-INF/MANIFEST.MF</manifestFile>
+  				</archive>
+  			</configuration>
+  	  </plugin>
+    </plugins>
+  </build>
   <dependencies>
   	<dependency>
   		<groupId>gov.nasa.arc.mct</groupId>

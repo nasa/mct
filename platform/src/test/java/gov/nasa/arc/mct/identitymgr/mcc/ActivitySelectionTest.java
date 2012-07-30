@@ -29,7 +29,7 @@
 
 package gov.nasa.arc.mct.identitymgr.mcc;
 
-import gov.nasa.arc.mct.identitymgr.IdentityManagerFactory;
+import gov.nasa.arc.mct.identitymgr.impl.IdentityManagerFactory;
 import gov.nasa.arc.mct.util.exception.MCTException;
 import gov.nasa.arc.mct.util.property.MCTProperties;
 

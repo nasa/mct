@@ -21,16 +21,11 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.osgi.platform;
 
-import gov.nasa.arc.mct.util.property.MCTProperties;
-
 import java.util.Collection;
-import java.util.Dictionary;
 import java.util.Map;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundleException;
-import org.osgi.framework.ServiceReference;
-import org.osgi.util.tracker.ServiceTracker;
 
 /**
  * A helper object that provides methods to interact with the
@@ -69,20 +64,6 @@ public interface OSGIRuntime {
 		void serviceRemoved(String bundleId, Object service);
 	}
 	
-	/**
-	 * Find the external services configuration parameters.
-	 * 
-	 * @return the external services configuration
-	 */
-	public MCTProperties getConfig();
-	
-	/**
-	 * Start the OSGi framework.
-	 */
-	public void startOSGi();
-	
-	public void startPlatformBundles();
-	
 	public void startExternalBundles();
 	
 	/**
@@ -99,46 +80,4 @@ public interface OSGIRuntime {
 	 * @throws Exception if there is an error stopping the framework.
 	 */
 	public void stopOSGI() throws BundleException, InterruptedException;
-	
-	/**
-	 * Open the given service tracker.
-	 * 
-	 * @param tracker the service tracker to open
-	 * @throws IllegalStateException if the <code>BundleContext</code> object with which this ServiceTracker object was created is no longer valid.
-	 */
-	public void openServiceTracker(ServiceTracker tracker) throws IllegalStateException;
-	
-	/**
-	 * Register a service instance with OSGi
-	 * @param serviceInterfaces list of classes the services should be registered under
-	 * @param serviceInstance the instance of the class
-	 * @param props properties passed to the object
-	 */
-	public void registerService(String[] serviceInterfaces, Object serviceInstance, @SuppressWarnings("unchecked") Dictionary props);
-	
-	/**
-	 * Track instances of the interface
-	 * @param anInterface fully qualified classname of the service interface to track
-	 */
-	public void trackService(String anInterface, ServicesChanged handler);
-
-	/**
-	 * Close the given service tracker.
-	 * 
-	 * @param tracker the service tracker
-	 */
-	void closeServiceTracker(ServiceTracker tracker);
-
-	/**
-	 * Get a service that was added or removed in the context of a service tracker.
-	 * 
-	 * @param tracker the service tracker
-	 * @param reference the reference to the service that was added or removed
-	 * @return the service
-	 */
-	public Object getService(ServiceTracker tracker, ServiceReference reference);
-	
-	public <T> T getService(Class<T> serviceClass, String filter);
-
-	
 }

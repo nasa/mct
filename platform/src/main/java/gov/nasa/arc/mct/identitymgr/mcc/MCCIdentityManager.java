@@ -32,7 +32,7 @@ package gov.nasa.arc.mct.identitymgr.mcc;
 import gov.nasa.arc.mct.context.GlobalContext;
 import gov.nasa.arc.mct.gui.housing.MCTAbstractHousing;
 import gov.nasa.arc.mct.gui.housing.registry.UserEnvironmentRegistry;
-import gov.nasa.arc.mct.identitymgr.IdentityManager;
+import gov.nasa.arc.mct.identitymgr.impl.IdentityManager;
 import gov.nasa.arc.mct.services.internal.component.User;
 import gov.nasa.arc.mct.util.logging.MCTLogger;
 

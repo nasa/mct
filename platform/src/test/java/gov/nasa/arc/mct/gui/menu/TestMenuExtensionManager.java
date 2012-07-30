@@ -23,12 +23,12 @@ package gov.nasa.arc.mct.gui.menu;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.gui.ActionContext;
-import gov.nasa.arc.mct.gui.ActionContextImpl;
-import gov.nasa.arc.mct.gui.ActionManager;
 import gov.nasa.arc.mct.gui.ContextAwareAction;
 import gov.nasa.arc.mct.gui.View;
-import gov.nasa.arc.mct.gui.MenuExtensionManager;
 import gov.nasa.arc.mct.gui.housing.MCTAbstractHousing;
+import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
+import gov.nasa.arc.mct.gui.impl.ActionManager;
+import gov.nasa.arc.mct.gui.impl.MenuExtensionManager;
 import gov.nasa.arc.mct.gui.menu.housing.ViewMenu;
 
 import java.awt.event.ActionEvent;

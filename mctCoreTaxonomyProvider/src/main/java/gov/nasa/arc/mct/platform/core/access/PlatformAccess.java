@@ -35,7 +35,6 @@ public class PlatformAccess {
 	private static final AtomicReference<Platform> platform =
 		new AtomicReference<Platform>();
 
-	
 	/**
 	 * Returns the platform instance. This will not return null as the cardinality of 
 	 * the component specified through the OSGi components services is 1. 

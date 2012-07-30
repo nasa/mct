@@ -31,7 +31,6 @@ import gov.nasa.arc.mct.services.component.ProviderDelegateService;
 import gov.nasa.arc.mct.services.internal.component.CoreComponentRegistry;
 import gov.nasa.arc.mct.services.internal.component.User;
 
-import java.util.Dictionary;
 import java.util.List;
 
 /**
@@ -128,33 +127,6 @@ public interface Platform {
      * @return provider to access various types of default components
      */
     public DefaultComponentProvider getDefaultComponentProvider();
-    
-    /**
-     * Registers a service in the OSGi service registry. The same object
-     * may be registered more than once under different service classes.
-     * If the same object is registered more than once under the same
-     * service class, only the first registration is effective. The service
-     * properties may be null if the service has no properties.
-     * 
-     * @param serviceClass the class under which the service should be registered.
-     * @param serviceObject the Java object providing the service
-     * @param props properties for the new service registration, or null if the service has no properties
-     * @throws IllegalArgumentException if the service object is an instance of the service class
-     */
-    public void registerService(Class<?> serviceClass, Object serviceObject, Dictionary<String,Object> props) throws IllegalArgumentException;
-    
-    /**
-     * Unregisters a Java object as an OSGi service. If the object
-     * is currently registered as an OSGi service, it is removed
-     * from the OSGi service registry. If the object is not currently
-     * registered as an OSGi service, this method has no effect.
-     * If the same object is registered multiple times as an OSGi
-     * service under different service classes, all registrations
-     * are removed by this call.
-     * 
-     * @param serviceObject the Java object providing the service
-     */
-    public void unregisterService(Object serviceObject);
     
     public ProviderDelegateService getProviderDelegateService();
 

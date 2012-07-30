@@ -39,9 +39,9 @@ import javax.swing.ImageIcon;
  */
 public class MCTIcons {
 
-    private static ImageIcon warningIcon32x32 = new ImageIcon(ClassLoader.getSystemResource("images/warning_32x32.png"));
-    private static ImageIcon errorIcon32x32 = new ImageIcon(ClassLoader.getSystemResource("images/error_32x32.png"));
-    private static ImageIcon componentIcon12x12 = new ImageIcon(ClassLoader.getSystemResource("images/object_icon.png"));
+    private static ImageIcon warningIcon32x32 = new ImageIcon(MCTIcons.class.getResource("/images/warning_32x32.png"));
+    private static ImageIcon errorIcon32x32 = new ImageIcon(MCTIcons.class.getResource("/images/error_32x32.png"));
+    private static ImageIcon componentIcon12x12 = new ImageIcon(MCTIcons.class.getResource("/images/object_icon.png"));
 
     private static enum Icons { 
         WARNING_ICON,

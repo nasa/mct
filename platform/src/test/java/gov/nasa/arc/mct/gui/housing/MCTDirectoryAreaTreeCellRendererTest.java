@@ -35,7 +35,7 @@ import javax.swing.tree.TreePath;
 
 import gov.nasa.arc.mct.gui.MCTMutableTreeNode;
 import gov.nasa.arc.mct.gui.View;
-import gov.nasa.arc.mct.gui.SplittablePane;
+import gov.nasa.arc.mct.gui.impl.SplittablePane;
 import gov.nasa.arc.mct.util.LafColor;
 
 import org.mockito.Mock;

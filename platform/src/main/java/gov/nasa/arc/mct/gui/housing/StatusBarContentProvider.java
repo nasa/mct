@@ -29,7 +29,7 @@
 package gov.nasa.arc.mct.gui.housing;
 
 import gov.nasa.arc.mct.gui.View;
-import gov.nasa.arc.mct.gui.StatusAreaWidgetRegistryImpl;
+import gov.nasa.arc.mct.gui.impl.StatusAreaWidgetRegistryImpl;
 import gov.nasa.arc.mct.services.component.StatusAreaWidgetInfo;
 import gov.nasa.arc.mct.util.logging.MCTLogger;
 

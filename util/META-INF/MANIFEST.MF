@@ -1,11 +1,13 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: util
-Bundle-SymbolicName: util
+Bundle-Name: MCT Utilities
+Bundle-SymbolicName: gov.nasa.arc.mct.util
 Bundle-Version: 1.1.0
-Fragment-Host: system.bundle
 Export-Package: gov.nasa.arc.mct.util;version="1.1.0",
  gov.nasa.arc.mct.util.ext.commands;version="1.1.0",
- gov.nasa.arc.mct.util.internal;version="1.1.0"
+ gov.nasa.arc.mct.util.internal;version="1.1.0",
+ gov.nasa.arc.mct.util.logging;version="1.1.0",
+ gov.nasa.arc.mct.util.property;version="1.1.0",
+ gov.nasa.arc.mct.util.exception;version="1.1.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 
