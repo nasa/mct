@@ -143,6 +143,7 @@
     			<include>gov.nasa.arc.mct:limits</include> 			
     			<include>plotter:plotter</include>
     			<include>gov.nasa.arc.mct:fastPlotViews</include>
+    			<include>gov.nasa.arc.mct:nonTimePlots</include>
     			<include>gov.nasa.arc.mct:importExportProvider</include>
     			<include>org.acme.example:exampleplugin</include>
     		</includes>

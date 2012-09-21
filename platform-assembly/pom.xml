@@ -351,6 +351,7 @@
 		<module>../limits</module>
         <module>../sleepycat</module>
         <module>../fastPlotViews</module>
+        <module>../nonTimePlots</module>
 		<module>../Plotter</module>
 		<module>../ImportExportProvider</module>
   </modules>
@@ -479,6 +480,11 @@
 	 	<artifactId>fastPlotViews</artifactId>
 	 	<version>${mct.platform.version}</version>
 	 </dependency>
+	 <dependency>
+		<groupId>gov.nasa.arc.mct</groupId>
+	 	<artifactId>nonTimePlots</artifactId>
+	 	<version>${mct.platform.version}</version>
+	 </dependency>	 
 	 <dependency>
 		<groupId>plotter</groupId>
 	 	<artifactId>plotter</artifactId>

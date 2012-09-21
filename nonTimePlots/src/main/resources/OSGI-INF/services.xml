@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="nonTimePlotProvider">
+	<implementation class="gov.nasa.arc.mct.nontimeplot.NonTimePlotComponentProvider"/>
+	<service>
+		<provide interface="gov.nasa.arc.mct.services.component.ComponentProvider"/>
+	</service>
+</component>
