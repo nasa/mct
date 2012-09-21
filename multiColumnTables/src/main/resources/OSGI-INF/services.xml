@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0">
+	<scr:component name="org.acme.example.telemetry.ExampleDataProvider"
+		immediate="true">
+		<implementation class="org.acme.example.telemetry.ExampleDataProvider" />
+		<service>
+			<provide interface="gov.nasa.arc.mct.api.feed.DataProvider" />
+		</service>
+	</scr:component>
+	<scr:component name="org.acme.example.component.MultiColComponentProvider">
+		<implementation class="org.acme.example.component.MultiColComponentProvider" />
+		<service>
+			<provide interface="gov.nasa.arc.mct.services.component.ComponentProvider" />
+		</service>
+	</scr:component>
+	<scr:component name="org.acme.example.component.ComponentRegistryAccess">
+		<implementation class="org.acme.example.component.ComponentRegistryAccess"/>
+		<reference name="componentRegistryAccess"
+			interface="gov.nasa.arc.mct.services.component.ComponentRegistry"
+			bind="setRegistry"
+			unbind="releaseRegistry"
+			cardinality="1..1"
+			policy="dynamic"/>
+	</scr:component>
+</root>

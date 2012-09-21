@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component enabled="true" immediate="true" name="gov.nasa.arc.mct.abbreviation.impl.AbbreviationService">
+  <implementation class="gov.nasa.arc.mct.abbreviation.impl.AbbreviationServiceImpl" />
+  <service>
+     <provide interface="gov.nasa.arc.mct.abbreviation.AbbreviationService"/>
+  </service>
+  <property name="abbreviations-file" type="String" value="/default-abbreviations.properties"/>
+</component>

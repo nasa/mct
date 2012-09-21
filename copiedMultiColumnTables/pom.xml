@@ -1,0 +1,53 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>gov.nasa.arc.mct</groupId>
+  <name>Tabular views collections</name>
+  <version>${mct.platform.version}</version>
+  <artifactId>tableViews</artifactId>
+  <packaging>jar</packaging>
+  <description/>
+  <parent>
+  	<artifactId>mct-superpom</artifactId>
+  	<groupId>mct</groupId>
+  	<version>2.0.1</version>
+  	<relativePath>../superpom</relativePath>
+  </parent>
+  <build>
+  	<plugins>
+  		<plugin>
+  			<groupId>org.apache.maven.plugins</groupId>
+  			<artifactId>maven-jar-plugin</artifactId>
+  			<configuration>
+  				<archive>
+  					<manifestFile>./META-INF/MANIFEST.MF</manifestFile>
+  				</archive>
+  			</configuration>
+  		</plugin>
+  	</plugins>
+  </build>
+  <dependencies>
+  	<dependency>
+  		<groupId>gov.nasa.arc.mct</groupId>
+  		<artifactId>mctcore</artifactId>
+  		<version>${mct.platform.version}</version>
+  		<scope>provided</scope>
+  	</dependency>
+  	<dependency>
+  		<groupId>gov.nasa.arc.mct</groupId>
+  		<artifactId>tests</artifactId>
+  		<version>${mct.platform.version}</version>
+  		<scope>test</scope>
+  	</dependency>
+  	<dependency>
+  		<groupId>gov.nasa.arc.mct</groupId>
+  		<artifactId>evaluatorComponent</artifactId>
+  		<version>${mct.platform.version}</version>
+  		<scope>provided</scope>
+  	</dependency>
+  </dependencies>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+  </properties>
+  
+</project>

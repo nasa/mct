@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
+  <id>eclipse</id>
+  <formats>
+    <format>jar</format>
+  </formats>
+  <includeBaseDirectory>true</includeBaseDirectory>
+  <baseDirectory>${project.artifactId}</baseDirectory>
+  <fileSets>
+    <fileSet>
+      <directory>${project.basedir}</directory>
+      <useDefaultExcludes>true</useDefaultExcludes>
+      <excludes>
+        <exclude>${project.build.directory}/**</exclude>
+        <exclude>bin/**</exclude>
+        <exclude>src/build/**</exclude>
+        <exclude>pom.xml</exclude>
+      </excludes>
+    </fileSet>
+  </fileSets>
+</assembly>

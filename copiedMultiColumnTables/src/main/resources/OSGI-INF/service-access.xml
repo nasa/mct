@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<scr:component xmlns:scr="http://www.osgi.org/xmlns/scr/v1.1.0" name="gov.nasa.arc.mct.table.access.ServiceAccess">
+   <implementation class="gov.nasa.arc.mct.table.access.ServiceAccess"/>
+   <reference bind="bind" cardinality="1..1" interface="gov.nasa.arc.mct.abbreviation.AbbreviationService" name="AbbreviationService" policy="static" unbind="unbind"/>
+   <reference bind="bind" cardinality="1..1" interface="gov.nasa.arc.mct.services.component.PolicyManager" name="PolicyManager" policy="static" unbind="unbind"/>
+   <reference bind="bind" cardinality="1..1" interface="gov.nasa.arc.mct.services.component.ComponentRegistry" name="ComponentRegistry" policy="static" unbind="unbind"/>
+   <reference bind="bind" cardinality="1..1" interface="gov.nasa.arc.mct.platform.spi.Platform" name="Platform" policy="static" unbind="unbind"/>
+</scr:component>

@@ -354,6 +354,7 @@
         <module>../nonTimePlots</module>
 		<module>../Plotter</module>
 		<module>../ImportExportProvider</module>
+		<module>../multiColumnTables</module>
   </modules>
   <dependencies>
     <dependency>
