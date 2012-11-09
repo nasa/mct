@@ -36,7 +36,9 @@ public enum IconLoader {
 		PLOT_TIME_ON_X_NORMAL,
 		PLOT_TIME_ON_X_REVERSED,
 		PLOT_TIME_ON_Y_NORMAL,
-		PLOT_TIME_ON_Y_REVERSED,	
+		PLOT_TIME_ON_Y_REVERSED,
+		
+		PLOT_TIME_ON_Z,
 	
 		PLOT_UP_ARROW_SOLID_ICON,
         PLOT_UP_ARROW_HOLLOW_ICON,
@@ -76,6 +78,7 @@ public enum IconLoader {
 	private static ImageIcon plotTimeOnXReversedImage;
 	private static ImageIcon plotTimeOnYNormalImage;
 	private static ImageIcon plotTimeOnYReversedImage;
+	private static ImageIcon plotTimeOnZ = null;
 	private static ImageIcon plotUpArrowSolidImage = null;
     private static ImageIcon plotUpArrowHollowImage = null;
     private static ImageIcon plotUpArrowTranslucentImage = null;
@@ -136,6 +139,12 @@ public enum IconLoader {
 						getClass().getClassLoader().getResource("images/plot_Ytime_maxBottom.png"));
 			}
 			return plotTimeOnYReversedImage;
+		case PLOT_TIME_ON_Z:
+			if (plotTimeOnZ == null) {
+				plotTimeOnZ = new ImageIcon(
+						getClass().getClassLoader().getResource("images/plot_ZtimeSmall.png"));
+			}
+			return plotTimeOnZ;
 			
         case PLOT_UP_ARROW_SOLID_ICON:
             if (plotUpArrowSolidImage == null)

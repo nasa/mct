@@ -22,15 +22,18 @@
 package gov.nasa.arc.mct.fastplot.bridge;
 
 import gov.nasa.arc.mct.fastplot.utils.AbbreviatingPlotLabelingAlgorithm;
+import gov.nasa.arc.mct.fastplot.view.legend.AbstractLegendEntry;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 /**
@@ -41,7 +44,6 @@ public class LegendManager extends JPanel implements MouseListener {
 
 	public static final int MAX_NUMBER_LEGEND_COLUMNS = 1;
 	
-	private PlotterPlot plot;
 	// Panel holding the legend items.
 	private JPanel innerPanel;
 	private Color backgroundColor;
@@ -58,38 +60,38 @@ public class LegendManager extends JPanel implements MouseListener {
 	 * Construct the legend panel for a plot
 	 * @param legendBackgroundColor the background color of the legend
 	 */
-	LegendManager(PlotterPlot thePlot, Color legendBackgroundColor, AbbreviatingPlotLabelingAlgorithm plotLabelingAlgorithm) {
+	public LegendManager(AbbreviatingPlotLabelingAlgorithm plotLabelingAlgorithm) {
 		this.plotLabelingAlgorithm = plotLabelingAlgorithm;
 				
-		plot = thePlot;
-		backgroundColor = legendBackgroundColor;
-		setBackground(legendBackgroundColor);
+		//backgroundColor = legendBackgroundColor;
+		//setBackground(legendBackgroundColor);
 		setLayout(new BorderLayout());
 
 		innerPanel = new JPanel();	
-		innerPanel.setBackground(legendBackgroundColor);	
+		//innerPanel.setBackground(legendBackgroundColor);	
 		
 		innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
-		
+		innerPanel.setOpaque(false);
+		setOpaque(false);
 		add(innerPanel, BorderLayout.NORTH);	
 		setVisible(false);
-		plot.plotView.add(this);
-		
 	}	
 
 	/**
 	 * Add new entry to the legend.
 	 * @param entry to add
 	 */
-	public void addLegendEntry(LegendEntry entry) {
-		entry.setBackground(backgroundColor);
-				
-		legendEntry = entry;
-		legendEntry.setPlotLabelingAlgorithm(this.plotLabelingAlgorithm);
-
-		legendEntryList.add(entry);
+	public void addLegendEntry(AbstractLegendEntry entry) {
+		if (entry instanceof JComponent) {
+			((JComponent) entry).setBackground(backgroundColor);
+			if (entry instanceof LegendEntry) {		
+				legendEntry = (LegendEntry) entry;
+				legendEntry.setPlotLabelingAlgorithm(this.plotLabelingAlgorithm);
 		
-		innerPanel.add(legendEntry);
+				legendEntryList.add((LegendEntry) entry);
+			}			
+			innerPanel.add((Component) entry);
+		}
 	}
 	
 	public LegendEntry getLegendEntry() {

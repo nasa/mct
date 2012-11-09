@@ -21,6 +21,7 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.fastplot.bridge;
 
+import gov.nasa.arc.mct.fastplot.settings.PlotSettings;
 import gov.nasa.arc.mct.fastplot.utils.AbbreviatingPlotLabelingAlgorithm;
 import gov.nasa.arc.mct.fastplot.utils.ComponentTraverser;
 import gov.nasa.arc.mct.fastplot.utils.ComponentTraverser.ComponentProcedure;
@@ -63,10 +64,13 @@ public class TestStackPlotLayout {
 	public void setup() throws Exception {
 		MockitoAnnotations.initMocks(this);
 		
+		PlotSettings settings = new PlotSettings();
+		settings.setMinTime(0);
+		settings.setMaxTime(1000);
+		
 		thePlot = new PlotView.Builder(PlotterPlot.class).
         	numberOfSubPlots(PLOT_COUNT).
-        	timeVariableAxisMinValue(0).
-        	timeVariableAxisMaxValue(1000).
+        	plotSettings(settings).
         	plotLabelingAlgorithm(new AbbreviatingPlotLabelingAlgorithm()).build();
 		
 		thePlot.setManifestation(mockPlotUser);

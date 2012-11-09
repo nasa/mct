@@ -21,12 +21,13 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.fastplot.bridge;
 
-import gov.nasa.arc.mct.fastplot.bridge.PlotAbstraction.PlotSettings;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.NonTimeAxisSubsequentBoundsSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.TimeAxisSubsequentBoundsSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.XAxisMaximumLocationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSetting;
+import gov.nasa.arc.mct.fastplot.settings.PlotConfiguration;
+import gov.nasa.arc.mct.fastplot.settings.PlotSettings;
 import gov.nasa.arc.mct.fastplot.view.Pinnable;
 import gov.nasa.arc.mct.fastplot.view.PlotViewManifestation;
 
@@ -106,33 +107,46 @@ public class TestPlotView {
 		// Insures all paths are executed. We have extensive assertion checking in the production code
 		// so this should uncover problems by exercising the paths.
 
+		PlotSettings settings;
+		settings = new PlotSettings();
+		settings.setAxisOrientationSetting(AxisOrientationSetting.Y_AXIS_AS_TIME);
+		settings.setYAxisMaximumLocation(YAxisMaximumLocationSetting.MAXIMUM_AT_BOTTOM);
+		settings.setXAxisMaximumLocation(XAxisMaximumLocationSetting.MAXIMUM_AT_LEFT);
+		
 		PlotAbstraction plot1 = new PlotView.Builder(PlotterPlot.class).plotName("plot1")
-		.axisOrientation(AxisOrientationSetting.Y_AXIS_AS_TIME)
-		.yAxisMaximumLocation(YAxisMaximumLocationSetting.MAXIMUM_AT_BOTTOM)
-		.xAxisMaximumLocation(XAxisMaximumLocationSetting.MAXIMUM_AT_LEFT)
+		.plotSettings(settings)
 		.build();
 		
 		Assert.assertFalse(plot1.inTimeSyncMode());
 
+		settings = new PlotSettings();
+		settings.setAxisOrientationSetting(AxisOrientationSetting.X_AXIS_AS_TIME);
+		settings.setYAxisMaximumLocation(YAxisMaximumLocationSetting.MAXIMUM_AT_BOTTOM);
+		settings.setXAxisMaximumLocation(XAxisMaximumLocationSetting.MAXIMUM_AT_LEFT);		
+		
 		@SuppressWarnings("unused")
 		PlotAbstraction plot2 = new PlotView.Builder(PlotterPlot.class).plotName("plot2")
-		.axisOrientation(AxisOrientationSetting.X_AXIS_AS_TIME)
-		.yAxisMaximumLocation(YAxisMaximumLocationSetting.MAXIMUM_AT_BOTTOM)
-		.xAxisMaximumLocation(XAxisMaximumLocationSetting.MAXIMUM_AT_LEFT)
+		.plotSettings(settings)
 		.build();
 
+		settings = new PlotSettings();
+		settings.setAxisOrientationSetting(AxisOrientationSetting.X_AXIS_AS_TIME);
+		settings.setYAxisMaximumLocation(YAxisMaximumLocationSetting.MAXIMUM_AT_TOP);
+		settings.setXAxisMaximumLocation(XAxisMaximumLocationSetting.MAXIMUM_AT_LEFT);		
+		
 		@SuppressWarnings("unused")
-		PlotAbstraction plot3 = new PlotView.Builder(PlotterPlot.class).
-		axisOrientation(AxisOrientationSetting.X_AXIS_AS_TIME)
-		.yAxisMaximumLocation(YAxisMaximumLocationSetting.MAXIMUM_AT_TOP)
-		.xAxisMaximumLocation(XAxisMaximumLocationSetting.MAXIMUM_AT_LEFT)
+		PlotAbstraction plot3 = new PlotView.Builder(PlotterPlot.class)		
+		.plotSettings(settings)
 		.build();
 
+		settings = new PlotSettings();
+		settings.setAxisOrientationSetting(AxisOrientationSetting.Y_AXIS_AS_TIME);
+		settings.setYAxisMaximumLocation(YAxisMaximumLocationSetting.MAXIMUM_AT_TOP);
+		settings.setXAxisMaximumLocation(XAxisMaximumLocationSetting.MAXIMUM_AT_LEFT);		
+		
 		@SuppressWarnings("unused")
-		PlotAbstraction plot4 = new PlotView.Builder(PlotterPlot.class).
-		axisOrientation(AxisOrientationSetting.Y_AXIS_AS_TIME)
-		.yAxisMaximumLocation(YAxisMaximumLocationSetting.MAXIMUM_AT_TOP)
-		.xAxisMaximumLocation(XAxisMaximumLocationSetting.MAXIMUM_AT_LEFT)
+		PlotAbstraction plot4 = new PlotView.Builder(PlotterPlot.class)		
+		.plotSettings(settings)
 		.build();
 	}
 
@@ -142,10 +156,13 @@ public class TestPlotView {
 		GregorianCalendar future = new GregorianCalendar();
 		future.add(Calendar.SECOND, 1);
 
+		PlotSettings settings = new PlotSettings();
+		settings.setMinTime(future.getTimeInMillis());
+		settings.setMaxTime(now.getTimeInMillis());
+		
 		@SuppressWarnings("unused")
 		PlotAbstraction plot4 = new PlotView.Builder(PlotterPlot.class)
-		.timeVariableAxisMinValue(future.getTimeInMillis())
-		.timeVariableAxisMaxValue(now.getTimeInMillis())
+		.plotSettings(settings)
 		.build();
 	}
 	
@@ -175,78 +192,65 @@ public class TestPlotView {
 	}
 
 	@Test
-	public void testPlotMatchSettings(){
-		PlotView basePlot = new PlotView.Builder(PlotterPlot.class).build();
+	public void testPlotMatchSettings(){		
 		
-		PlotSettings plotSettings = new PlotSettings();
-		plotSettings.timeAxisSetting =  AxisOrientationSetting.X_AXIS_AS_TIME;
-		plotSettings.xAxisMaximumLocation = XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT;
-		plotSettings.yAxisMaximumLocation = YAxisMaximumLocationSetting.MAXIMUM_AT_TOP;
-		plotSettings.timeAxisSubsequent = TimeAxisSubsequentBoundsSetting.JUMP;
-		plotSettings.nonTimeAxisSubsequentMinSetting = PlotConstants.DEFAULT_NON_TIME_AXIS_MIN_SUBSEQUENT_SETTING;
-		plotSettings.nonTimeAxisSubsequentMaxSetting = PlotConstants.DEFAULT_NON_TIME_AXIS_MAX_SUBSEQUENT_SETTING;
-		plotSettings.maxTime = basePlot.getTimeMax();
-		plotSettings.minTime = basePlot.getTimeMin();
-		plotSettings.maxNonTime = PlotConstants.DEFAULT_NON_TIME_AXIS_MAX_VALUE;
-		plotSettings.minNonTime = PlotConstants.DEFAULT_NON_TIME_AXIS_MIN_VALUE;
-		plotSettings.timePadding = PlotConstants.DEFAULT_TIME_AXIS_PADDING;       
-		plotSettings.nonTimeMaxPadding = PlotConstants.DEFAULT_NON_TIME_AXIS_PADDING_MAX;
-		plotSettings.nonTimeMinPadding = PlotConstants.DEFAULT_NON_TIME_AXIS_PADDING_MIN;   
+		PlotConfiguration plotSettings = new PlotSettings();
+		PlotView basePlot = new PlotView.Builder(PlotterPlot.class).plotSettings(new PlotSettings()).build();
 		
 		Assert.assertTrue(basePlot.plotMatchesSetting(plotSettings));
 		
-		plotSettings.timeAxisSetting =  AxisOrientationSetting.Y_AXIS_AS_TIME;
+		plotSettings.setAxisOrientationSetting(AxisOrientationSetting.Y_AXIS_AS_TIME);
 		Assert.assertFalse(basePlot.plotMatchesSetting(plotSettings));
 		
-		plotSettings.timeAxisSetting =  AxisOrientationSetting.X_AXIS_AS_TIME;
-		plotSettings.xAxisMaximumLocation = XAxisMaximumLocationSetting.MAXIMUM_AT_LEFT;
+		plotSettings.setAxisOrientationSetting(AxisOrientationSetting.X_AXIS_AS_TIME);
+		plotSettings.setXAxisMaximumLocation(XAxisMaximumLocationSetting.MAXIMUM_AT_LEFT);
 		Assert.assertFalse(basePlot.plotMatchesSetting(plotSettings));
 		
-		plotSettings.xAxisMaximumLocation = XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT;
-		plotSettings.timeAxisSubsequent = TimeAxisSubsequentBoundsSetting.SCRUNCH;
+		plotSettings.setXAxisMaximumLocation(XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT);
+		plotSettings.setTimeAxisSubsequentSetting(TimeAxisSubsequentBoundsSetting.SCRUNCH);
 		Assert.assertFalse(basePlot.plotMatchesSetting(plotSettings));
 		
-		plotSettings.timeAxisSubsequent = TimeAxisSubsequentBoundsSetting.JUMP;
-		plotSettings.nonTimeAxisSubsequentMinSetting = NonTimeAxisSubsequentBoundsSetting.FIXED;
+		plotSettings.setTimeAxisSubsequentSetting(TimeAxisSubsequentBoundsSetting.JUMP);
+		plotSettings.setNonTimeAxisSubsequentMinSetting(NonTimeAxisSubsequentBoundsSetting.FIXED);
 		Assert.assertFalse(basePlot.plotMatchesSetting(plotSettings));
 		
-		plotSettings.nonTimeAxisSubsequentMinSetting = PlotConstants.DEFAULT_NON_TIME_AXIS_MIN_SUBSEQUENT_SETTING;
-		plotSettings.nonTimeAxisSubsequentMaxSetting = NonTimeAxisSubsequentBoundsSetting.FIXED;
+		plotSettings.setNonTimeAxisSubsequentMinSetting(PlotConstants.DEFAULT_NON_TIME_AXIS_MIN_SUBSEQUENT_SETTING);
+		plotSettings.setNonTimeAxisSubsequentMaxSetting(NonTimeAxisSubsequentBoundsSetting.FIXED);
 		Assert.assertFalse(basePlot.plotMatchesSetting(plotSettings));
 		
-		plotSettings.nonTimeAxisSubsequentMaxSetting = PlotConstants.DEFAULT_NON_TIME_AXIS_MIN_SUBSEQUENT_SETTING;
-		plotSettings.maxTime = basePlot.getTimeMax()+10;
+		plotSettings.setNonTimeAxisSubsequentMaxSetting(PlotConstants.DEFAULT_NON_TIME_AXIS_MIN_SUBSEQUENT_SETTING);
+		plotSettings.setMaxTime(basePlot.getMaxTime()+10);
 		Assert.assertFalse(basePlot.plotMatchesSetting(plotSettings));
 		
-		plotSettings.maxTime = basePlot.getTimeMax();
-		plotSettings.minTime = basePlot.getTimeMin() + 10;
+		plotSettings.setMaxTime(basePlot.getMaxTime());
+		plotSettings.setMinTime(basePlot.getMinTime() + 10);
 		Assert.assertFalse(basePlot.plotMatchesSetting(plotSettings));
 		
-		plotSettings.minTime = basePlot.getTimeMin();
-		plotSettings.maxNonTime = PlotConstants.DEFAULT_NON_TIME_AXIS_MAX_VALUE + 1;
+		plotSettings.setMinTime(basePlot.getMinTime());
+		plotSettings.setMaxNonTime(PlotConstants.DEFAULT_NON_TIME_AXIS_MAX_VALUE + 1);
 		Assert.assertFalse(basePlot.plotMatchesSetting(plotSettings));
 		
-		plotSettings.maxNonTime = PlotConstants.DEFAULT_NON_TIME_AXIS_MAX_VALUE;
-		plotSettings.minNonTime = PlotConstants.DEFAULT_NON_TIME_AXIS_MIN_VALUE + 1;
+		plotSettings.setMaxNonTime(PlotConstants.DEFAULT_NON_TIME_AXIS_MAX_VALUE);
+		plotSettings.setMinNonTime(PlotConstants.DEFAULT_NON_TIME_AXIS_MIN_VALUE + 1);
 		Assert.assertFalse(basePlot.plotMatchesSetting(plotSettings));
 		
-		plotSettings.minNonTime = PlotConstants.DEFAULT_NON_TIME_AXIS_MIN_VALUE;
-		plotSettings.timePadding = PlotConstants.DEFAULT_TIME_AXIS_PADDING + 1;   
+		plotSettings.setMinNonTime(PlotConstants.DEFAULT_NON_TIME_AXIS_MIN_VALUE);
+		plotSettings.setTimePadding(PlotConstants.DEFAULT_TIME_AXIS_PADDING + 1);   
 		Assert.assertFalse(basePlot.plotMatchesSetting(plotSettings));
 		
-		plotSettings.timePadding = PlotConstants.DEFAULT_TIME_AXIS_PADDING;  
-		plotSettings.nonTimeMaxPadding = PlotConstants.DEFAULT_NON_TIME_AXIS_PADDING_MAX + 1;
+		plotSettings.setTimePadding(PlotConstants.DEFAULT_TIME_AXIS_PADDING);  
+		plotSettings.setNonTimeMaxPadding(PlotConstants.DEFAULT_NON_TIME_AXIS_PADDING_MAX + 1);
 		Assert.assertFalse(basePlot.plotMatchesSetting(plotSettings));
 		
-		plotSettings.nonTimeMaxPadding = PlotConstants.DEFAULT_NON_TIME_AXIS_PADDING_MAX;
-		plotSettings.nonTimeMinPadding = PlotConstants.DEFAULT_NON_TIME_AXIS_PADDING_MIN+ 1;
+		plotSettings.setNonTimeMaxPadding(PlotConstants.DEFAULT_NON_TIME_AXIS_PADDING_MAX);
+		plotSettings.setNonTimeMinPadding(PlotConstants.DEFAULT_NON_TIME_AXIS_PADDING_MIN+ 1);
 		Assert.assertFalse(basePlot.plotMatchesSetting(plotSettings));
 		
-		plotSettings.nonTimeMinPadding = PlotConstants.DEFAULT_NON_TIME_AXIS_PADDING_MIN;
-		plotSettings.yAxisMaximumLocation = YAxisMaximumLocationSetting.MAXIMUM_AT_BOTTOM;
+		plotSettings.setNonTimeMinPadding(PlotConstants.DEFAULT_NON_TIME_AXIS_PADDING_MIN);
+		plotSettings.setYAxisMaximumLocation(YAxisMaximumLocationSetting.MAXIMUM_AT_BOTTOM);
 		Assert.assertFalse(basePlot.plotMatchesSetting(plotSettings));
 
-		plotSettings.yAxisMaximumLocation = PlotConstants.DEFAULT_Y_AXIS_MAX_LOCATION_SETTING;
+		plotSettings.setYAxisMaximumLocation(PlotConstants.DEFAULT_Y_AXIS_MAX_LOCATION_SETTING);
 		Assert.assertTrue(basePlot.plotMatchesSetting(plotSettings));
 	
 	}
@@ -263,14 +267,20 @@ public class TestPlotView {
 					for (TimeAxisSubsequentBoundsSetting timeSubsequent: TimeAxisSubsequentBoundsSetting.values()) {
 						for (NonTimeAxisSubsequentBoundsSetting nonTimeMinSubsequent: NonTimeAxisSubsequentBoundsSetting.values()) {
 							for (NonTimeAxisSubsequentBoundsSetting nonTimeMaxSubsequent: NonTimeAxisSubsequentBoundsSetting.values()) {
+								PlotSettings settings = new PlotSettings();
+								settings.setAxisOrientationSetting(axisO);
+								settings.setYAxisMaximumLocation(yAxisMax);
+								settings.setXAxisMaximumLocation(xAxisMax);
+								settings.setTimeAxisSubsequentSetting(timeSubsequent);
+								settings.setNonTimeAxisSubsequentMinSetting(nonTimeMinSubsequent);
+								settings.setNonTimeAxisSubsequentMaxSetting(nonTimeMaxSubsequent);
+								settings.setTimePadding(0.05);
+								settings.setMinNonTime(0);
+								settings.setMaxNonTime(10);
+								
+								
 								PlotAbstraction coverage = new PlotView.Builder(PlotterPlot.class)
 								.plotName("name")
-								.axisOrientation(axisO)
-								.xAxisMaximumLocation(xAxisMax)
-								.yAxisMaximumLocation(yAxisMax)
-								.timeAxisBoundsSubsequentSetting(timeSubsequent)
-								.nonTimeAxisMinSubsequentSetting(nonTimeMinSubsequent)
-								.nonTimeAxisMaxSubsequentSetting(nonTimeMaxSubsequent)
 								.timeAxisFontSize(10)
 								.timeAxisFont(new Font("Arial", Font.PLAIN, 10))
 								.plotLineThickness(1)
@@ -283,9 +293,7 @@ public class TestPlotView {
 								.nonTimeAxisColor(Color.white)
 								.gridLineColor(Color.white)
 								.minSamplesForAutoScale(10)
-								.scrollRescaleMarginTimeAxis(0.05)
-								.nonTimeVaribleAxisMaxValue(10)
-								.nonTimeVaribleAxisMinValue(0).build();	
+								.build();	
 
 								coverage.addDataSet("coverage");
 
@@ -374,12 +382,9 @@ public class TestPlotView {
 	public void testAxisShiftWhenTimeRunsOut(TimeAxisSubsequentBoundsSetting jumpSetting, double padding) throws Exception {
 		// verify that axis shifting is invoked on all plots
 		PlotView testPlot = new PlotView.Builder(PlotterPlot.class).build();
-		Field jumpsettingField = testPlot.getClass().getDeclaredField("timeAxisSubsequentSetting");
-		jumpsettingField.setAccessible(true);
-		jumpsettingField.set(testPlot, jumpSetting);
-		Field scrollRescaleTimeMarginField = testPlot.getClass().getDeclaredField("scrollRescaleTimeMargin");
-		scrollRescaleTimeMarginField.setAccessible(true);
-		scrollRescaleTimeMarginField.set(testPlot, padding);
+		
+		testPlot.setTimeAxisSubsequentSetting(jumpSetting);
+		testPlot.setTimePadding(padding);		
 		
 		AbstractPlottingPackage plot = Mockito.mock(AbstractPlottingPackage.class);
 		

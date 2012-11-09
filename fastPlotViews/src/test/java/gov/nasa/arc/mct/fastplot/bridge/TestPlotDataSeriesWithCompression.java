@@ -47,11 +47,11 @@ public class TestPlotDataSeriesWithCompression {
 	@BeforeMethod
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
-		mockPlot.plotDataManager =  mockDataManager;
+		mockPlot.setPlotDataManager(mockDataManager);
 		mockPlot.compressionIsEnabled = true;
-		mockPlot.plotView = mockPlotView;
-		mockPlot.limitManager = mockLimitManager;
-		Mockito.when(mockPlot.isCompresionEnabled()).thenReturn(true);
+		mockPlot.setPlotView(mockPlotView);
+		mockPlot.setLimitManager(mockLimitManager);
+		Mockito.when(mockPlot.isCompressionEnabled()).thenReturn(true);
 		Mockito.when(mockPlotView.getContents()).thenReturn(new XYPlotContents());
 		Mockito.when(mockPlotView.getXAxis()).thenReturn(new LinearXYAxis(XYDimension.X));
 		Mockito.when(mockPlotView.getYAxis()).thenReturn(new LinearXYAxis(XYDimension.Y));

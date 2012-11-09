@@ -21,7 +21,7 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.fastplot.bridge;
 
-import gov.nasa.arc.mct.fastplot.bridge.PlotAbstraction.LineSettings;
+import gov.nasa.arc.mct.fastplot.settings.LineSettings;
 import gov.nasa.arc.mct.fastplot.utils.AbbreviatingPlotLabelingAlgorithm;
 import gov.nasa.arc.mct.fastplot.view.LegendEntryPopupMenuFactory;
 import gov.nasa.arc.mct.fastplot.view.PlotViewManifestation;

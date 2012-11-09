@@ -27,7 +27,7 @@ import plotter.xy.LinearXYAxis;
 import plotter.xy.XYDimension;
 
 @SuppressWarnings("serial")
-public class TimeXYAxis extends LinearXYAxis {
+public class TimeXYAxis extends LinearXYAxis implements AbstractAxis {
 	private long startLong;
 	private long endLong;
 	

@@ -24,6 +24,7 @@ package gov.nasa.arc.mct.fastplot.bridge;
 
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PlotLineConnectionType;
+import gov.nasa.arc.mct.fastplot.view.legend.AbstractLegendEntry;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -49,7 +50,7 @@ import plotter.xy.XYDimension;
  * plotting color, the legend, and the code for compressing data as it is put
  * into the buffers.
  */
-class PlotDataSeries implements MinMaxChangeListener {
+class PlotDataSeries  implements MinMaxChangeListener, AbstractPlotDataSeries {
 	public static final Stroke EMPTY_STROKE = new Stroke() {
 		private final Shape EMPTY_SHAPE = new Polygon();
 		@Override
@@ -86,7 +87,7 @@ class PlotDataSeries implements MinMaxChangeListener {
 	void resetData() {
 		logger.debug("PlotDataSeries.resetData()");
 		// remove the process variable for this item from the plot
-		plot.plotView.getContents().remove(linePlot);
+		plot.getPlotView().getContents().remove(linePlot);
 		if (regressionLine != null) {
 			removeRegressionLine();
 		}
@@ -96,12 +97,12 @@ class PlotDataSeries implements MinMaxChangeListener {
 
 	private void setupDataSet(String dataSetName) {
 
-		assert plot.plotView != null : "Plot Object not initalized";
+		assert plot.getPlotView() != null : "Plot Object not initalized";
 		assert linePlot != null;
 
 		dataset = new CompressingXYDataset(linePlot, new DefaultCompressor());
 		// Listen for min/max changes on the non-time axis
-		if(plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+		if(plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 			dataset.addYMinMaxChangeListener(this);
 		} else {
 			dataset.addXMinMaxChangeListener(this);
@@ -111,7 +112,7 @@ class PlotDataSeries implements MinMaxChangeListener {
 		// Add alarms which under pin notifications for when data goes out of
 		// range
 		// and the limit triangles are put on the plot.
-		plot.limitManager.addLimitAlarms(dataset);
+		plot.getLimitManager().addLimitAlarms(dataset);
 		
 	}
 
@@ -119,16 +120,16 @@ class PlotDataSeries implements MinMaxChangeListener {
 		/* Note that once a LegendEntry acquires a plot line, it may 
 		 * apply its own setup to it. */
 		
-		linePlot = new LinearXYPlotLineWrapper(plot.plotView.getXAxis(), plot.plotView.getYAxis(),
-				plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME ? XYDimension.X : XYDimension.Y);
+		linePlot = new LinearXYPlotLineWrapper(plot.getPlotView().getXAxis(), plot.getPlotView().getYAxis(),
+				plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME ? XYDimension.X : XYDimension.Y);
 		LineMode lineMode = LineMode.STEP_XY;
-		if (plot.plotLineConnectionType == PlotLineConnectionType.DIRECT) {
+		if (plot.getPlotAbstraction().getPlotLineConnectionType() == PlotLineConnectionType.DIRECT) {
 			lineMode = LineMode.STRAIGHT;
 		}
 		linePlot.setLineMode(lineMode);
 		linePlot.setForeground(color);
 		
-		if (plot.plotLineDraw.drawMarkers()) {
+		if (plot.getPlotAbstraction().getPlotLineDraw().drawMarkers()) {
 			for (int i = 0; i < PlotConstants.MAX_NUMBER_OF_DATA_ITEMS_ON_A_PLOT; i++) {
 				if (PlotLineColorPalette.getColor(i).getRGB() == color.getRGB()) {
 					//linePlot.setPointFill(PlotLineShapePalette.getShape(i));
@@ -137,11 +138,11 @@ class PlotDataSeries implements MinMaxChangeListener {
 			}
 		}
 		
-        if (!plot.plotLineDraw.drawLine()) {
+        if (!plot.getPlotAbstraction().getPlotLineDraw().drawLine()) {
             linePlot.setStroke(EMPTY_STROKE);
         }
 		
-		plot.plotView.getContents().add(linePlot);
+		plot.getPlotView().getContents().add(linePlot);
 		if (legendEntry != null) {
 			legendEntry.setPlot(linePlot);
 		}
@@ -154,23 +155,23 @@ class PlotDataSeries implements MinMaxChangeListener {
 	 * 
 	 */
 	private void addRegressionLine() {
-		regressionLine = new LinearXYPlotLine(plot.plotView.getXAxis(), plot.plotView.getYAxis(),
-				plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME ? XYDimension.X : XYDimension.Y);
+		regressionLine = new LinearXYPlotLine(plot.getPlotView().getXAxis(), plot.getPlotView().getYAxis(),
+				plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME ? XYDimension.X : XYDimension.Y);
 		regressionLine.setLineMode(LineMode.STRAIGHT);
 		regressionLine.setForeground(color);
 		regressionLine.setStroke(new BasicStroke(PlotConstants.SLOPE_LINE_WIDTH,
                 BasicStroke.CAP_BUTT,
                 BasicStroke.JOIN_MITER,
                 10.0f, PlotConstants.dash1, 0.0f));
-		plot.plotView.getContents().add(regressionLine);
+		plot.getPlotView().getContents().add(regressionLine);
 		legendEntry.setHasRegressionLine(true);
 		legendEntry.setRegressionLine(regressionLine);
 	}
 	
 	private void removeRegressionLine() {
-		plot.plotView.getContents().remove(regressionLine);
-		plot.plotView.getContents().validate();
-		plot.plotView.getContents().repaint();
+		plot.getPlotView().getContents().remove(regressionLine);
+		plot.getPlotView().getContents().validate();
+		plot.getPlotView().getContents().repaint();
 		regressionLine = null;
 	}
 
@@ -209,7 +210,7 @@ class PlotDataSeries implements MinMaxChangeListener {
 		return linePlot;
 	}
 
-	LegendEntry getLegendEntry() {
+	public LegendEntry getLegendEntry() {
 		return legendEntry;
 	}
 
@@ -300,7 +301,7 @@ class PlotDataSeries implements MinMaxChangeListener {
 	}
 
 	DoubleData getNonTimeData(CompressingXYDataset dataSet) {
-		if(plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+		if(plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 			return dataSet.getYData();
 		} else {
 			return dataSet.getXData();
@@ -308,7 +309,7 @@ class PlotDataSeries implements MinMaxChangeListener {
 	}
 
 	DoubleData getTimeData(CompressingXYDataset dataSet) {
-		if(plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+		if(plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 			return dataSet.getXData();
 		} else {
 			return dataSet.getYData();
@@ -395,12 +396,12 @@ class PlotDataSeries implements MinMaxChangeListener {
 				// origin is at last data point
 				regressionLine.add(x, y); // Add origin of line
 				if(linePlot.getIndependentDimension() == XYDimension.X) {				
-					regressionLine.add(Long.valueOf(plot.getCurrentTimeAxisMaxAsLong()).doubleValue(), 
-							lr.calculateY(Long.valueOf(plot.getCurrentTimeAxisMaxAsLong()).doubleValue()) +
+					regressionLine.add(Long.valueOf(plot.getMaxTime()).doubleValue(), 
+							lr.calculateY(Long.valueOf(plot.getMaxTime()).doubleValue()) +
 							(y - lr.calculateY(x))); // Add terminus of line
 				} 				else {
-					regressionLine.add(lr.calculateX(Long.valueOf(plot.getCurrentTimeAxisMaxAsLong()).doubleValue()) +
-							(x - lr.calculateX(y)),Long.valueOf(plot.getCurrentTimeAxisMaxAsLong()).doubleValue()); // Add terminus of line
+					regressionLine.add(lr.calculateX(Long.valueOf(plot.getMaxTime()).doubleValue()) +
+							(x - lr.calculateX(y)),Long.valueOf(plot.getMaxTime()).doubleValue()); // Add terminus of line
 				}
 
 			}
@@ -423,5 +424,12 @@ class PlotDataSeries implements MinMaxChangeListener {
 	 */
 	public void setUpdateRegressionLine(boolean updateRegressionLine) {
 		this.updateRegressionLine = updateRegressionLine;
+	}
+
+
+	@Override
+	public void setLegendEntry(AbstractLegendEntry entry) {
+		// TODO Auto-generated method stub
+		
 	}
 }

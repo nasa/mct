@@ -51,14 +51,15 @@ public class TestPlotterPlot {
 		plot = new PlotterPlot();
 		PlotAbstraction abstraction = Mockito.mock(PlotAbstraction.class);
 		setMemberVariable("plotAbstraction", abstraction);
-		plot.nonTimeAxisMinSubsequentSetting = NonTimeAxisSubsequentBoundsSetting.SEMI_FIXED;
-		plot.nonTimeAxisMaxSubsequentSetting = NonTimeAxisSubsequentBoundsSetting.SEMI_FIXED;
+		plot.setNonTimeAxisSubsequentMinSetting(NonTimeAxisSubsequentBoundsSetting.SEMI_FIXED);
+		plot.setNonTimeAxisSubsequentMaxSetting(NonTimeAxisSubsequentBoundsSetting.SEMI_FIXED);
 		plotView = Mockito.mock(XYPlot.class);
-		plot.plotView = plotView;
-		plot.timeAxisFont = (new JButton()).getFont();
-		plot.plotLineDraw = PlotConstants.DEFAULT_PLOT_LINE_DRAW;
+		plot.setPlotView(plotView);
+		plot.setTimeAxisFont((new JButton()).getFont());
+		plot.setPlotLineDraw(PlotConstants.DEFAULT_PLOT_LINE_DRAW);
 		XYPlotContents contents = new XYPlotContents();
 		Mockito.when(plotView.getContents()).thenReturn(contents);
+		Mockito.when(abstraction.getPlotLineDraw()).thenReturn(PlotConstants.DEFAULT_PLOT_LINE_DRAW);
 	}
 	
 	private void setMemberVariable(String name, Object value) throws Exception {
@@ -157,7 +158,7 @@ public class TestPlotterPlot {
 		f.setAccessible(true);
 		PlotDataManager dataManager =  (PlotDataManager) f.get(plot);
 		dataManager.addDataSet("test", Color.black);
-		PlotDataSeries pds = dataManager.dataSeries.values().iterator().next();
+		PlotDataSeries pds = dataManager.getDataSeries().values().iterator().next();
 		CompressingXYDataset data = pds.getData();
 		plot.setTimeAxisStartAndStop(start, stop);
 		Assert.assertEquals(axis.getStartAsLong(), start);
@@ -167,7 +168,7 @@ public class TestPlotterPlot {
 	
 	@Test(dataProvider="minMax")
 	public void testMinMax(AxisOrientationSetting setting, TimeXYAxis axis) throws Exception {
-		setMemberVariable("axisOrientation", setting);
+		plot.setAxisOrientationSetting(setting);
 		LinearXYAxis nonTime;
 		if (setting == AxisOrientationSetting.X_AXIS_AS_TIME) {
 			Mockito.when(plotView.getXAxis()).thenReturn(axis);
@@ -179,8 +180,8 @@ public class TestPlotterPlot {
 			Mockito.when(plotView.getXAxis()).thenReturn(nonTime);
 		}
 		plot.theNonTimeAxis = nonTime;
-		Assert.assertNotNull(plot.plotView.getXAxis());
-		Assert.assertNotNull(plot.plotView.getYAxis());
+		Assert.assertNotNull(plot.getPlotView().getXAxis());
+		Assert.assertNotNull(plot.getPlotView().getYAxis());
 		plot.setTimeAxis(axis);
 		axis.setStart(100);
 		axis.setEnd(200);
@@ -192,7 +193,7 @@ public class TestPlotterPlot {
 		PlotDataManager dataManager = new PlotDataManager(plot);
 		setMemberVariable("plotDataManager", dataManager);
 		dataManager.addDataSet("TestData", Color.black);
-		PlotDataSeries dataSeries = dataManager.dataSeries.get("TestData");
+		PlotDataSeries dataSeries = dataManager.getDataSeries().get("TestData");
 		CompressingXYDataset dataSet = dataSeries.getData();
 		dataSet.setCompressionScale(1);
 		addToDataSet(setting, dataSet, 0, 100);

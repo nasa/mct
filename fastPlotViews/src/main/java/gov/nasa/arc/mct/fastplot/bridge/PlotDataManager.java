@@ -24,10 +24,10 @@ package gov.nasa.arc.mct.fastplot.bridge;
 import gov.nasa.arc.mct.components.FeedProvider;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.TimeAxisSubsequentBoundsSetting;
-import gov.nasa.arc.mct.fastplot.utils.AbbreviatingPlotLabelingAlgorithm;
-import gov.nasa.arc.mct.fastplot.view.PlotSettingsControlPanel;
 
 import java.awt.Color;
+import java.awt.Font;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.GregorianCalendar;
@@ -53,7 +53,7 @@ import plotter.xy.XYPlotContents;
  * <li>sizing plot data buffers based on the number of pixels available for the plot on the screen.
  * </ul>
  */
-public class PlotDataManager {
+public class PlotDataManager implements AbstractPlotDataManager {
 
 	private final static Logger logger = LoggerFactory.getLogger(PlotDataManager.class);
 
@@ -67,17 +67,17 @@ public class PlotDataManager {
 	final static int MIN_SAMPLES_FOR_AUTOSCALE = 0;
 
 	/** The Set of data items to be displayed on this plot. */ 
-	Map<String, PlotDataSeries> dataSeries;
+	private Map<String, PlotDataSeries> dataSeries;
 
 	/** The QuinnCurtis plot on which we're displaying our data. */
-	PlotterPlot plot;
+	private PlotterPlot plot;
 
 	/** Cache for maintaining min/max non time values displayed on the plot */
-	PlotNonTimeMinMaxValueManager minMaxValueManager;
+	private PlotNonTimeMinMaxValueManager minMaxValueManager;
 
 	/** Timer to wait for user window resize actions to complete before 
 	   requesting new data at the window's updated compression ratio.  */
-	Timer resizeTimmer;
+	private Timer resizeTimmer;
 
 	/** We only need to resize when the time axis dimension of the window is resized.
 	    This variable caches the previous size so upon a resize event we can test to
@@ -86,16 +86,15 @@ public class PlotDataManager {
 
 	/** Flag to record if a request needs to be made for a plot buffer update but that 
 	    request could not happen because an updateFromFeed event was in process. */
-	boolean bufferRequestWaiting = false;
+	private boolean bufferRequestWaiting = false;
 
 	/** Flag to record if a buffer truncation event occurred on a scrunch plot.*/
-	boolean scrunchBufferTruncationOccured = false;
+	private boolean scrunchBufferTruncationOccured = false;
 	
 	/** Span of the plot data buffer. */
-	GregorianCalendar plotDataBufferStartTime;
-	GregorianCalendar plotDataBufferEndTime;
+	private GregorianCalendar plotDataBufferStartTime;
+	private GregorianCalendar plotDataBufferEndTime;
 
-	private AbbreviatingPlotLabelingAlgorithm plotLabelingAlgorithm = new AbbreviatingPlotLabelingAlgorithm();
 	
 	/**
 	 * Create a datamanager for the plot passed in
@@ -103,16 +102,7 @@ public class PlotDataManager {
 	 */
 	public PlotDataManager(PlotterPlot thePlot) {
 		plot = thePlot;
-		
-		if (plot.plotLabelingAlgorithm != null) {
-			plotLabelingAlgorithm = plot.plotLabelingAlgorithm;
-			
-			logger.debug("plotLabelingAlgorithm.getPanelContextTitleList().size()=" 
-					+ plotLabelingAlgorithm.getPanelContextTitleList().size()
-					+ ", plotLabelingAlgorithm.getCanvasContextTitleList().size()=" 
-					+ plotLabelingAlgorithm.getCanvasContextTitleList().size());
-		}
-		
+	
 		dataSeries = new HashMap<String, PlotDataSeries>(PlotConstants.MAX_NUMBER_OF_DATA_ITEMS_ON_A_PLOT, 
 				                                           PlotConstants.MAX_NUMBER_OF_DATA_ITEMS_ON_A_PLOT);
 		minMaxValueManager = new PlotNonTimeMinMaxValueManager(this);
@@ -132,6 +122,10 @@ public class PlotDataManager {
 		resizeTimmer.setRepeats(false);
 	}
 
+	/* (non-Javadoc)
+	 * @see gov.nasa.arc.mct.fastplot.bridge.AbstractPlotDataManager#addDataSet(java.lang.String, java.awt.Color)
+	 */
+	@Override
 	public void addDataSet(String dataSetName, Color plottingColor) {
 		
 		if (dataSetName != null) {
@@ -139,8 +133,9 @@ public class PlotDataManager {
 		if (dataSeries.size() == 0) {
 			setupBufferSizeAndCompressionRatio();
 		}
-		LegendEntry legendEntry = new LegendEntry(PlotConstants.LEGEND_BACKGROUND_COLOR, plottingColor, plot.timeAxisFont, plot.plotLabelingAlgorithm);
-		dataSeries.put(dataSetName, new PlotDataSeries(plot, dataSetName, plottingColor));	
+		LegendEntry legendEntry = new LegendEntry(PlotConstants.LEGEND_BACKGROUND_COLOR, plottingColor, Font.decode(Font.SANS_SERIF).deriveFont(9f), plot.getPlotLabelingAlgorithm());
+		legendEntry.setDataSetName(dataSetName);
+		dataSeries.put(dataSetName, new PlotDataSeries((PlotterPlot) plot, dataSetName, plottingColor));	
 		// create the legend.
 
 		legendEntry.setPlot(dataSeries.get(dataSetName).getPlot());
@@ -165,8 +160,12 @@ public class PlotDataManager {
 	}
 
 
+	/* (non-Javadoc)
+	 * @see gov.nasa.arc.mct.fastplot.bridge.AbstractPlotDataManager#addData(java.lang.String, java.util.SortedMap)
+	 */
+	@Override
 	public void addData(String feed, SortedMap<Long, Double> points) {
-		assert plot.plotView !=null : "Plot Object not initalized";
+		assert ((PlotterPlot) plot).getPlotView() !=null : "Plot Object not initalized";
 		assert isKnownDataSet(feed) : "Data set " + feed + " not defined.";
 
 		if(points.isEmpty()) {
@@ -176,10 +175,10 @@ public class PlotDataManager {
 		setupCompressionRatio();
 
 		// prevent plotting of data if it is not compatible with scrunch settings.
-		if(plot.timeAxisSubsequentSetting == TimeAxisSubsequentBoundsSetting.SCRUNCH) {
+		if(plot.getTimeAxisSubsequentSetting() == TimeAxisSubsequentBoundsSetting.SCRUNCH) {
 			boolean needsFixing = false;
 			for(Long time : points.keySet()) {
-				if(time <= plot.timeVariableAxisMinValue) {
+				if(time <= plot.getMinTime()) {
 					needsFixing = true;
 					break;
 				}
@@ -187,7 +186,7 @@ public class PlotDataManager {
 			if(needsFixing) {
 				SortedMap<Long, Double> points2 = new TreeMap<Long, Double>();
 				for(Entry<Long, Double> point : points.entrySet()) {
-					if(point.getKey() > plot.timeVariableAxisMinValue) {
+					if(point.getKey() > plot.getMinTime()) {
 						points2.put(point.getKey(), point.getValue());
 					}
 				}
@@ -196,8 +195,8 @@ public class PlotDataManager {
 		}
 
 		// Don't plot points off the end if the time axis is pinned
-		if (plot.plotAbstraction.getTimeAxis().isPinned()) {
-			long max = plot.getCurrentTimeAxisMaxAsLong();
+		if (plot.getPlotAbstraction().getTimeAxis().isPinned()) {
+			long max = plot.getMaxTime();
 			boolean needsFixing = false;
 			for(Long time : points.keySet()) {
 				if(time > max) {
@@ -224,7 +223,7 @@ public class PlotDataManager {
 		CompressingXYDataset dataset = dataSeries.get(feed).getData();
 		double min;
 		double max;
-		if(plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+		if(plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 			min = dataset.getMinX();
 			max = dataset.getMaxX();
 		} else {
@@ -236,7 +235,7 @@ public class PlotDataManager {
 
 		if(dataset.getPointCount() == 0 || points.firstKey() >= datasetMaxTime) {
 			// TODO: Change this to use an aggregate add method
-			if(plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+			if(plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 				for(Entry<Long, Double> point : points.entrySet()) {
 					dataset.add(point.getKey(), point.getValue());
 
@@ -246,7 +245,7 @@ public class PlotDataManager {
 					dataset.add(point.getValue(), point.getKey());
 				}
 			} 
-			if (plot.getCurrentTimeAxisMaxAsLong() >= datasetMaxTime) {
+			if (plot.getMaxTime() >= datasetMaxTime) {
 				dataSeries.get(feed).setUpdateRegressionLine(true);
 			}
 		} else if(points.lastKey() <= datasetMinTime) {
@@ -259,7 +258,7 @@ public class PlotDataManager {
 				y[i] = p.getValue();
 				i++;
 			}
-			if(plot.axisOrientation == AxisOrientationSetting.Y_AXIS_AS_TIME) {
+			if(plot.getAxisOrientationSetting() == AxisOrientationSetting.Y_AXIS_AS_TIME) {
 				double[] tmp = x;
 				x = y;
 				y = tmp;
@@ -283,7 +282,7 @@ public class PlotDataManager {
 				}
 			}
 			// TODO: Change this to use an aggregate add method
- 			if(plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+ 			if(plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 				if(!before.isEmpty()) {
 					double[] x = new double[before.size()];
 					double[] y = new double[x.length];
@@ -327,10 +326,10 @@ public class PlotDataManager {
 		}
 		
 		for(Entry<Long, Double> e : points.entrySet()) {
-			plot.limitManager.informPointPlottedAtTime(e.getKey(), e.getValue());
+			plot.getLimitManager().informPointPlottedAtTime(e.getKey(), e.getValue());
 		}
 		
-		plot.isInitialized = true;
+		if (plot instanceof PlotterPlot) ((PlotterPlot) plot).setInitialized();
 	}
 
 	void updateLegend(String dataSetName, FeedProvider.RenderingInfo info) {
@@ -353,9 +352,9 @@ public class PlotDataManager {
 	 */
 	boolean scrunchProtect(long time) {
 		// Protection only applies when we are in scrunch mode
-		if (plot.timeAxisSubsequentSetting == TimeAxisSubsequentBoundsSetting.SCRUNCH) {
+		if (plot.getTimeAxisSubsequentSetting() == TimeAxisSubsequentBoundsSetting.SCRUNCH) {
 			// protection required if the time is before or equal to the plot's starts time.
-			return time <= plot.timeVariableAxisMinValue; 
+			return time <= plot.getMinTime(); 
 		} else {
 			// not in scrunch mode.
 			return false;
@@ -370,7 +369,7 @@ public class PlotDataManager {
 	 * requested, a flag will be set. When the updateFromFeed event is completed, it will check 
 	 * for waiting buffer requests and initiate one. 
 	 */
-	void resizeAndReloadPlotBuffer() {
+	public void resizeAndReloadPlotBuffer() {
 		if (!plot.isUpdateFromCacheDataStreamInProcess()) {
 			bufferRequestWaiting = false;
 			resetPlotDataVariablesAndRequestDataRefreshAtNewResolution();
@@ -382,16 +381,16 @@ public class PlotDataManager {
 	}
 	
 	void setupCompressionRatio() {
-		TimeXYAxis axis = plot.getTimeAxis();
+		AbstractAxis axis = plot.getTimeAxis();
 		double start = axis.getStart();
 		double end = axis.getEnd();
 		assert start != end;
-		XYPlotContents contents = plot.plotView.getContents();
+		XYPlotContents contents = plot.getPlotView().getContents();
 		// the height or width could be zero if the plot is showing in an area which is closed. One scenario is the inspector area where the slider is
 		// closed
-		double width = Math.max(0,plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME ? contents.getWidth() : contents.getHeight());
+		double width = Math.max(0,plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME ? contents.getWidth() : contents.getHeight());
 		double compressionScale = width == 0 ? Double.MAX_VALUE : Math.abs(end - start) / width;
-		if(plot.timeAxisSubsequentSetting == TimeAxisSubsequentBoundsSetting.SCRUNCH) {
+		if(plot.getTimeAxisSubsequentSetting() == TimeAxisSubsequentBoundsSetting.SCRUNCH) {
 			for(PlotDataSeries s : dataSeries.values()) {
 				CompressingXYDataset d = s.getData();
 				double scale = d.getCompressionScale();
@@ -469,7 +468,7 @@ public class PlotDataManager {
 	    	 // We compress that data further rather than accept the overhead of going to the MCT data buffer and compressing
 	    	 // data at full fidelity. 
 	    	
-	    	 assert plot.timeAxisSubsequentSetting == TimeAxisSubsequentBoundsSetting.SCRUNCH: "A scrunch event has occured on a non scrunch plot!";
+	    	 assert plot.getTimeAxisSubsequentSetting() == TimeAxisSubsequentBoundsSetting.SCRUNCH: "A scrunch event has occured on a non scrunch plot!";
 	    	 minMaxValueManager.setMinMaxCacheState(false);
 //	         // We will reset all the process vars from this plot, so remove all from scroll frame.
 //	    	 plot.removeAllProcessVarFromScrollFrame();
@@ -506,11 +505,9 @@ public class PlotDataManager {
 	
 		// Don't request if local controls are not enabled. This only occurs when we are a secondary plot in a stacked plot and we
 		// rely on the master plot in the stack to make requests. 
-		if (plot.plotAbstraction != null && plot.isTimeLabelEnabled) {
+		if (plot.getPlotAbstraction() != null && plot.isTimeLabelEnabled) {
 			// Request new data.
-			plot.plotAbstraction.requestPlotData(startTime, endTime);
-			logger.debug("Requesting data from MCT Buffer {} {}", PlotSettingsControlPanel.CalendarDump.dumpDateAndTime(startTime),
-					                                              PlotSettingsControlPanel.CalendarDump.dumpDateAndTime(endTime));
+			plot.getPlotAbstraction().requestPlotData(startTime, endTime);
 		} 
 	}
 	
@@ -529,6 +526,10 @@ public class PlotDataManager {
 		} 
 	}
 
+	/* (non-Javadoc)
+	 * @see gov.nasa.arc.mct.fastplot.bridge.AbstractPlotDataManager#informUpdateCacheDataStreamStarted()
+	 */
+	@Override
 	public void informUpdateCacheDataStreamStarted() {
 		minMaxValueManager.setMinMaxCacheState(false);
 		resetPlotDataSeries();
@@ -549,8 +550,8 @@ public class PlotDataManager {
 
 
 	void informBufferTrunctionEventOccured() {	
-		if (plot.timeAxisSubsequentSetting == TimeAxisSubsequentBoundsSetting.SCRUNCH && 
-				plot.isCompresionEnabled()) {
+		if (plot.getTimeAxisSubsequentSetting() == TimeAxisSubsequentBoundsSetting.SCRUNCH && 
+				plot.isCompressionEnabled()) {
 			logger.debug("Scrunch truncation event occured");
 			// record that a buffer truncation event occurred. 
 			scrunchBufferTruncationOccured = true;
@@ -562,9 +563,12 @@ public class PlotDataManager {
 	 * determines if the event changed the size of the time axis and if it did starts
 	 * the resize timmer which will cause the plots buffer to be resized and refreshed. 
 	 */
-	void informResizeEvent() {
+	public void informResizeEvent() {
 		// only initiate a resize if the time axis has change size.
-		int currentSize = (int) plot.qcPlotObjects.getTimeAxisWidthInPixes(); 
+		Rectangle bounds = plot.getPlotView().getContents().getBounds();
+		int currentSize = (int) (
+				(plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) ?
+				bounds.getWidth() : bounds.getHeight() ) ;
 		if (currentSize != previousTimeAxisDimensionSize) {
 		  resizeTimmer.restart();	
 		}
@@ -572,11 +576,54 @@ public class PlotDataManager {
 		previousTimeAxisDimensionSize = currentSize;
 	}
 	
+	double getTimeAxisWidthInPixes() {
+		Rectangle bounds = plot.getPlotView().getContents().getBounds();
+		if (plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
+			return bounds.getWidth();
+		} else {
+			return bounds.getHeight();
+		}
+	}
+
+	
 	boolean isBufferRequestWaiting() {
 		return bufferRequestWaiting;
 	}
 	
 	boolean hasScrunchTruncationOccured() {
 		return scrunchBufferTruncationOccured;
+	}
+
+	@Override
+	public PlotDataSeries getNamedDataSeries(String name) {
+		return dataSeries.get(name);
+	}
+
+	/**
+	 * @param dataSeries the dataSeries to set
+	 */
+	public void setDataSeries(Map<String, PlotDataSeries> dataSeries) {
+		this.dataSeries = dataSeries;
+	}
+
+	/**
+	 * @return the dataSeries
+	 */
+	public Map<String, PlotDataSeries> getDataSeries() {
+		return dataSeries;
+	}
+
+	/**
+	 * @param plot the plot to set
+	 */
+	public void setPlot(PlotterPlot plot) {
+		this.plot = plot;
+	}
+
+	/**
+	 * @return the plot
+	 */
+	public AbstractPlottingPackage getPlot() {
+		return plot;
 	}
 }

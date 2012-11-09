@@ -47,8 +47,9 @@ public class PlotConstants {
 	public static final int MILLISECONDS_IN_MIN = MILLISECONDS_IN_SECOND * 60;
 	public static final int MILLISECONDS_IN_HOUR = MILLISECONDS_IN_MIN * 60;
 	public static final int MILLISECONDS_IN_DAY = MILLISECONDS_IN_HOUR * 24;
+	public static final int MILLISECONDS_IN_YEAR = MILLISECONDS_IN_DAY * 365; // Ignore leap years for consistency
 	
-	public static final int DEFAUlT_PLOT_SPAN = 30 * 60 * 1000; // 30 mins in Milliseconds
+	public static final int DEFAULT_PLOT_SPAN = 30 * 60 * 1000; // 30 mins in Milliseconds
 	public static final Color ROLL_OVER_PLOT_LINE_COLOR = Color.white;
 	public static final int DEFAULT_TIME_AXIS_FONT_SIZE = 10;
 	public static final Font DEFAULT_TIME_AXIS_FONT = new Font("Arial", Font.PLAIN, DEFAULT_TIME_AXIS_FONT_SIZE);
@@ -73,7 +74,7 @@ public class PlotConstants {
 	public static final double DEFAULT_NON_TIME_AXIS_MIN_VALUE  = 0;
 	public static final double DEFAULT_NON_TIME_AXIS_MAX_VALUE = 1;
 	public static final long DEFAULT_TIME_AXIS_MIN_VALUE = new GregorianCalendar().getTimeInMillis();
-	public static final long DEFAULT_TIME_AXIS_MAX_VALUE= DEFAULT_TIME_AXIS_MIN_VALUE  + DEFAUlT_PLOT_SPAN;
+	public static final long DEFAULT_TIME_AXIS_MAX_VALUE= DEFAULT_TIME_AXIS_MIN_VALUE  + DEFAULT_PLOT_SPAN;
 	public static final int  MAX_NUMBER_OF_DATA_ITEMS_ON_A_PLOT = 30;
 	public static final int  MAX_NUMBER_SUBPLOTS = 10;
 	public static final PlotLineDrawingFlags DEFAULT_PLOT_LINE_DRAW = new PlotLineDrawingFlags(true, false);
@@ -98,6 +99,8 @@ public class PlotConstants {
 	public static final String NON_TIME_AXIS_SUBSEQUENT_MAX_SETTING = "PlotNonTimeAxisSubsequentMaxSetting";
 	public static final String NON_TIME_MAX = "NonTimeMax";
 	public static final String NON_TIME_MIN = "NonTimeMin";
+	public static final String DEPENDENT_MAX = "DependentMax";
+	public static final String DEPENDENT_MIN = "DependentMin";
 	public static final String TIME_MAX = "TimeMax";
 	public static final String TIME_MIN = "TimeMin";
 	public static final String TIME_PADDING = "TimePadding";
@@ -210,12 +213,13 @@ public class PlotConstants {
 	}; 
     
 	public static final String SEPARATOR = ":";
+	public static final String NON_TIME_FEED_SEPARATOR = "\t";
     
     /**
      * Orientation of the time axis. 
      */
 	public enum AxisOrientationSetting {
-		X_AXIS_AS_TIME, Y_AXIS_AS_TIME
+		X_AXIS_AS_TIME, Y_AXIS_AS_TIME, Z_AXIS_AS_TIME
 	}
 
 	public enum AxisBounds {

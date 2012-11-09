@@ -32,6 +32,7 @@ import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.XAxisMaximumLocationSettin
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSetting;
 import gov.nasa.arc.mct.fastplot.utils.AbbreviatingPlotLabelingAlgorithm;
 import gov.nasa.arc.mct.fastplot.view.Axis;
+import gov.nasa.arc.mct.fastplot.view.legend.AbstractLegendEntry;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -61,28 +62,13 @@ public class ShellPlotPackageImplementation implements AbstractPlottingPackage{
 	
 	@Override
 	public void createChart(
-			AxisOrientationSetting theAxisOrientation,
-			String theTimeSystem,
-            String theTimeFormat,
-			XAxisMaximumLocationSetting theXAxisSetting,
-			YAxisMaximumLocationSetting theYAxisSetting,
-			TimeAxisSubsequentBoundsSetting theTimeAxisSubsequentSetting,
-			NonTimeAxisSubsequentBoundsSetting theNonTimeAxisMinSubsequentSetting,
-			NonTimeAxisSubsequentBoundsSetting theNonTimeAxisMaxSubsequentSetting,
 			Font timeAxisFont, int plotLineThickness,
 			Color plotBackgroundFrameColor, Color plotAreaBackgroundColor,
 			int timeAxisIntercept, Color timeAxisColor,
 			Color timeAxisLabelColor, Color nonTimeAxisLabelColor,
 			String timeAxisDataFormat, Color nonTimeAxisColor,
 			Color gridLineColor, int minSamplesForAutoScale,
-			double scrollRescaleTimeMargine, 
-			double scrollRescaleNonTimeMargineMax, 
-			double scrollRescaleNonTimeMargineMin, 
-			double theNonTimeVaribleAxisMinValue,
-			double theNonTimeVaribleAxisMaxValue,
-			long theTimeVariableAxisMinValue, long theTimeVariableAxisMaxValue, boolean compressionenabled, boolean time, boolean label, boolean ordinal, 
-			PlotLineDrawingFlags plotLineDraw,
-			PlotLineConnectionType plotLineConnectionType,
+			boolean compressionenabled, boolean time, boolean label, 
 			PlotAbstraction pa,
 			AbbreviatingPlotLabelingAlgorithm thePlotLabelingAlgorithm) {
 		
@@ -123,22 +109,22 @@ public class ShellPlotPackageImplementation implements AbstractPlottingPackage{
 	}
 	
 	@Override
-	 public LimitAlarmState getNonTimeMaxAlarmState() {
+	 public LimitAlarmState getDependentMaxAlarmState() {
 		return LimitAlarmState.NO_ALARM;
 	}
 	
 	@Override
-	 public LimitAlarmState getNonTimeMinAlarmState() {
+	 public LimitAlarmState getDependentMinAlarmState() {
 		return LimitAlarmState.NO_ALARM;
 	}
 	
 	@Override
-	public long getCurrentTimeAxisMaxAsLong() {
+	public long getMaxTime() {
 		return getCurrentTimeAxisMax().getTimeInMillis();
 	}
 	
 	@Override
-	public long getCurrentTimeAxisMinAsLong() {
+	public long getMinTime() {
 		return getCurrentTimeAxisMin().getTimeInMillis();
 	}
 	
@@ -256,7 +242,7 @@ public class ShellPlotPackageImplementation implements AbstractPlottingPackage{
 	}
 
 	@Override
-	public void setPlotView(PlotAbstraction plotView) {
+	public void setPlotAbstraction(PlotAbstraction plotView) {
 		// TODO Auto-generated method stub
 		
 	}
@@ -286,19 +272,19 @@ public class ShellPlotPackageImplementation implements AbstractPlottingPackage{
 	}
 
 	@Override
-	public double getCurrentNonTimeAxisMax() {
+	public double getMaxNonTime() {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public double getCurrentNonTimeAxisMin() {
+	public double getMinNonTime() {
 		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
-	public boolean isCompresionEnabled() {
+	public boolean isCompressionEnabled() {
 		// TODO Auto-generated method stub
 		return false;
 	}
@@ -393,8 +379,8 @@ public class ShellPlotPackageImplementation implements AbstractPlottingPackage{
 	}
 
 	@Override
-	public boolean getOrdinalPositionInStackedPlot() {
-		// TODO Auto-generated method stub
+	public boolean getOrdinalPositionForStackedPlots() {
+		// TODO Auto-generated method stub		
 		return false;
 	}
 	
@@ -439,6 +425,218 @@ public class ShellPlotPackageImplementation implements AbstractPlottingPackage{
 	public String getTimeFormatSetting() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public void setAxisOrientationSetting(AxisOrientationSetting timeAxisSetting) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setTimeSystemSetting(String timeSystemSetting) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setTimeFormatSetting(String timeFormatSetting) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setXAxisMaximumLocation(
+			XAxisMaximumLocationSetting xAxisMaximumLocation) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setYAxisMaximumLocation(
+			YAxisMaximumLocationSetting yAxisMaximumLocation) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setTimeAxisSubsequentSetting(
+			TimeAxisSubsequentBoundsSetting timeAxisSubsequent) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setNonTimeAxisSubsequentMinSetting(
+			NonTimeAxisSubsequentBoundsSetting nonTimeAxisSubsequentMinSetting) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setNonTimeAxisSubsequentMaxSetting(
+			NonTimeAxisSubsequentBoundsSetting nonTimeAxisSubsequentMaxSetting) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setMaxTime(long maxTime) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setMinTime(long minTime) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setMaxNonTime(double maxNonTime) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setMinNonTime(double minNonTime) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setTimePadding(double timePadding) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setNonTimeMaxPadding(double nonTimeMaxPadding) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setNonTimeMinPadding(double nonTimeMinPadding) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setOrdinalPositionForStackedPlots(
+			boolean ordinalPositionForStackedPlots) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void setPinTimeAxis(boolean pinTimeAxis) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean getPinTimeAxis() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void setPlotLineDraw(PlotLineDrawingFlags plotLineDraw) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public PlotLineDrawingFlags getPlotLineDraw() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void setPlotLineConnectionType(
+			PlotLineConnectionType plotLineConnectionType) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public PlotLineConnectionType getPlotLineConnectionType() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public PlotAbstraction getPlotAbstraction() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public LegendManager getLegendManager() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public AbstractPlotDataManager getPlotDataManager() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public PlotLocalControlsManager getLocalControlsManager() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public PlotViewActionListener getPlotActionListener() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public PlotLimitManager getLimitManager() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public AbstractPlotLine createPlotLine() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void addDataSet(String lowerCase, Color plottingColor,
+			AbstractLegendEntry legend) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public double getMinDependent() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void setMinDependent(double min) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public double getMaxDependent() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public void setMaxDependent(double max) {
+		// TODO Auto-generated method stub
+		
 	}
 
 

@@ -102,16 +102,16 @@ public class PlotLocalControlsManager implements ActionListener {
 		if (plot.isTimeLabelEnabled){
 			pauseButton = makeButton(IconLoader.Icons.PLOT_PAUSE_ICON, 
 					BUNDLE.getString("PinTimeAxisButton.Tooltip"));
-			   plot.plotView.add(pauseButton);
-			plot.plotView.setComponentZOrder(pauseButton, 0);
-			SpringLayout layout = (SpringLayout) plot.plotView.getLayout();
+			   plot.getPlotView().add(pauseButton);
+			plot.getPlotView().setComponentZOrder(pauseButton, 0);
+			SpringLayout layout = (SpringLayout) plot.getPlotView().getLayout();
 			layout.putConstraint(SpringLayout.HORIZONTAL_CENTER, pauseButton, 0, SpringLayout.HORIZONTAL_CENTER, yAxisZoomButtonMiddlePanel);
 			layout.putConstraint(SpringLayout.VERTICAL_CENTER, pauseButton, 0, SpringLayout.VERTICAL_CENTER, xAxisZoomButtonCenterPanel);
 		}
 	}
 	
 	private void createPanControls() {
-		if (plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+		if (plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 			 if (plot.isTimeLabelEnabled) {
 				 createXAxisPanControls();       
 			 }
@@ -125,7 +125,7 @@ public class PlotLocalControlsManager implements ActionListener {
 	}
 	
 	private void createZoomControls() {
-		if (plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+		if (plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 			 if (plot.isTimeLabelEnabled) {
 				 createXAxisZoomControls();       
 			 }
@@ -152,12 +152,12 @@ public class PlotLocalControlsManager implements ActionListener {
 		yAxisPanButtonPanel.add(yAxisPanUpButton);
 		yAxisPanButtonPanel.add(yAxisPanDownButton);
 		yAxisPanButtonPanel.setOpaque(false);
-		plot.plotView.add(yAxisPanButtonPanel);
-		plot.plotView.setComponentZOrder(yAxisPanButtonPanel, 0);
-		SpringLayout layout = (SpringLayout) plot.plotView.getLayout();
-		XYPlotContents contents = plot.plotView.getContents();
+		plot.getPlotView().add(yAxisPanButtonPanel);
+		plot.getPlotView().setComponentZOrder(yAxisPanButtonPanel, 0);
+		SpringLayout layout = (SpringLayout) plot.getPlotView().getLayout();
+		XYPlotContents contents = plot.getPlotView().getContents();
 		layout.putConstraint(SpringLayout.VERTICAL_CENTER, yAxisPanButtonPanel, 0, SpringLayout.VERTICAL_CENTER, contents);
-		layout.putConstraint(SpringLayout.EAST, yAxisPanButtonPanel, -1, SpringLayout.EAST, plot.plotView.getYAxis());
+		layout.putConstraint(SpringLayout.EAST, yAxisPanButtonPanel, -1, SpringLayout.EAST, plot.getPlotView().getYAxis());
 	}
 	
 	private void createXAxisPanControls() {
@@ -174,12 +174,12 @@ public class PlotLocalControlsManager implements ActionListener {
 		xAxisPanButtonPanel.add(xAxisPanLeftButton);
 		xAxisPanButtonPanel.add(xAxisPanRightButton);
 		xAxisPanButtonPanel.setOpaque(false);
-		plot.plotView.add(xAxisPanButtonPanel);
-		plot.plotView.setComponentZOrder(xAxisPanButtonPanel, 0);
-		SpringLayout layout = (SpringLayout) plot.plotView.getLayout();
-		XYPlotContents contents = plot.plotView.getContents();
+		plot.getPlotView().add(xAxisPanButtonPanel);
+		plot.getPlotView().setComponentZOrder(xAxisPanButtonPanel, 0);
+		SpringLayout layout = (SpringLayout) plot.getPlotView().getLayout();
+		XYPlotContents contents = plot.getPlotView().getContents();
 		layout.putConstraint(SpringLayout.HORIZONTAL_CENTER, xAxisPanButtonPanel, 0, SpringLayout.HORIZONTAL_CENTER, contents);
-		layout.putConstraint(SpringLayout.NORTH, xAxisPanButtonPanel, 1, SpringLayout.NORTH, plot.plotView.getXAxis());
+		layout.putConstraint(SpringLayout.NORTH, xAxisPanButtonPanel, 1, SpringLayout.NORTH, plot.getPlotView().getXAxis());
 	}
 	
 	
@@ -193,16 +193,16 @@ public class PlotLocalControlsManager implements ActionListener {
 		 bottomLeftCornerResetButton = makeButton(IconLoader.Icons.PLOT_CORNER_RESET_BUTTON_BOTTOM_LEFT_GREY,
 				                                BUNDLE.getString("BottomLeftCornerButton.Tooltip"));
 		 
-		  plot.plotView.add(topRightCornerResetButton);
-		  plot.plotView.add(topLeftCornerResetButton);
-		  plot.plotView.add(bottomRightCornerResetButton);
-		  plot.plotView.add(bottomLeftCornerResetButton);
-		plot.plotView.setComponentZOrder(topRightCornerResetButton, 0);
-		plot.plotView.setComponentZOrder(topLeftCornerResetButton, 0);
-		plot.plotView.setComponentZOrder(bottomRightCornerResetButton, 0);
-		plot.plotView.setComponentZOrder(bottomLeftCornerResetButton, 0);
-		SpringLayout layout = (SpringLayout) plot.plotView.getLayout();
-		XYPlotContents contents = plot.plotView.getContents();
+		  plot.getPlotView().add(topRightCornerResetButton);
+		  plot.getPlotView().add(topLeftCornerResetButton);
+		  plot.getPlotView().add(bottomRightCornerResetButton);
+		  plot.getPlotView().add(bottomLeftCornerResetButton);
+		plot.getPlotView().setComponentZOrder(topRightCornerResetButton, 0);
+		plot.getPlotView().setComponentZOrder(topLeftCornerResetButton, 0);
+		plot.getPlotView().setComponentZOrder(bottomRightCornerResetButton, 0);
+		plot.getPlotView().setComponentZOrder(bottomLeftCornerResetButton, 0);
+		SpringLayout layout = (SpringLayout) plot.getPlotView().getLayout();
+		XYPlotContents contents = plot.getPlotView().getContents();
 		layout.putConstraint(SpringLayout.NORTH, topRightCornerResetButton, 0, SpringLayout.NORTH, contents);
 		layout.putConstraint(SpringLayout.EAST, topRightCornerResetButton, 0, SpringLayout.EAST, contents);
 		layout.putConstraint(SpringLayout.NORTH, topLeftCornerResetButton, 0, SpringLayout.NORTH, contents);
@@ -231,13 +231,13 @@ public class PlotLocalControlsManager implements ActionListener {
 		  xAxisZoomButtonCenterPanel.add(xAxisCenterZoomInButton);
 		  
 		  xAxisZoomButtonCenterPanel.setVisible(false);
-		  plot.plotView.add(xAxisZoomButtonCenterPanel);
-		  plot.plotView.setComponentZOrder(xAxisZoomButtonCenterPanel, 0);
+		  plot.getPlotView().add(xAxisZoomButtonCenterPanel);
+		  plot.getPlotView().setComponentZOrder(xAxisZoomButtonCenterPanel, 0);
 		  xAxisZoomButtonCenterPanel.setOpaque(false);
-		SpringLayout layout = (SpringLayout) plot.plotView.getLayout();
-		XYPlotContents contents = plot.plotView.getContents();
+		SpringLayout layout = (SpringLayout) plot.getPlotView().getLayout();
+		XYPlotContents contents = plot.getPlotView().getContents();
 		layout.putConstraint(SpringLayout.HORIZONTAL_CENTER, xAxisZoomButtonCenterPanel, 0, SpringLayout.HORIZONTAL_CENTER, contents);
-		layout.putConstraint(SpringLayout.NORTH, xAxisZoomButtonCenterPanel, 1, SpringLayout.NORTH, plot.plotView.getXAxis());
+		layout.putConstraint(SpringLayout.NORTH, xAxisZoomButtonCenterPanel, 1, SpringLayout.NORTH, plot.getPlotView().getXAxis());
 	}
 	
 	private void createYAxisZoomControls() {
@@ -258,13 +258,13 @@ public class PlotLocalControlsManager implements ActionListener {
 		  yAxisZoomButtonMiddlePanel.add(yAxisCenterZoomInButton);
 		  
 		  yAxisZoomButtonMiddlePanel.setVisible(false);
-		  plot.plotView.add(yAxisZoomButtonMiddlePanel);
-		  plot.plotView.setComponentZOrder(yAxisZoomButtonMiddlePanel, 0);
+		  plot.getPlotView().add(yAxisZoomButtonMiddlePanel);
+		  plot.getPlotView().setComponentZOrder(yAxisZoomButtonMiddlePanel, 0);
 		  yAxisZoomButtonMiddlePanel.setOpaque(false);  
-		SpringLayout layout = (SpringLayout) plot.plotView.getLayout();
-		XYPlotContents contents = plot.plotView.getContents();
+		SpringLayout layout = (SpringLayout) plot.getPlotView().getLayout();
+		XYPlotContents contents = plot.getPlotView().getContents();
 		layout.putConstraint(SpringLayout.VERTICAL_CENTER, yAxisZoomButtonMiddlePanel, 0, SpringLayout.VERTICAL_CENTER, contents);
-		layout.putConstraint(SpringLayout.EAST, yAxisZoomButtonMiddlePanel, -1, SpringLayout.EAST, plot.plotView.getYAxis());
+		layout.putConstraint(SpringLayout.EAST, yAxisZoomButtonMiddlePanel, -1, SpringLayout.EAST, plot.getPlotView().getYAxis());
 	}
 	
 	protected void createLocalControlButtons() {
@@ -289,7 +289,7 @@ public class PlotLocalControlsManager implements ActionListener {
 	
 	public void informAltKeyState(boolean state) {
 		if(altPin == null) {
-			altPin = plot.plotAbstraction.createPin();
+			altPin = plot.getPlotAbstraction().createPin();
 		}
 		altPin.setPinned(state);
 		if (state && !plot.isUserOperationsLocked()) {
@@ -305,7 +305,7 @@ public class PlotLocalControlsManager implements ActionListener {
 	
     public void informCtlKeyState(boolean state) {
 		if(ctrlPin == null) {
-			ctrlPin = plot.plotAbstraction.createPin();
+			ctrlPin = plot.getPlotAbstraction().createPin();
 		}
     	ctrlPin.setPinned(state);
     	if (state && !plot.isUserOperationsLocked()) {
@@ -328,7 +328,7 @@ public class PlotLocalControlsManager implements ActionListener {
     private void showZoomControls() {
     	//disable pause button when zoom controls showing. 
     	setPauseButtonEnabled(false);  
-    	if (plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+    	if (plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
     		yAxisZoomButtonMiddlePanel.setVisible(true);
 	    	if (plot.isTimeLabelEnabled) {
 	    		xAxisZoomButtonCenterPanel.setVisible(true);
@@ -346,7 +346,7 @@ public class PlotLocalControlsManager implements ActionListener {
     	setPauseButtonEnabled(true);
     
     	
-    	if (plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+    	if (plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 	    	if (plot.isTimeLabelEnabled) {
 	    	  xAxisZoomButtonCenterPanel.setVisible(false);
 	    	}
@@ -362,7 +362,7 @@ public class PlotLocalControlsManager implements ActionListener {
     private void showPanControls() {
     	// disable the pause button. 
     	setPauseButtonEnabled(false);
-    	if (plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+    	if (plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 	    	if (plot.isTimeLabelEnabled) {
 	    		xAxisPanButtonPanel.setVisible(true);
 	    		xAxisPanButtonPanel.revalidate();
@@ -383,7 +383,7 @@ public class PlotLocalControlsManager implements ActionListener {
     	
     	// enable the pause button. 
     	setPauseButtonEnabled(true);
-    	if (plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+    	if (plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 	    	yAxisPanButtonPanel.setVisible(false);
 	    	yAxisPanButtonPanel.revalidate();
 	    	if (plot.isTimeLabelEnabled) {
@@ -447,10 +447,10 @@ public class PlotLocalControlsManager implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (pauseButton!=null && e.getSource() == pauseButton) {
-			Axis timeAxis = plot.plotAbstraction.getTimeAxis();
-			Pinnable timePin = plot.plotAbstraction.getTimeAxisUserPin();
+			Axis timeAxis = plot.getPlotAbstraction().getTimeAxis();
+			Pinnable timePin = plot.getPlotAbstraction().getTimeAxisUserPin();
 			timePin.setPinned(!timePin.isPinned());
-			plot.plotAbstraction.updateResetButtons();
+			plot.getPlotAbstraction().updateResetButtons();
 			updatePinButton();
 			// make the pause button behave as if the unpin time axis button was pressed
 			if (!timeAxis.isPinned()) {
@@ -493,7 +493,7 @@ public class PlotLocalControlsManager implements ActionListener {
 			assert false: "Unknown button pushed on plot local controls.";
 		}
 
-		plot.plotView.requestFocus();
+		plot.getPlotView().requestFocus();
 	}
  
 	void setPauseButtonVisible(boolean state) {
@@ -517,7 +517,7 @@ public class PlotLocalControlsManager implements ActionListener {
 	}
 	
 	private boolean isPinned() {
-		PlotAbstraction plotAbstraction = plot.plotAbstraction;
+		PlotAbstraction plotAbstraction = plot.getPlotAbstraction();
 		Axis timeAxis = plotAbstraction.getTimeAxis();
 		return timeAxis.isPinned() || plotAbstraction.isPinned();
 	}
@@ -554,15 +554,15 @@ public class PlotLocalControlsManager implements ActionListener {
 	}
 	
 	public void pinXYAxesAfterZoomedIn() {
-		plot.plotAbstraction.getTimeAxisUserPin().setPinned(true);
-		plot.plotAbstraction.getTimeAxis().setZoomed(true);
+		plot.getPlotAbstraction().getTimeAxisUserPin().setPinned(true);
+		plot.getPlotAbstraction().getTimeAxis().setZoomed(true);
 		
 		plot.getNonTimeAxisUserPin().setPinned(true);
 		plot.getNonTimeAxis().setZoomed(true);
 		
-		plot.plotAbstraction.updateResetButtons();
+		plot.getPlotAbstraction().updateResetButtons();
 		plot.refreshDisplay();
 		plot.notifyObserversTimeChange();
-		plot.plotDataManager.resizeAndReloadPlotBuffer();
+		plot.getPlotDataManager().resizeAndReloadPlotBuffer();
 	}
 }

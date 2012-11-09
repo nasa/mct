@@ -26,7 +26,6 @@ import gov.nasa.arc.mct.components.ExtendedProperties;
 import gov.nasa.arc.mct.components.FeedProvider;
 import gov.nasa.arc.mct.components.FeedProvider.RenderingInfo;
 import gov.nasa.arc.mct.fastplot.access.PolicyManagerAccess;
-import gov.nasa.arc.mct.fastplot.bridge.PlotAbstraction.PlotSettings;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.NonTimeAxisSubsequentBoundsSetting;
@@ -37,6 +36,8 @@ import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSettin
 import gov.nasa.arc.mct.fastplot.bridge.PlotView;
 import gov.nasa.arc.mct.fastplot.bridge.PlotterPlot;
 import gov.nasa.arc.mct.fastplot.bridge.ShellPlotPackageImplementation;
+import gov.nasa.arc.mct.fastplot.settings.PlotConfiguration;
+import gov.nasa.arc.mct.fastplot.settings.PlotSettings;
 import gov.nasa.arc.mct.fastplot.utils.AbbreviatingPlotLabelingAlgorithm;
 import gov.nasa.arc.mct.gui.NamingContext;
 import gov.nasa.arc.mct.platform.spi.PersistenceProvider;
@@ -167,7 +168,7 @@ public class TestPlotViewRole {
 			GregorianCalendar nowPlus = new GregorianCalendar();
 			nowPlus.add(Calendar.MINUTE, 1);
 						
-			originalPlotMan.setupPlot(AxisOrientationSetting.X_AXIS_AS_TIME,
+			originalPlotMan.setupPlot(new PlotSettings(AxisOrientationSetting.X_AXIS_AS_TIME,
 					 anyTimeSystem,
                      TimeService.DEFAULT_TIME_FORMAT,
 			         XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
@@ -175,23 +176,23 @@ public class TestPlotViewRole {
 			         TimeAxisSubsequentBoundsSetting.JUMP, 
 			         NonTimeAxisSubsequentBoundsSetting.AUTO, 
 			         NonTimeAxisSubsequentBoundsSetting.AUTO, 
-			         150, 100, now, nowPlus, 0.01, 0.20, 0.20, true, false,
+			         nowPlus.getTimeInMillis(), now.getTimeInMillis(), 150, 100, 0.01, 0.20, 0.20, true, false,
 				 	 PlotConstants.DEFAULT_PLOT_LINE_DRAW,
-					 PlotLineConnectionType.STEP_X_THEN_Y);
+					 PlotLineConnectionType.STEP_X_THEN_Y));
 			
 			// for coverage. 
 			originalPlotMan.updateMonitoredGUI();
 			originalPlotMan.updateMonitoredGUI(new AddChildEvent(nowPlus, feed1Component));
 			originalPlotMan.updateMonitoredGUI(new RemoveChildEvent(nowPlus, feed1Component));
 			
-			PlotView thePlotView = originalPlotMan.thePlot;			
-			PlotSettings settings = originalPlotMan.plotPersistanceHandler.loadPlotSettingsFromPersistance(); 
+			PlotView thePlotView = originalPlotMan.getPlot();			
+			PlotConfiguration settings = new PlotPersistenceHandler(originalPlotMan).loadPlotSettingsFromPersistance();
 			PlotView secondPlotView =  PlotViewFactory.createPlotFromSettings(settings, 1, plotLabelingAlgorithm);
 			
 			// Should be different plots.
 			Assert.assertNotSame(thePlotView, secondPlotView);
 			
-			originalPlotMan.setupPlot(AxisOrientationSetting.X_AXIS_AS_TIME, 
+			originalPlotMan.setupPlot(new PlotSettings(AxisOrientationSetting.X_AXIS_AS_TIME, 
 					 anyTimeSystem,
                      TimeService.DEFAULT_TIME_FORMAT,
 			         XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
@@ -199,13 +200,14 @@ public class TestPlotViewRole {
 			         TimeAxisSubsequentBoundsSetting.SCRUNCH, 
 			         NonTimeAxisSubsequentBoundsSetting.AUTO, 
 			         NonTimeAxisSubsequentBoundsSetting.AUTO, 
-			         150, 100, now, nowPlus, 0.01, 0.20, 0.20, true, false,
+			         nowPlus.getTimeInMillis(), now.getTimeInMillis(), 150, 100, 0.01, 0.20, 0.20, true, false,
 					 PlotConstants.DEFAULT_PLOT_LINE_DRAW,
-					 PlotLineConnectionType.STEP_X_THEN_Y);
+					 PlotLineConnectionType.STEP_X_THEN_Y));
 			
 			originalPlotMan.updateMonitoredGUI();
-			thePlotView = originalPlotMan.thePlot;			
-			settings = originalPlotMan.plotPersistanceHandler.loadPlotSettingsFromPersistance(); 
+			
+			thePlotView = originalPlotMan.getPlot();			
+			settings = new PlotPersistenceHandler(originalPlotMan).loadPlotSettingsFromPersistance();; 
 			secondPlotView = PlotViewFactory.createPlotFromSettings(settings, 1, plotLabelingAlgorithm);
 				
 			// Should be different plots.
@@ -272,7 +274,7 @@ public class TestPlotViewRole {
 	
 	@SuppressWarnings({ "unchecked", "serial" })
 	@Test
-	public void testUpdateFromDataFeed() {
+	public void testUpdateFromDataFeed() throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException {
 
 		final ExtendedProperties viewProps = new ExtendedProperties();
 		PlotViewManifestation panel = new PlotViewManifestation(mockComponent,new ViewInfo(PlotViewManifestation.class,"", ViewType.OBJECT)) {
@@ -282,11 +284,11 @@ public class TestPlotViewRole {
 			}
 		};
 
-		panel.thePlot = new PlotView.Builder(ShellPlotPackageImplementation.class).build();
-		ShellPlotPackageImplementation testPackage = (ShellPlotPackageImplementation) panel.thePlot.returnPlottingPackage();
+		panel.setPlot(new PlotView.Builder(ShellPlotPackageImplementation.class).build());
+		ShellPlotPackageImplementation testPackage = (ShellPlotPackageImplementation) panel.getPlot().returnPlottingPackage();
 
-		panel.thePlot.addDataSet("PUI1");
-		panel.thePlot.addDataSet("PUI2");
+		panel.getPlot().addDataSet("PUI1");
+		panel.getPlot().addDataSet("PUI2");
 
 		// Make feed Data
 		Map<String, List<Map<String, String>>> theData = new Hashtable<String, List<Map<String, String>>>();
@@ -337,14 +339,17 @@ public class TestPlotViewRole {
 		Mockito.when(feed1.getSubscriptionId()).thenReturn("PUI1");
 		Mockito.when(feed2.getSubscriptionId()).thenReturn("PUI2");
 
-		panel.plotDataAssigner.feedProvidersRef.get().add(feed1);
-		panel.plotDataAssigner.feedProvidersRef.get().add(feed2);
+		Field pda = PlotViewManifestation.class.getDeclaredField("plotDataAssigner");
+		pda.setAccessible(true);
+		PlotDataAssigner plotDataAssigner = (PlotDataAssigner) pda.get(panel);
+		plotDataAssigner.getVisibleFeedProviders().add(feed1);
+		plotDataAssigner.getVisibleFeedProviders().add(feed2);
 
 
 		Assert.assertEquals(panel.getMaxFeedValue(), 0.0);
 		Assert.assertEquals(panel.getMinFeedValue(), 0.0);
 		// Push feed to plot.
-		panel.plotDataFedUpdateHandler.updateFromFeeds(theData, false, true, false);
+		panel.updateFromFeed(theData);
 
 		// Check data made it to the plot
 		Map<String, ArrayList<Double>> plotDataSet =  testPackage.getDataSet();
@@ -379,12 +384,12 @@ public class TestPlotViewRole {
 		PlotViewManifestation panel = new PlotViewManifestation(component, new ViewInfo(PlotViewManifestation.class,"",ViewType.OBJECT));
 		PlotView originalPlot = new PlotView.Builder(ShellPlotPackageImplementation.class).build();
 		
-		panel.thePlot = originalPlot;
+		panel.setPlot(originalPlot);
 		
 		GregorianCalendar minTime = new GregorianCalendar();
 		GregorianCalendar maxTime = new GregorianCalendar();
 		maxTime.setTimeInMillis(System.currentTimeMillis()+1);
-		panel.setupPlot(AxisOrientationSetting.X_AXIS_AS_TIME, 
+		panel.setupPlot(new PlotSettings(AxisOrientationSetting.X_AXIS_AS_TIME, 
 						 PlotConstants.DEFAULT_TIME_SYSTEM,
 						 PlotConstants.DEFAULT_TIME_FORMAT,
 				         XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
@@ -392,27 +397,27 @@ public class TestPlotViewRole {
 				         TimeAxisSubsequentBoundsSetting.JUMP, 
 				         NonTimeAxisSubsequentBoundsSetting.AUTO, 
 				         NonTimeAxisSubsequentBoundsSetting.AUTO, 
-				         0, 100, minTime, maxTime, 0.05, 0.20, 0.20, true, false,
+				         maxTime.getTimeInMillis(), minTime.getTimeInMillis(), 0, 100, 0.05, 0.20, 0.20, true, false,
 						 PlotConstants.DEFAULT_PLOT_LINE_DRAW,
-					     PlotLineConnectionType.STEP_X_THEN_Y);
+					     PlotLineConnectionType.STEP_X_THEN_Y));
 	}
 		
 	@Test 
 	public void testUpdateFromDataFeedNoData() {
 		PlotViewManifestation panel = new PlotViewManifestation(mockComponent, new ViewInfo(PlotViewManifestation.class,"",ViewType.OBJECT));
-		panel.thePlot = new PlotView.Builder(ShellPlotPackageImplementation.class).build();
+		panel.setPlot(new PlotView.Builder(ShellPlotPackageImplementation.class).build());
 		
 		// Robust to no data.
-		panel.plotDataFedUpdateHandler.updateFromFeeds(null, false, true, false);	
+		panel.updateFromFeed(null);	
 	}
 	
 	@SuppressWarnings("unchecked")
 	@Test 
-	public void testRobustToNoDataForAFeed() {
+	public void testRobustToNoDataForAFeed() throws IllegalArgumentException, SecurityException, IllegalAccessException, NoSuchFieldException {
 		PlotViewManifestation panel = new PlotViewManifestation(mockComponent, new ViewInfo(PlotViewManifestation.class,"",ViewType.OBJECT));
-		panel.thePlot = new PlotView.Builder(ShellPlotPackageImplementation.class).build();
+		panel.setPlot(new PlotView.Builder(ShellPlotPackageImplementation.class).build());
 		
-		panel.thePlot.addDataSet("PUI1");
+		panel.getPlot().addDataSet("PUI1");
 		
 		// Robust to no data for feed.
 		List<Map<String, String>> dataSetA = new ArrayList<Map<String, String>>();
@@ -465,14 +470,17 @@ public class TestPlotViewRole {
 		Mockito.when(feed1.getSubscriptionId()).thenReturn("PUI1");
 		Mockito.when(feed2.getSubscriptionId()).thenReturn("PUI2");
 
-		panel.plotDataAssigner.feedProvidersRef.get().add(feed1);
-		panel.plotDataAssigner.feedProvidersRef.get().add(feed2);
+		Field pda = panel.getClass().getDeclaredField("plotDataAssigner");
+		pda.setAccessible(true);
+		PlotDataAssigner plotDataAssigner = (PlotDataAssigner) pda.get(panel);
+		plotDataAssigner.getVisibleFeedProviders().add(feed1);
+		plotDataAssigner.getVisibleFeedProviders().add(feed2);
 
 		// Push feed to plot.
-		panel.plotDataFedUpdateHandler.updateFromFeeds(theData, false, true, false);
+		panel.updateFromFeed(theData);
 
 		// Check data made it to the plot
-		ShellPlotPackageImplementation testPackage = (ShellPlotPackageImplementation) panel.thePlot.returnPlottingPackage(); 
+		ShellPlotPackageImplementation testPackage = (ShellPlotPackageImplementation) panel.getPlot().returnPlottingPackage(); 
 		Map<String, ArrayList<Double>> plotDataSet = testPackage.getDataSet();
 
 		Assert.assertEquals(plotDataSet.size(), 1);
@@ -488,9 +496,9 @@ public class TestPlotViewRole {
 	@Test (enabled = false)
 	public void testUpdateDataAndThatUpdateFromFeedCachesWhileLockedOut() {
 		PlotViewManifestation panel = new PlotViewManifestation(parentComponent,new ViewInfo(PlotViewManifestation.class,"",ViewType.CENTER));
-		panel.thePlot = new PlotView.Builder(ShellPlotPackageImplementation.class).build();
+		panel.setPlot(new PlotView.Builder(ShellPlotPackageImplementation.class).build());
 		
-		panel.thePlot.addDataSet("PUI1");
+		panel.getPlot().addDataSet("PUI1");
 			
 		List<Map<String, String>> dataSetAUpdateFromFeed = new ArrayList<Map<String, String>>();
 		List<Map<String, String>> dataSetBUpdateData = new ArrayList<Map<String, String>>();
@@ -559,7 +567,7 @@ public class TestPlotViewRole {
 		thePlot.setManifestation(panel);
 		Assert.assertEquals(panel.getPlot(), thePlot);
 		
-		panel.thePlot.addDataSet(baseDisplayName);
+		panel.getPlot().addDataSet(baseDisplayName);
 		
 		List<Map<String, String>> dataSetAUpdateFromFeed = new ArrayList<Map<String, String>>();
 		
@@ -593,7 +601,7 @@ public class TestPlotViewRole {
 	@Test 
 	public void testRobustToMissingData() {
 		PlotViewManifestation panel = new PlotViewManifestation(mockComponent, new ViewInfo(PlotViewManifestation.class,"",ViewType.OBJECT));
-		panel.thePlot = new PlotView.Builder(ShellPlotPackageImplementation.class).build();
+		panel.setPlot(new PlotView.Builder(ShellPlotPackageImplementation.class).build());
 
 
 
@@ -621,7 +629,7 @@ public class TestPlotViewRole {
 		// Push feed to plot.
 		panel.updateFromFeed(theData);
 
-		ShellPlotPackageImplementation testPackage = (ShellPlotPackageImplementation) panel.thePlot.returnPlottingPackage(); 
+		ShellPlotPackageImplementation testPackage = (ShellPlotPackageImplementation) panel.getPlot().returnPlottingPackage(); 
 
 		// Check data made it to the plot
 		Map<String, ArrayList<Double>> plotDataSet = testPackage.getDataSet();
@@ -650,9 +658,9 @@ public class TestPlotViewRole {
 		PlotView panelAsPlot = new PlotView.Builder(ShellPlotPackageImplementation.class).build();
 		PlotView notPanelAsPlot = new PlotView.Builder(ShellPlotPackageImplementation.class).build();
 		
-		panelA.thePlot = panelAsPlot;
-		panelPlotEqual.thePlot = panelAsPlot;
-		panelNotEqualA.thePlot = notPanelAsPlot;
+		panelA.setPlot(panelAsPlot);
+		panelPlotEqual.setPlot(panelAsPlot);
+		panelNotEqualA.setPlot(notPanelAsPlot);
 		
 		// Two different manifestations.
 		Assert.assertFalse(panelA.equals(panelPlotEqual));
@@ -725,46 +733,39 @@ public class TestPlotViewRole {
 	
 	@Test
 	public void testGetMaxAndMinTimesWorksWhenTimeDirectionChanged() {
-		PlotView plotMaxAtRight = new PlotView.Builder(PlotterPlot.class).
-		                    xAxisMaximumLocation(XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT).
-		                    timeVariableAxisMinValue(0).
-		                    timeVariableAxisMaxValue(100).
-		                    build();
+		PlotSettings settings = new PlotSettings();
+		settings.setMinTime(0);
+		settings.setMaxTime(100);
+		settings.setXAxisMaximumLocation(XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT);
+		
+		PlotView plotMaxAtRight = new PlotView.Builder(PlotterPlot.class).plotSettings(settings).build();
 		
 		
-		Assert.assertEquals(plotMaxAtRight.getMaxTime().getTimeInMillis(), 100);
-		Assert.assertEquals(plotMaxAtRight.getMinTime().getTimeInMillis(), 0);
+		Assert.assertEquals(plotMaxAtRight.getMaxTime(), 100);
+		Assert.assertEquals(plotMaxAtRight.getMinTime(), 0);
 		
+		settings.setXAxisMaximumLocation(XAxisMaximumLocationSetting.MAXIMUM_AT_LEFT);
 		
-		PlotView plotMaxAtLeft = new PlotView.Builder(PlotterPlot.class).
-        xAxisMaximumLocation(XAxisMaximumLocationSetting.MAXIMUM_AT_LEFT).
-        timeVariableAxisMinValue(0).
-        timeVariableAxisMaxValue(100).
-        build();
+		PlotView plotMaxAtLeft = new PlotView.Builder(PlotterPlot.class).plotSettings(settings).build();
 		
-		Assert.assertEquals(plotMaxAtLeft.getMaxTime().getTimeInMillis(), 100);
-		Assert.assertEquals(plotMaxAtLeft.getMinTime().getTimeInMillis(), 0);
+		Assert.assertEquals(plotMaxAtLeft.getMaxTime(), 100);
+		Assert.assertEquals(plotMaxAtLeft.getMinTime(), 0);
 		
-		PlotView plotTimeOnYMaxAtTop = new PlotView.Builder(PlotterPlot.class).
-		   axisOrientation(AxisOrientationSetting.Y_AXIS_AS_TIME).
-           yAxisMaximumLocation(YAxisMaximumLocationSetting.MAXIMUM_AT_TOP).
-           timeAxisBoundsSubsequentSetting(TimeAxisSubsequentBoundsSetting.SCRUNCH).
-           timeVariableAxisMinValue(0).
-           timeVariableAxisMaxValue(100).
-           build();
+		settings.setAxisOrientationSetting(AxisOrientationSetting.Y_AXIS_AS_TIME);
+		settings.setYAxisMaximumLocation(YAxisMaximumLocationSetting.MAXIMUM_AT_TOP);
+		settings.setTimeAxisSubsequentSetting(TimeAxisSubsequentBoundsSetting.SCRUNCH);
 		
-		Assert.assertEquals(plotTimeOnYMaxAtTop.getMaxTime().getTimeInMillis(), 100);
-		Assert.assertEquals(plotTimeOnYMaxAtTop.getMinTime().getTimeInMillis(), 0);
+		PlotView plotTimeOnYMaxAtTop = new PlotView.Builder(PlotterPlot.class).plotSettings(settings).build();
 		
-		PlotView plotTimeOnYMaxAtBottom = new PlotView.Builder(PlotterPlot.class).
-		   axisOrientation(AxisOrientationSetting.Y_AXIS_AS_TIME).
-        yAxisMaximumLocation(YAxisMaximumLocationSetting.MAXIMUM_AT_BOTTOM).
-        timeVariableAxisMinValue(0).
-        timeVariableAxisMaxValue(100).
-        build();
+		Assert.assertEquals(plotTimeOnYMaxAtTop.getMaxTime(), 100);
+		Assert.assertEquals(plotTimeOnYMaxAtTop.getMinTime(), 0);
+
+		settings.setYAxisMaximumLocation(YAxisMaximumLocationSetting.MAXIMUM_AT_BOTTOM);
 		
-		Assert.assertEquals(plotTimeOnYMaxAtBottom.getMaxTime().getTimeInMillis(), 100);
-		Assert.assertEquals(plotTimeOnYMaxAtBottom.getMinTime().getTimeInMillis(), 0);	
+		PlotView plotTimeOnYMaxAtBottom = new PlotView.Builder(PlotterPlot.class).plotSettings(settings).build();
+		
+		Assert.assertEquals(plotTimeOnYMaxAtBottom.getMaxTime(), 100);
+		Assert.assertEquals(plotTimeOnYMaxAtBottom.getMinTime(), 0);	
 	}
 	
 	@Test 

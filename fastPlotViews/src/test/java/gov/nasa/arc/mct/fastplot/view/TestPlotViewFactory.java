@@ -21,7 +21,6 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.fastplot.view;
 
-import gov.nasa.arc.mct.fastplot.bridge.PlotAbstraction.PlotSettings;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.NonTimeAxisSubsequentBoundsSetting;
@@ -29,6 +28,8 @@ import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.TimeAxisSubsequentBoundsSe
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.XAxisMaximumLocationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotView;
+import gov.nasa.arc.mct.fastplot.settings.PlotConfiguration;
+import gov.nasa.arc.mct.fastplot.settings.PlotSettings;
 import gov.nasa.arc.mct.fastplot.utils.AbbreviatingPlotLabelingAlgorithm;
 
 import org.mockito.Mock;
@@ -50,18 +51,18 @@ public class TestPlotViewFactory {
 		labelingAlgorithm = new AbbreviatingPlotLabelingAlgorithm();
 	}
 
-	private PlotSettings initSettings(long minTime, long maxTime, boolean pinAxis, TimeAxisSubsequentBoundsSetting subsequentSetting) {
-		PlotSettings settings = new PlotSettings();
-		settings.timeAxisSetting = AxisOrientationSetting.X_AXIS_AS_TIME;
-		settings.xAxisMaximumLocation = XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT;
-		settings.yAxisMaximumLocation = YAxisMaximumLocationSetting.MAXIMUM_AT_TOP;
-		settings.nonTimeAxisSubsequentMaxSetting = NonTimeAxisSubsequentBoundsSetting.SEMI_FIXED;
-		settings.nonTimeAxisSubsequentMinSetting = NonTimeAxisSubsequentBoundsSetting.SEMI_FIXED;
+	private PlotConfiguration initSettings(long minTime, long maxTime, boolean pinAxis, TimeAxisSubsequentBoundsSetting subsequentSetting) {
+		PlotConfiguration settings = new PlotSettings();
+		settings.setAxisOrientationSetting(AxisOrientationSetting.X_AXIS_AS_TIME);
+		settings.setXAxisMaximumLocation(XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT);
+		settings.setYAxisMaximumLocation(YAxisMaximumLocationSetting.MAXIMUM_AT_TOP);
+		settings.setNonTimeAxisSubsequentMaxSetting(NonTimeAxisSubsequentBoundsSetting.SEMI_FIXED);
+		settings.setNonTimeAxisSubsequentMinSetting(NonTimeAxisSubsequentBoundsSetting.SEMI_FIXED);
 
-		settings.timeAxisSubsequent = subsequentSetting;
-		settings.minTime = minTime;
-		settings.maxTime = maxTime;
-		settings.pinTimeAxis = pinAxis;
+		settings.setTimeAxisSubsequentSetting(subsequentSetting);
+		settings.setMinTime(minTime);
+		settings.setMaxTime(maxTime);
+		settings.setPinTimeAxis(pinAxis);
 		return settings;
 	}
 	
@@ -89,8 +90,7 @@ public class TestPlotViewFactory {
 	public void testCreatePlot(PlotSettings settings, long currentTime, long expectedMinTime, long expectedMaxTime, boolean pinned) {
 		PlotView plotView = PlotViewFactory.createPlot(settings, currentTime, plotManifestation, 1, null, labelingAlgorithm, PlotConstants.DEFAULT_TIME_SYSTEM);
 		Assert.assertEquals(plotView.getTimeAxisUserPin().isPinned(), pinned);
-		Assert.assertEquals(plotView.getMinTime().getTimeInMillis(), expectedMinTime);
-		Assert.assertEquals(plotView.getMaxTime().getTimeInMillis(), expectedMaxTime);
-		
+		Assert.assertEquals(plotView.getMinTime(), expectedMinTime);
+		Assert.assertEquals(plotView.getMaxTime(), expectedMaxTime);		
 	}
 }

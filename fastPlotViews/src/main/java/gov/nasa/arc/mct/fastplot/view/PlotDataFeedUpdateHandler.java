@@ -54,44 +54,45 @@ public class PlotDataFeedUpdateHandler {
 			long syncTime) {
 		GregorianCalendar calendar = new GregorianCalendar();
 		calendar.setTimeInMillis(syncTime);
-		plotViewManifestation.thePlot.showTimeSyncLine(calendar);
+		plotViewManifestation.getPlot().showTimeSyncLine(calendar);
 		updateFromFeeds(data, true, true, false);
 	}
 	
 	void updateFromFeed(Map<String, List<Map<String, String>>> data, boolean predictionOnly) {
-		plotViewManifestation.thePlot.informUpdateFromFeedEventStarted();
+		plotViewManifestation.getPlot().informUpdateFromFeedEventStarted();
 		// Receiving any data from the feed informs us that any sync lines
 		// should be
 		// removed.
 		// Check if we cached updates while the updateFromFeed was previously
 		// locked.
 		updateFromFeeds(data, false, true, predictionOnly);
-		plotViewManifestation.thePlot.refreshDisplay();
+		plotViewManifestation.getPlot().refreshDisplay();
 		// Request that the plot updates its display with the new feed data.
 		if (plotViewManifestation.controlPanel != null
 				&& plotViewManifestation.controlPanel.isShowing()) {
-			plotViewManifestation.controlPanel.refreshDisplay();
+			//plotViewManifestation.controlPanel.refreshDisplay();
+			//TODO: Reconnect so that time marches on
 		}
-		plotViewManifestation.thePlot.informUpdateFromFeedEventCompleted();
+		plotViewManifestation.getPlot().informUpdateFromFeedEventCompleted();
 	}
 
 	public void processData(Map<String, List<Map<String, String>>> data) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("\n Recived new slice {}", printDataOnSlice(data));
 		}
-		boolean currentCompressionState = plotViewManifestation.thePlot.isCompresionEnabled();
+		boolean currentCompressionState = plotViewManifestation.getPlot().isCompressionEnabled();
 		try {
-			plotViewManifestation.thePlot.setCompressionEnabled(false);
+			plotViewManifestation.getPlot().setCompressionEnabled(false);
 			updateFromFeeds(data, false, false, false);
 		} finally {
-			plotViewManifestation.thePlot.setCompressionEnabled(currentCompressionState);
+			plotViewManifestation.getPlot().setCompressionEnabled(currentCompressionState);
 		}
 		
 	}
 
 	public void startDataRequest() {
-		plotViewManifestation.thePlot.informUpdateDataEventStarted();
-		plotViewManifestation.thePlot.refreshDisplay();
+		plotViewManifestation.getPlot().informUpdateDataEventStarted();
+		plotViewManifestation.getPlot().refreshDisplay();
 	}
 	
 	public void endDataRequest() {
@@ -101,11 +102,12 @@ public class PlotDataFeedUpdateHandler {
 	private void closeOutProcessData() {
 		if (plotViewManifestation.controlPanel != null
 				&& plotViewManifestation.controlPanel.isShowing()) {
-			plotViewManifestation.controlPanel.refreshDisplay();
+			//plotViewManifestation.controlPanel.refreshDisplay();
+			//TODO: Time must march on
 		}
 		// unlock the plot's update events.
-		plotViewManifestation.thePlot.informUpdateDataEventCompleted();
-		plotViewManifestation.thePlot.refreshDisplay();
+		plotViewManifestation.getPlot().informUpdateDataEventCompleted();
+		plotViewManifestation.getPlot().refreshDisplay();
 	}
 
 	/**
@@ -134,8 +136,8 @@ public class PlotDataFeedUpdateHandler {
 					// showing up in the plot.  This prevents a bug where live data arrives in the middle of a historical data request, and
 					// the plot thinks the next historical slice is redundant and ignores it (since it overlaps with the live data).
 					boolean allowPlotting = predictionOnly == provider.isPrediction() || !updateLegend;
-	
-					if (dataForThisFeed != null && plotViewManifestation.thePlot.isKnownDataSet(feedId) && allowPlotting) {
+					
+					if (dataForThisFeed != null && plotViewManifestation.getPlot().isKnownDataSet(feedId) && allowPlotting) {
 						SortedMap<Long, Double> dataForPlotThisFeed = dataForPlot.get(feedId);
 						if(dataForPlotThisFeed == null) {
 							dataForPlotThisFeed = new TreeMap<Long, Double>();
@@ -167,9 +169,9 @@ public class PlotDataFeedUpdateHandler {
 									lastRI = ri;
 									haveLegendInfo = true;
 	
-									if (!plotViewManifestation.thePlot
+									if (!plotViewManifestation.getPlot()
 											.isKnownDataSet(feedId)) {
-										plotViewManifestation.thePlot.addDataSet(
+										plotViewManifestation.getPlot().addDataSet(
 												feedId, provider.getLegendText());
 									}
 	
@@ -197,13 +199,13 @@ public class PlotDataFeedUpdateHandler {
 							}
 						}
 						if (haveLegendInfo && updateLegend) {
-							plotViewManifestation.thePlot.updateLegend(feedId, lastRI);
+							plotViewManifestation.getPlot().updateLegend(feedId, lastRI);
 						}
 					}
 				}
 			}
 
-			plotViewManifestation.thePlot.addData(dataForPlot);
+			plotViewManifestation.getPlot().addData(dataForPlot);
 		} else {
 			logger.debug("Data was null");
 		}
@@ -253,13 +255,7 @@ public class PlotDataFeedUpdateHandler {
 		}
 		if (numberDataPoints > 0) {
 			return "Slice: "
-					+ numberDataPoints
-					+ " [ "
-					+ PlotSettingsControlPanel.CalendarDump
-							.dumpMillis(earliestTime)
-					+ " .. "
-					+ PlotSettingsControlPanel.CalendarDump
-							.dumpMillis(latestTime) + " ]";
+					+ numberDataPoints;
 		} else {
 			return "Slice: " + numberDataPoints + " [ .. ]";
 		}

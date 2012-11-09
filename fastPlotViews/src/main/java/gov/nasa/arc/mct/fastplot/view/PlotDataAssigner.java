@@ -25,11 +25,17 @@ import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.components.FeedProvider;
 import gov.nasa.arc.mct.components.FeedProvider.FeedType;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants;
+import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
+import gov.nasa.arc.mct.fastplot.bridge.PlotView;
 import gov.nasa.arc.mct.fastplot.policy.PlotViewPolicy;
+import gov.nasa.arc.mct.fastplot.view.legend.AbstractLegendEntry;
+import gov.nasa.arc.mct.fastplot.view.legend.LegendEntryView;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -44,9 +50,10 @@ public class PlotDataAssigner {
 	
 	private PlotViewManifestation plotViewManifestation;
 	
-	final AtomicReference<Collection<FeedProvider>> feedProvidersRef;
-	Collection<Collection<FeedProvider>> feedsToPlot;
-	Collection<FeedProvider> predictiveFeeds;
+	private Map<FeedProvider, AbstractComponent> components = new HashMap<FeedProvider, AbstractComponent>();
+	private final AtomicReference<Collection<FeedProvider>> feedProvidersRef;
+	private Collection<Collection<FeedProvider>> feedsToPlot;
+	private Collection<FeedProvider> predictiveFeeds;
 	
 	PlotDataAssigner(PlotViewManifestation supportedPlotViewManifestation) {
 		plotViewManifestation = supportedPlotViewManifestation;
@@ -180,6 +187,7 @@ public class PlotDataAssigner {
 								predictiveFeeds.add(fp);
 							}
 							feedsForThisLevel.add(fp);
+							components.put(fp, component);
 						}
 					}
 					numberOfItemsOnSubPlot++;
@@ -188,6 +196,7 @@ public class PlotDataAssigner {
 			feedsToPlot.add(feedsForThisLevel);
 		}
 		feedProviders.trimToSize();
+		
 		feedProvidersRef.set(feedProviders);
 	}
 	
@@ -200,19 +209,48 @@ public class PlotDataAssigner {
 	}
 	
 	void assignFeedsToSubPlots() {
-		assert feedsToPlot !=null : "Feeds to plot must be defined";	
-		// Add feeds to the plot.
-		int subPlotNumber = 0;
-		for (Collection<FeedProvider> feedsForSubPlot: feedsToPlot) {
-			assert feedsForSubPlot!=null;
-			int numberOfItemsOnSubPlot = 0;
-			for(FeedProvider fp: feedsForSubPlot) {
-				if (numberOfItemsOnSubPlot < PlotConstants.MAX_NUMBER_OF_DATA_ITEMS_ON_A_PLOT) {	
-					plotViewManifestation.thePlot.addDataSet(subPlotNumber, fp.getSubscriptionId(), fp.getLegendText());
-					numberOfItemsOnSubPlot++;
+		assert feedsToPlot !=null : "Feeds to plot must be defined";
+		PlotView plot = plotViewManifestation.getPlot();
+
+		if (plot.getAxisOrientationSetting() == AxisOrientationSetting.Z_AXIS_AS_TIME) {
+			int count = 0;
+			// If we are non-time non-time, supply independent variable first
+			for (Collection<FeedProvider> feedsForSubPlot : feedsToPlot) {
+				String independent = null;
+				for (FeedProvider fp : feedsForSubPlot) {
+					String id = fp.getSubscriptionId();
+					if (independent == null) {
+						independent = id;
+					} else {
+						id = independent + PlotConstants.NON_TIME_FEED_SEPARATOR + id;
+					}
+					if (count < PlotConstants.MAX_NUMBER_OF_DATA_ITEMS_ON_A_PLOT) {
+						AbstractComponent comp = components.get(fp);
+						AbstractLegendEntry legendEntry = (AbstractLegendEntry) LegendEntryView.VIEW_INFO.createView(comp);
+						plot.addDataSet(0, id, legendEntry);
+						count++;
+					}
 				}
 			}
-			subPlotNumber++;
-		}		  
+		} else {
+			// Add feeds to the plot.
+			int subPlotNumber = 0;
+			for (Collection<FeedProvider> feedsForSubPlot : feedsToPlot) {
+				assert feedsForSubPlot != null;
+				int numberOfItemsOnSubPlot = 0;
+				for (FeedProvider fp : feedsForSubPlot) {
+					if (numberOfItemsOnSubPlot < PlotConstants.MAX_NUMBER_OF_DATA_ITEMS_ON_A_PLOT) {
+						plot.addDataSet(subPlotNumber, fp.getSubscriptionId(),
+								fp.getLegendText());
+						numberOfItemsOnSubPlot++;
+					}
+				}
+				subPlotNumber++;
+			}
+			
+		}
+
 	}
+
+
 }

@@ -208,4 +208,26 @@ public class PlotViewPolicy implements Policy {
 		}
 	    return false;
     }
+    
+    public static boolean isScatterPlottable(AbstractComponent comp) {
+    	int count = 0;
+    	for (AbstractComponent child : comp.getComponents()) {
+    		if (!child.isLeaf()) {
+    			return false;
+    		}
+    		if (child.getCapability(FeedProvider.class) != null) {
+    			count++;
+    		}
+    	}
+    	return count >= 2;
+    }
+    
+    public static boolean isOverlaidScatterPlottable(AbstractComponent comp) {
+    	for (AbstractComponent child : comp.getComponents()) {
+    		if (!isScatterPlottable(child)) {
+    			return false;
+    		}
+    	}
+    	return comp.getComponents().size() > 0;
+    }
 }

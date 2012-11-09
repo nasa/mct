@@ -23,11 +23,11 @@ package gov.nasa.arc.mct.fastplot.view;
 
 
 import gov.nasa.arc.mct.fastplot.bridge.LegendEntry;
-import gov.nasa.arc.mct.fastplot.bridge.PlotAbstraction.LineSettings;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants;
 import gov.nasa.arc.mct.fastplot.bridge.PlotLineColorPalette;
 import gov.nasa.arc.mct.fastplot.bridge.PlotLineShapePalette;
 import gov.nasa.arc.mct.fastplot.bridge.PlotMarkerIcon;
+import gov.nasa.arc.mct.fastplot.settings.LineSettings;
 import gov.nasa.arc.mct.fastplot.utils.MenuItemSpinner;
 
 import java.awt.Color;

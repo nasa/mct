@@ -22,11 +22,14 @@
 package gov.nasa.arc.mct.fastplot.view;
 
 import gov.nasa.arc.mct.fastplot.bridge.AbstractPlottingPackage;
-import gov.nasa.arc.mct.fastplot.bridge.PlotAbstraction.PlotSettings;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants;
+import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.TimeAxisSubsequentBoundsSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotView;
 import gov.nasa.arc.mct.fastplot.bridge.PlotterPlot;
+import gov.nasa.arc.mct.fastplot.scatter.ScatterPlot;
+import gov.nasa.arc.mct.fastplot.settings.PlotConfiguration;
+import gov.nasa.arc.mct.fastplot.settings.PlotSettings;
 import gov.nasa.arc.mct.fastplot.utils.AbbreviatingPlotLabelingAlgorithm;
 
 import org.slf4j.Logger;
@@ -44,25 +47,23 @@ public class PlotViewFactory {
         PlotView thePlot;
         
         // Insure we always have at least one plot.
-        numberOfSubPlots = Math.max(1,numberOfSubPlots);
+        numberOfSubPlots = settings.getAxisOrientationSetting() == AxisOrientationSetting.Z_AXIS_AS_TIME ?
+        		1 : Math.max(1,numberOfSubPlots);
         
 		if (!settings.isNull()) {
-			if (settings.timeSystemSetting == null) {
-				settings.timeSystemSetting = viewStateTimeSystem;
+			if (settings.getTimeSystemSetting() == null) {
+				settings.setTimeSystemSetting(viewStateTimeSystem);
 			}
 
 			// The plot has persisted settings so apply them. 
-			if (!settings.pinTimeAxis) {
+			if (!settings.getPinTimeAxis()) {
 				adjustPlotStartAndEndTimeToMatchCurrentTime(settings, currentTime);
 			}
 			thePlot = createPlotFromSettings(settings, numberOfSubPlots, plotLabelingAlgorithm);
 		} else {
 			// Setup a default plot to view while the user is configuring it.
 			thePlot = new PlotView.Builder(PlotterPlot.class).
-						 timeSystem(viewStateTimeSystem).	
 						 numberOfSubPlots(numberOfSubPlots).
-			             timeVariableAxisMaxValue(currentTime).
-			             timeVariableAxisMinValue(currentTime - PlotConstants.DEFAUlT_PLOT_SPAN).
 			             plotLabelingAlgorithm(plotLabelingAlgorithm).build();
 		} 	
 		thePlot.setManifestation(parentManifestation);
@@ -91,43 +92,26 @@ public class PlotViewFactory {
 	/**
 	 * Create the plot using the persisted settings.
 	 */
-	static PlotView createPlotFromSettings(PlotSettings settings, int numberOfSubPlots, AbbreviatingPlotLabelingAlgorithm plotLabelingAlgorithm) {			
-			PlotView newPlot = new PlotView.Builder(PlotterPlot.class)
-			.axisOrientation(settings.timeAxisSetting)
-			.timeSystem(settings.timeSystemSetting)
-            .timeFormat(settings.timeFormatSetting)
-			.xAxisMaximumLocation(settings.xAxisMaximumLocation)
-			.yAxisMaximumLocation(settings.yAxisMaximumLocation)
-			.nonTimeVaribleAxisMaxValue(settings.maxNonTime)
-			.nonTimeVaribleAxisMinValue(settings.minNonTime)
-			.timeAxisBoundsSubsequentSetting(settings.timeAxisSubsequent)
-			.nonTimeAxisMinSubsequentSetting(settings.nonTimeAxisSubsequentMinSetting)
-			.nonTimeAxisMaxSubsequentSetting(settings.nonTimeAxisSubsequentMaxSetting)
-			.timeVariableAxisMaxValue(settings.maxTime)
-			.timeVariableAxisMinValue(settings.minTime)	
-			.scrollRescaleMarginTimeAxis(settings.timePadding)
-			.scrollRescaleMarginNonTimeMaxAxis(settings.nonTimeMaxPadding)
-			.scrollRescaleMarginNonTimeMinAxis(settings.nonTimeMinPadding)
+	static PlotView createPlotFromSettings(PlotConfiguration settings, int numberOfSubPlots, AbbreviatingPlotLabelingAlgorithm plotLabelingAlgorithm) {			
+			Class<? extends AbstractPlottingPackage> plottingPackage = 
+				settings.getAxisOrientationSetting() != AxisOrientationSetting.Z_AXIS_AS_TIME ?
+						PlotterPlot.class : ScatterPlot.class;
+			PlotView newPlot = new PlotView.Builder(plottingPackage)
+			.plotSettings(settings)
 			.numberOfSubPlots(numberOfSubPlots)
-			.useOrdinalPositionForSubplots(settings.ordinalPositionForStackedPlots)
-			.pinTimeAxis(settings.pinTimeAxis)
-			.plotLineDraw(settings.plotLineDraw)
-			.plotLineConnectionType(settings.plotLineConnectionType)
 			.plotLabelingAlgorithm(plotLabelingAlgorithm)
 			.build();
 			
 			newPlot.setPlotLabelingAlgorithm(plotLabelingAlgorithm);
-			newPlot.setPlotLineDraw(settings.plotLineDraw);
-			newPlot.setPlotLineConnectionType(settings.plotLineConnectionType);
 			
 			return newPlot;
 	}
 	
-	private static void adjustPlotStartAndEndTimeToMatchCurrentTime(PlotSettings settings, long currentTime) {
-		if (settings.timeAxisSubsequent == TimeAxisSubsequentBoundsSetting.SCRUNCH) {
-			if (currentTime > settings.maxTime) {
+	private static void adjustPlotStartAndEndTimeToMatchCurrentTime(PlotConfiguration settings, long currentTime) {
+		if (settings.getTimeAxisSubsequentSetting() == TimeAxisSubsequentBoundsSetting.SCRUNCH) {
+			if (currentTime > settings.getMaxTime()) {
 				// Fast forward to now on the upper bound. 
-				settings.maxTime = currentTime;
+				settings.setMaxTime(currentTime);
 			}
 		}
 	}

@@ -19,6 +19,7 @@
  * MCT Licenses dialog available at runtime from the MCT Help menu for additional 
  * information. 
  *******************************************************************************/
+
 package gov.nasa.arc.mct.fastplot.bridge;
 
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
@@ -80,9 +81,9 @@ public class PanAndZoomManager {
 
 	
 	public void panAction(PanDirection panningAction) {
-		XYAxis xAxis = plot.plotView.getXAxis();
-		XYAxis yAxis = plot.plotView.getYAxis();
-		if (plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+		XYAxis xAxis = plot.getPlotView().getXAxis();
+		XYAxis yAxis = plot.getPlotView().getYAxis();
+		if (plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 			double nonTimeScalePanAmount = yAxis.getEnd() - yAxis.getStart();
 			double timeScalePanAmount = xAxis.getEnd() - xAxis.getStart();
 			
@@ -128,35 +129,35 @@ public class PanAndZoomManager {
 				pinNonTime();
 			}	
 		}
-		plot.plotAbstraction.updateResetButtons();
+		plot.getPlotAbstraction().updateResetButtons();
 		plot.refreshDisplay();
 		//Always request data refresh
 		plot.clearAllDataFromPlot();
-		plot.limitManager.setModeUntranslated(false);
-		plot.plotAbstraction.requestPlotData(plot.getCurrentTimeAxisMin(), plot.getCurrentTimeAxisMax());
+		plot.getLimitManager().setModeUntranslated(false);
+		plot.getPlotAbstraction().requestPlotData(plot.getCurrentTimeAxisMin(), plot.getCurrentTimeAxisMax());
 
 	}
 
 
 	private void pinTime() {
-		plot.plotAbstraction.getTimeAxisUserPin().setPinned(true);
+		plot.getPlotAbstraction().getTimeAxisUserPin().setPinned(true);
 	}
 
 
 	private void pinNonTime() {
 		plot.getNonTimeAxisUserPin().setPinned(true);
-		if (plot.limitManager.isUntranslated()) {
-			plot.limitManager.setModeUntranslated(false);
+		if (plot.getLimitManager().isUntranslated()) {
+			plot.getLimitManager().setModeUntranslated(false);
 		}
 	}
 
 
 	private void markTimeZoomed() {
-		Axis axis = plot.plotAbstraction.getTimeAxis();
+		Axis axis = plot.getPlotAbstraction().getTimeAxis();
 		pinTime();
 		axis.setZoomed(true);
-		if (plot.limitManager.isUntranslated()) {
-			plot.limitManager.setModeUntranslated(false);
+		if (plot.getLimitManager().isUntranslated()) {
+			plot.getLimitManager().setModeUntranslated(false);
 		}
 	}
 
@@ -164,15 +165,15 @@ public class PanAndZoomManager {
 		Axis axis = plot.getNonTimeAxis();
 		pinNonTime();
 		axis.setZoomed(true);
-		if (plot.limitManager.isUntranslated()) {
-			plot.limitManager.setModeUntranslated(false);
+		if (plot.getLimitManager().isUntranslated()) {
+			plot.getLimitManager().setModeUntranslated(false);
 		}
 	}
 
 	public void zoomAction(ZoomDirection zoomAction) {
-		XYAxis xAxis = plot.plotView.getXAxis();
-		XYAxis yAxis = plot.plotView.getYAxis();
-		if (plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+		XYAxis xAxis = plot.getPlotView().getXAxis();
+		XYAxis yAxis = plot.getPlotView().getYAxis();
+		if (plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 			double nonTimeScaleZoomAmount = yAxis.getEnd() - yAxis.getStart();
 			double timeScaleZoomAmount = xAxis.getEnd() - xAxis.getStart();
 			
@@ -282,10 +283,11 @@ public class PanAndZoomManager {
 				  markNonTimeZoomed();
 			}
 		}
-		plot.plotAbstraction.updateResetButtons();
+		plot.getPlotAbstraction().updateResetButtons();
 		plot.refreshDisplay();
 		//Always request data refresh
-		plot.limitManager.setModeUntranslated(false);
-		plot.plotDataManager.resizeAndReloadPlotBuffer();
+		plot.getLimitManager().setModeUntranslated(false);
+		plot.getPlotDataManager().resizeAndReloadPlotBuffer();
 	}
 }
+

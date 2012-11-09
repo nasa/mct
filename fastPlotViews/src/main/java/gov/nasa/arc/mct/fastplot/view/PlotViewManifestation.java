@@ -25,16 +25,11 @@ import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.components.FeedProvider;
 import gov.nasa.arc.mct.fastplot.bridge.AbstractPlottingPackage;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants;
-import gov.nasa.arc.mct.fastplot.bridge.PlotterPlot;
-import gov.nasa.arc.mct.fastplot.bridge.PlotAbstraction.PlotSettings;
-import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
-import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.NonTimeAxisSubsequentBoundsSetting;
-import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PlotLineConnectionType;
-import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PlotLineDrawingFlags;
-import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.TimeAxisSubsequentBoundsSetting;
-import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.XAxisMaximumLocationSetting;
-import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotView;
+import gov.nasa.arc.mct.fastplot.bridge.PlotterPlot;
+import gov.nasa.arc.mct.fastplot.settings.PlotConfiguration;
+import gov.nasa.arc.mct.fastplot.settings.PlotSettings;
+import gov.nasa.arc.mct.fastplot.settings.PlotSettingsControlContainer;
 import gov.nasa.arc.mct.fastplot.utils.AbbreviatingPlotLabelingAlgorithm;
 import gov.nasa.arc.mct.fastplot.utils.ComponentTraverser;
 import gov.nasa.arc.mct.gui.FeedView;
@@ -61,9 +56,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JWindow;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
@@ -83,16 +76,17 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 	private List<String> panelContextTitleList = new ArrayList<String>();
 	private Color plotFrameBackground;
 	
-	PlotView thePlot;
-	PlotDataAssigner plotDataAssigner = new PlotDataAssigner(this);
-	PlotDataFeedUpdateHandler plotDataFedUpdateHandler = new PlotDataFeedUpdateHandler(this);
-	PlotPersistanceHandler plotPersistanceHandler = new PlotPersistanceHandler(this);
+	private PlotView thePlot;
+	private PlotDataAssigner plotDataAssigner = new PlotDataAssigner(this);
+	private PlotDataFeedUpdateHandler plotDataFeedUpdateHandler = new PlotDataFeedUpdateHandler(this);
+	private PlotPersistenceHandler plotPersistenceHandler = new PlotPersistenceHandler(this);
 
-	SwingWorker<Map<String, List<Map<String, String>>>, Map<String, List<Map<String, String>>>> currentDataRequest;
-	SwingWorker<Map<String, List<Map<String, String>>>, Map<String, List<Map<String, String>>>> currentPredictionRequest;
+	private SwingWorker<Map<String, List<Map<String, String>>>, Map<String, List<Map<String, String>>>> currentDataRequest;
+	private SwingWorker<Map<String, List<Map<String, String>>>, Map<String, List<Map<String, String>>>> currentPredictionRequest;
 
+	private List<Runnable> feedCallbacks = new ArrayList<Runnable>();
 	
-	PlotSettingsControlPanel controlPanel;
+	JComponent controlPanel;
 	public static final String VIEW_ROLE_NAME =  "Plot";
 	
 	/** This listens to key events for the plot view and all sub-components so it can forward modifier key presses and releases to the local controls managers. */
@@ -169,8 +163,8 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 		List<FeedProvider> feedProviders = component.getCapabilities(FeedProvider.class);
 	
 		String viewStateFilter = null;
-		PlotSettings settings = plotPersistanceHandler.loadPlotSettingsFromPersistance();
-		String persistedState = settings != null ? settings.timeSystemSetting : null; 
+		PlotConfiguration settings = plotPersistenceHandler.loadPlotSettingsFromPersistance();
+		String persistedState = settings != null ? settings.getTimeSystemSetting() : null; 
 		String assignedComponentState = (plotDataAssigner != null) ? plotDataAssigner.getTimeSystemDefaultChoice() : null; 
 	
 		if (persistedState != null && !persistedState.isEmpty()) {
@@ -179,7 +173,7 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 			// We do not yet have persisted state nor controller state; init by component type. Eg ERT for chill or GMT for example
 			viewStateFilter = assignedComponentState; 
 		}
-	
+
 		if (viewStateFilter != null && feedProviders != null && feedProviders.size() > 0) {
 			for (FeedProvider fp : feedProviders) {
 				String timeSystem = fp.getTimeService().getTimeSystemId();
@@ -202,38 +196,17 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 	
 	@Override
 	protected JComponent initializeControlManifestation() {
-		controlPanel = new PlotSettingsControlPanel(this);
+		controlPanel = new PlotSettingsControlContainer(this);
 		return controlPanel;
 	}
 
 	/**
 	 * Create plot with specified settings and persist setting.
 	 */
-	public void setupPlot(AxisOrientationSetting timeAxisSetting,
-			String timeSystemSetting,
-            String timeFormatSetting,
-			XAxisMaximumLocationSetting xAxisMaximumLocation,
-			YAxisMaximumLocationSetting yAxisMaximumLocation,
-			TimeAxisSubsequentBoundsSetting timeAxisSubsequentSetting,
-			NonTimeAxisSubsequentBoundsSetting nonTimeAxisSubsequentMinSetting,
-			NonTimeAxisSubsequentBoundsSetting nonTimeAxisSubsequentMaxSetting,
-			double nonTimeMax, double nonTimeMin, GregorianCalendar minTime,
-			GregorianCalendar maxTime,
-			double timePadding,
-			double nonTimeMaxPadding,
-			double nonTimeMinPadding,
-			boolean groupByOrdinalPosition,
-			boolean timeAxisPinned,
-			PlotLineDrawingFlags plotLineDraw,
-			PlotLineConnectionType plotLineConnectionType) {
+	public void setupPlot(PlotSettings settings) {
 
 		// Persist plot setting and rely on updatedMoinitoredGUI to update this (and all other) manifestations.
-		plotPersistanceHandler.persistPlotSettings(timeAxisSetting, timeSystemSetting, timeFormatSetting, 
-				xAxisMaximumLocation, yAxisMaximumLocation,
-				timeAxisSubsequentSetting, nonTimeAxisSubsequentMinSetting,
-				nonTimeAxisSubsequentMaxSetting, nonTimeMax, nonTimeMin,
-				minTime, maxTime, timePadding, nonTimeMaxPadding, nonTimeMinPadding, groupByOrdinalPosition, timeAxisPinned, 
-				plotLineDraw, plotLineConnectionType);    
+		plotPersistenceHandler.persistPlotSettings(settings);    
 	}
 	
 	/**
@@ -241,7 +214,7 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 	 */
 	public void persistPlotLineSettings() {
 		if (thePlot != null)
-			plotPersistanceHandler.persistLineSettings(thePlot.getLineSettings());
+			plotPersistenceHandler.persistLineSettings(thePlot.getLineSettings());
 
 	}
 	
@@ -278,16 +251,16 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 	private void respondToSettingsChange() {
 		generatePlot();
 		if (controlPanel != null) {
-			controlPanel.updateControlsToMatchPlot();
+			//controlPanel.updateControlsToMatchPlot();
 		}
 	}
 	
-	String[] getTimeSystemChoices() {
+	public String[] getTimeSystemChoices() {
 		Set<String> s = plotDataAssigner.getTimeSystemChoices();
 		return (String[])s.toArray(new String[s.size()]);
 	}
  	
-	String[] getTimeFormatChoices() {
+	public String[] getTimeFormatChoices() {
 		Set<String> s = plotDataAssigner.getTimeFormatChoices();
 		return (String[])s.toArray(new String[s.size()]);
 	}
@@ -298,7 +271,7 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 		plotDataAssigner.assignFeedsToSubPlots();
 		enforceBackgroundColor(plotFrameBackground);
 		thePlot.addPopupMenus();
-		thePlot.setLineSettings(plotPersistanceHandler.loadLineSettingsFromPersistence());
+		thePlot.setLineSettings(plotPersistenceHandler.loadLineSettingsFromPersistence());
 		//thePlot.setRegressionPointAssignments(plotPersistanceHandler.loadRegressionSettingsFromPersistence());
 
 	}
@@ -385,7 +358,7 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 													new RenderingCallback() {
 														@Override
 														public void render(Map<String, List<Map<String, String>>> data) {
-															plotDataFedUpdateHandler.updateFromFeed(data, true);
+															plotDataFeedUpdateHandler.updateFromFeed(data, true);
 														}
 														
 													}, false);
@@ -409,22 +382,19 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 		// request data.
 		if (plotDataAssigner.hasFeeds()) {
 			cancelAnyOutstandingRequests();
-			if (logger.isDebugEnabled()) {
-				logger.debug("\n\n\n ***** Requesting data from central MCT buffer  {} -> {} ******\n",
-						PlotSettingsControlPanel.CalendarDump.dumpDateAndTime(startTime),  PlotSettingsControlPanel.CalendarDump.dumpDateAndTime(endTime));
-			}
+
 			
 			currentDataRequest = this.requestData(null, startTime.getTimeInMillis(), endTime.getTimeInMillis(), getTransformation(), this, true);
 			currentDataRequest.addPropertyChangeListener(new PropertyChangeListener() {
 				@Override
 				public void propertyChange(java.beans.PropertyChangeEvent evt) {
 					if (currentDataRequest.getState() == SwingWorker.StateValue.STARTED && evt.getOldValue()==SwingWorker.StateValue.PENDING) {
-						plotDataFedUpdateHandler.startDataRequest();
+						plotDataFeedUpdateHandler.startDataRequest();
 					}
 					if (currentDataRequest == evt.getSource() && evt.getNewValue() == SwingWorker.StateValue.DONE) {
 						assert SwingUtilities.isEventDispatchThread();
 						currentDataRequest = null;
-						plotDataFedUpdateHandler.endDataRequest();
+						plotDataFeedUpdateHandler.endDataRequest();
 					}
 				}
 			});
@@ -450,7 +420,7 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 	@Override
 	public void synchronizeTime(
 			Map<String, List<Map<String, String>>> data, long syncTime) {
-		plotDataFedUpdateHandler.synchronizeTime(data, syncTime);
+		plotDataFeedUpdateHandler.synchronizeTime(data, syncTime);
 	}
 
 	@Override
@@ -468,13 +438,16 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 	 */
 	@Override
 	public void updateFromFeed(Map<String, List<Map<String, String>>> data) {
-		plotDataFedUpdateHandler.updateFromFeed(data, false);
+		plotDataFeedUpdateHandler.updateFromFeed(data, false);
+		for (Runnable r : feedCallbacks) {
+			SwingUtilities.invokeLater(r);
+		}
 	}
 
 	// Requests to MCT data buffer call back here. 
 	@Override
 	public void render(Map<String, List<Map<String, String>>> data) {
-		plotDataFedUpdateHandler.processData(data);
+		plotDataFeedUpdateHandler.processData(data);
 	}
 
 	/**
@@ -538,7 +511,7 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 	}
 	
 	private void createPlot(){			
-		thePlot = PlotViewFactory.createPlot(plotPersistanceHandler.loadPlotSettingsFromPersistance(), 
+		thePlot = PlotViewFactory.createPlot(plotPersistenceHandler.loadPlotSettingsFromPersistance(), 
 								             getCurrentMCTTime(),
 								             this, plotDataAssigner.returnNumberOfSubPlots(), null, plotLabelingAlgorithm, plotDataAssigner.getTimeSystemDefaultChoice());
 	}
@@ -577,10 +550,9 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
     	revalidate();
     }
     
-	PlotView getPlot() {
+	public PlotView getPlot() {
 		return thePlot;
 	}
-	
 
 	/**
 	 * Only for use during testing.
@@ -634,6 +606,14 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 		for (int i=0; i < arrayList.size(); i++) {
 			logger.debug(name + ".get(" + i + ")=" + arrayList.get(i));
 		}
+	}
+	
+	public void addFeedCallback(Runnable r) {
+		feedCallbacks.add(r);
+	}
+	
+	public void removeFeedCallback(Runnable r) {
+		feedCallbacks.remove(r);
 	}
 	
 }

@@ -28,6 +28,19 @@ public class TimeDuration {
 	private int minutes;
 	private int seconds;
 
+	public TimeDuration(long ms) {
+		ms /= 1000;
+		seconds = (int) (ms % 60);
+		ms /= 60;
+		minutes = (int) (ms % 60);
+		ms /= 60;
+		hours   = (int) (ms % 24);
+		ms /= 24;
+		days    = (int) (ms % 365); // Note: May give unexpected values during leap year
+		ms /= 365;
+		years   = (int) (ms);
+	}
+	
 	public TimeDuration(int y, int d, int h, int m, int s) {
 	// Check for invalid values
 		years = y;

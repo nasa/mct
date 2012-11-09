@@ -52,7 +52,6 @@ public class LegendEntryView extends FeedView {
 	private JLabel label = new JLabel();
 	private Font baseFont;
 	private Font strikeThroughFont;
-	private ScatterXYPlotLine line = null; // TODO: Make more generic	
 	
 	
 	public LegendEntryView(AbstractComponent ac, ViewInfo vi) {
@@ -73,7 +72,7 @@ public class LegendEntryView extends FeedView {
 	}
 	
 	public void setPlotLine(ScatterXYPlotLine line) {
-		this.line = line;
+		//this.line = line;
 		label.setForeground(line.getForeground());
 		label.setFont(updateBaseFont(Font.PLAIN));
 		label.setIcon(new Icon() {

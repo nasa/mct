@@ -56,13 +56,13 @@ public class TestPlotActionListener {
 		plot = new PlotterPlot();
 		chartView = new XYPlot();
 		chartView.setLayout(new SpringLayout());
-		plot.plotView = chartView;
+		plot.setPlotView(chartView);
 		listener = new PlotViewActionListener(plot);
 		localControlsManager = new TestLocalControlsManager(plot);
 		localControlsManager.setupLocalControlManager();
 		plot.localControlsManager = localControlsManager;
 		plot.dataCursor = dataCursor;
-		plot.plotAbstraction = plotAbstraction;
+		plot.setPlotAbstraction(plotAbstraction);
 		Mockito.when(plotAbstraction.getTimeAxis()).thenReturn(new Axis());
 	}
 
@@ -70,7 +70,7 @@ public class TestPlotActionListener {
 	@Test
 	public void testMouseEnteredMouseExited() {
 		  Rectangle plotRectangle = new Rectangle(0,0,100,100);
-		  plot.plotView.setBounds(plotRectangle);
+		  plot.getPlotView().setBounds(plotRectangle);
 		  
 		  MouseEvent mouseEvent = new MouseEvent(chartView, 0, 0, 0, (int) plotRectangle.getMaxX() + 1, 0, 0, false);
 		  listener.mouseExited(mouseEvent);

@@ -68,13 +68,14 @@ public class TestPlotCornerResetButtonManager {
 	@BeforeMethod
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
+		Mockito.when(plot.getLocalControlsManager()).thenReturn(plotControlManager);
+		Mockito.when(plot.getPlotAbstraction()).thenReturn(plotAbstraction);
+		Mockito.when(plot.getLimitManager()).thenReturn(limitManager);
+		Mockito.when(plot.getPlotDataManager()).thenReturn(dataManager);
 		plot.localControlsManager = plotControlManager;
-		plot.plotAbstraction = plotAbstraction;
 		plot.panAndZoomManager = panAndZoomManager;
-		plot.qcPlotObjects = qcPlotObjects;
-		plot.limitManager =  limitManager;
-		plot.plotDataManager = dataManager;
-    	pcm = new PlotCornerResetButtonManager(plot);
+
+		pcm = new PlotCornerResetButtonManager(plot);
     	
     	PinSupport pins = new PinSupport();
     	Mockito.when(plotAbstraction.getCurrentMCTTime()).thenReturn(new GregorianCalendar().getTimeInMillis());
@@ -132,7 +133,7 @@ public class TestPlotCornerResetButtonManager {
 	
 	@Test
 	public void testInformResetYAxisSelcted() {
-		plot.axisOrientation = AxisOrientationSetting.X_AXIS_AS_TIME;
+		plot.setAxisOrientationSetting( AxisOrientationSetting.X_AXIS_AS_TIME );
 		Mockito.when(plot.isPaused()).thenReturn(true);
 		plot.isTimeLabelEnabled = true;
 		pcm.informResetYAxisActionSelected();
@@ -142,13 +143,13 @@ public class TestPlotCornerResetButtonManager {
 		verify(plot).refreshDisplay();
 		
 		// Flip axis orientation and recall. Make sure the right scroll frame is called.
-		plot.axisOrientation = AxisOrientationSetting.Y_AXIS_AS_TIME;
+		plot.setAxisOrientationSetting( AxisOrientationSetting.Y_AXIS_AS_TIME );
 		pcm.informResetYAxisActionSelected();
 	} 
 	
 	@Test
 	public void testInformResetXAxisSelcted() {
-		plot.axisOrientation = AxisOrientationSetting.X_AXIS_AS_TIME;
+		plot.setAxisOrientationSetting( AxisOrientationSetting.X_AXIS_AS_TIME );
 		Mockito.when(plot.isPaused()).thenReturn(true);
 		plot.isTimeLabelEnabled = true;
 		pcm.informResetXAxisActionSelected();
@@ -158,13 +159,13 @@ public class TestPlotCornerResetButtonManager {
 		verify(plot).refreshDisplay();
 		
 		// Flip axis orientation and recall. Make sure the right scroll frame is called.
-		plot.axisOrientation = AxisOrientationSetting.Y_AXIS_AS_TIME;
+		plot.setAxisOrientationSetting( AxisOrientationSetting.Y_AXIS_AS_TIME );
 		pcm.informResetYAxisActionSelected();
 	} 
 	
 	@Test
 	public void testInformResetXAndYAxisSelcted() {
-		plot.axisOrientation = AxisOrientationSetting.X_AXIS_AS_TIME;
+		plot.setAxisOrientationSetting( AxisOrientationSetting.X_AXIS_AS_TIME );
 		Mockito.when(plot.isPaused()).thenReturn(true);
 		plot.isTimeLabelEnabled = true;
 		pcm.informResetXAndYActionSelected();
@@ -175,61 +176,49 @@ public class TestPlotCornerResetButtonManager {
 		verify(plot).refreshDisplay();
 		
 		// Flip axis orientation and recall. Make sure the right scroll frame is called.
-		plot.axisOrientation = AxisOrientationSetting.Y_AXIS_AS_TIME;
+		plot.setAxisOrientationSetting( AxisOrientationSetting.Y_AXIS_AS_TIME );
 		pcm.informResetYAxisActionSelected();
 	}
 	
 	@Test
 	public void resetX() {
-		plot.axisOrientation = AxisOrientationSetting.X_AXIS_AS_TIME;
+		Mockito.when(plot.getAxisOrientationSetting()).thenReturn(AxisOrientationSetting.X_AXIS_AS_TIME);
 		plot.setNonTimeMinFixedByPlotSettings(false);
 		plot.setNonTimeMaxFixedByPlotSettings(false);
 		pcm.resetX();
-		verify(qcPlotObjects).fastForwardTimeAxisToCurrentMCTTime(true);
-		verify(qcPlotObjects, never()).resetTimeAxisToOriginalValues();
 		verify(plot, never()).setNonTimeMinFixed(false);
 		verify(plot, never()).setNonTimeMaxFixed(false);
 		
-		plot.axisOrientation = AxisOrientationSetting.Y_AXIS_AS_TIME;
+		Mockito.when(plot.getAxisOrientationSetting()).thenReturn(AxisOrientationSetting.Y_AXIS_AS_TIME);
 		Mockito.when(plot.isPaused()).thenReturn(true);
 		pcm.resetX();
-		verify(qcPlotObjects, atMost(1)).fastForwardTimeAxisToCurrentMCTTime(true);
-		verify(qcPlotObjects, never()).resetTimeAxisToOriginalValues();
 		verify(plot).setNonTimeMinFixed(false);
 		verify(plot).setNonTimeMaxFixed(false);
 		
 		Mockito.when(plot.isPaused()).thenReturn(false);
 		pcm.resetX();
-		verify(qcPlotObjects, atMost(1)).fastForwardTimeAxisToCurrentMCTTime(true);
-		verify(qcPlotObjects, never()).resetTimeAxisToOriginalValues();
 		verify(plot, atLeastOnce()).setNonTimeMinFixed(false);
 		verify(plot, atLeastOnce()).setNonTimeMaxFixed(false);
 	}
 	
 	@Test
 	public void resetY() {
-		plot.axisOrientation = AxisOrientationSetting.Y_AXIS_AS_TIME;
+		Mockito.when(plot.getAxisOrientationSetting()).thenReturn(AxisOrientationSetting.Y_AXIS_AS_TIME);
 		plot.setNonTimeMinFixedByPlotSettings(false);
 		plot.setNonTimeMaxFixedByPlotSettings(false);
 		
 		pcm.resetY();
-		verify(qcPlotObjects).fastForwardTimeAxisToCurrentMCTTime(true);
-		verify(qcPlotObjects, never()).resetTimeAxisToOriginalValues();
 		verify(plot, never()).setNonTimeMinFixed(false);
 		verify(plot, never()).setNonTimeMaxFixed(false);
 		
-		plot.axisOrientation = AxisOrientationSetting.X_AXIS_AS_TIME;
+		Mockito.when(plot.getAxisOrientationSetting()).thenReturn(AxisOrientationSetting.X_AXIS_AS_TIME);
 		Mockito.when(plot.isPaused()).thenReturn(true);
 		pcm.resetY();
-		verify(qcPlotObjects, atMost(1)).fastForwardTimeAxisToCurrentMCTTime(true);
-		verify(qcPlotObjects, never()).resetTimeAxisToOriginalValues();
 		verify(plot, atLeastOnce()).setNonTimeMinFixed(false);
 		verify(plot, atLeastOnce()).setNonTimeMaxFixed(false);
 		
 		Mockito.when(plot.isPaused()).thenReturn(false);
 		pcm.resetY();
-		verify(qcPlotObjects, atMost(1)).fastForwardTimeAxisToCurrentMCTTime(true);
-		verify(qcPlotObjects, never()).resetTimeAxisToOriginalValues();
 		verify(plot, atLeastOnce()).setNonTimeMinFixed(false);
 		verify(plot, atLeastOnce()).setNonTimeMaxFixed(false);
 	}

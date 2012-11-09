@@ -21,6 +21,10 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.fastplot.view;
 
+import gov.nasa.arc.mct.fastplot.bridge.PlotConstants;
+
+import java.awt.event.ActionListener;
+import java.awt.event.FocusListener;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.GregorianCalendar;
@@ -35,10 +39,10 @@ import org.slf4j.LoggerFactory;
 
 public class TimeSpanTextField extends JFormattedTextField {
 	private static final long serialVersionUID = -4115671788373208673L;
-    private final static Logger logger = LoggerFactory.getLogger(PlotSettingsControlPanel.class);
+    private final static Logger logger = LoggerFactory.getLogger(TimeSpanTextField.class);
 
     private static final String DEFAULT_VALUE = "000/00:00:00";
-	private static final int NUM_COLUMNS = DEFAULT_VALUE.length();
+	private static final int NUM_COLUMNS = DEFAULT_VALUE.length() - 3; // Don't need columns for colons
 	static final private int DAYS_POSITION = 0;
 	static final private int HOURS_POSITION = 4;
 	static final private int MINUTES_POSITION = 7;
@@ -56,6 +60,11 @@ public class TimeSpanTextField extends JFormattedTextField {
 		setValue(DEFAULT_VALUE);
 		setHorizontalAlignment(JFormattedTextField.RIGHT);
 		yearSpanValue = createYearSpanTextField();
+	}
+	
+	@Override public void setEnabled(boolean state) {
+		super.setEnabled(state);
+		yearSpanValue.setEnabled(state);
 	}
 
 	public int getDayOfYear() {
@@ -81,6 +90,16 @@ public class TimeSpanTextField extends JFormattedTextField {
 	public int getSubYearValue() {
 		return getDayOfYear() + getHourOfDay() + getMinute() + getSecond();
 	}
+	
+	public long getDurationInMillis() {
+		return (long) PlotConstants.MILLISECONDS_IN_SECOND * getSecond() +
+		       (long) PlotConstants.MILLISECONDS_IN_MIN * getMinute() +
+		       (long) PlotConstants.MILLISECONDS_IN_HOUR * getHourOfDay() +
+		       (long) PlotConstants.MILLISECONDS_IN_DAY * getDayOfYear() +
+		       (long) PlotConstants.MILLISECONDS_IN_YEAR * yearSpanValue.getYears();
+		       
+		       
+	}
 
 	public void setTime(TimeDuration duration) {
 		StringBuilder builder = new StringBuilder();
@@ -92,6 +111,31 @@ public class TimeSpanTextField extends JFormattedTextField {
 		yearSpanValue.setValue(duration.getYears());
 	}
 	
+	
+	@Override
+	public synchronized void addActionListener(ActionListener l) {
+		super.addActionListener(l);
+		if (yearSpanValue != null) yearSpanValue.addActionListener(l);
+	}
+
+	@Override
+	public synchronized void removeActionListener(ActionListener l) {
+		super.removeActionListener(l);
+		if (yearSpanValue != null) yearSpanValue.removeActionListener(l);
+	}
+ 
+	@Override
+	public synchronized void addFocusListener(FocusListener l) {
+		super.addFocusListener(l);
+		if (yearSpanValue != null) yearSpanValue.addFocusListener(l);
+	}
+
+	@Override
+	public synchronized void removeFocusListener(FocusListener l) {
+		super.removeFocusListener(l);
+		if (yearSpanValue != null) yearSpanValue.removeFocusListener(l);
+	}
+
 	YearSpanTextField createYearSpanTextField() {
 		try {
 			yearFormatter = new MaskFormatter("#####") {
@@ -187,6 +231,9 @@ public class TimeSpanTextField extends JFormattedTextField {
 			setHorizontalAlignment(JFormattedTextField.RIGHT);
 		}
 		
+		public int getYears() {
+			return Integer.parseInt(getText());
+		}
 		
 	}
 }

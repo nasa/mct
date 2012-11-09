@@ -58,7 +58,6 @@ public class StackPlotLayout extends GridBagLayout {
 	
 	@Override
 	public void layoutContainer(Container parent) {
-		
 		final List<XYPlotComponents> componentList = new ArrayList<XYPlotComponents>();
 		
 		/* Find all XYPlots and create mappings to their internal elements */
@@ -81,9 +80,12 @@ public class StackPlotLayout extends GridBagLayout {
 		if (plotView.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 			minWidth = PlotConstants.MINIMUM_PLOT_WIDTH;
 			minHeight = PlotConstants.MINIMUM_PLOT_HEIGHT;				
-		} else {
+		} else if (plotView.getAxisOrientationSetting() == AxisOrientationSetting.Y_AXIS_AS_TIME){
 			minWidth = PlotConstants.MINIMUM_PLOT_HEIGHT;
 			minHeight = PlotConstants.MINIMUM_PLOT_WIDTH;			
+		} else {
+			minWidth = PlotConstants.MINIMUM_PLOT_WIDTH;
+			minHeight = PlotConstants.MINIMUM_PLOT_HEIGHT;
 		}
 	
 		
@@ -157,7 +159,6 @@ public class StackPlotLayout extends GridBagLayout {
 		letSizeFreely(slopeDisplay);
 		letSizeFreely(locationDisplay);
 
-
 		/* Then clamp them to content width */
 		int contentWidth = plot.getContents().getWidth(); 
 		if (slopeDisplay.getPreferredSize().width    > contentWidth) {
@@ -171,7 +172,6 @@ public class StackPlotLayout extends GridBagLayout {
 		if (!slopeDisplay.getText().isEmpty() && locationDisplay.getPreferredSize().width + slopeDisplay.getPreferredSize().width > contentWidth) {
 			locationDisplay.setPreferredSize(new Dimension (1,locationDisplay.getPreferredSize().height));
 		} 
-		
 		
 		/* Finally, request that these new preferred sizes get enforced */
 		plot.revalidate();		
@@ -246,8 +246,7 @@ public class StackPlotLayout extends GridBagLayout {
 					slope  = (SlopeLineDisplay) c;
 				}
 				if (c instanceof XYLocationDisplay) {
-					location = (XYLocationDisplay) c;
-					
+					location = (XYLocationDisplay) c;					
 				}
 			}
 		}

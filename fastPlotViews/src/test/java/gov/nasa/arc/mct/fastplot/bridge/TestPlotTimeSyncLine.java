@@ -29,6 +29,7 @@ import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PlotLineDrawingFlags;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.TimeAxisSubsequentBoundsSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.XAxisMaximumLocationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSetting;
+import gov.nasa.arc.mct.fastplot.settings.PlotSettings;
 import gov.nasa.arc.mct.fastplot.utils.AbbreviatingPlotLabelingAlgorithm;
 import gov.nasa.arc.mct.fastplot.view.Axis;
 import gov.nasa.arc.mct.fastplot.view.PinSupport;
@@ -69,12 +70,18 @@ public class TestPlotTimeSyncLine {
 	
 	@BeforeMethod
 	public void setup() {
+		long now = new GregorianCalendar().getTimeInMillis();
 		MockitoAnnotations.initMocks(this);
-		Mockito.when(mockPlotViewManifestation.getCurrentMCTTime()).thenReturn(new GregorianCalendar().getTimeInMillis());
-		Mockito.when(plotView.getCurrentMCTTime()).thenReturn(new GregorianCalendar().getTimeInMillis());
+		Mockito.when(mockPlotViewManifestation.getCurrentMCTTime()).thenReturn(now);
+		Mockito.when(plotView.getCurrentMCTTime()).thenReturn(now);
     	Mockito.when(plotView.getTimeAxis()).thenReturn(new Axis());
     	Mockito.when(plotView.getTimeAxisUserPin()).thenReturn(new PinSupport().createPin());
     	Mockito.when(plotView.getSubPlots()).thenReturn(plots);
+    	Mockito.when(plotView.getMinTime()).thenReturn(now - 360000);
+    	Mockito.when(plotView.getMaxTime()).thenReturn(now + 360000);
+    	Mockito.when(plotView.getXAxisMaximumLocation()).thenReturn(XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT);
+    	Mockito.when(plotView.getYAxisMaximumLocation()).thenReturn(YAxisMaximumLocationSetting.MAXIMUM_AT_TOP);
+    	Mockito.when(plotView.getPlotLineDraw()).thenReturn(PlotConstants.DEFAULT_PLOT_LINE_DRAW);
 	}
 	
 	@Test 
@@ -87,15 +94,10 @@ public class TestPlotTimeSyncLine {
 		 * and test that a sync line does not appear. 
 		 */
 		
+		Mockito.when(plotView.getAxisOrientationSetting()).thenReturn(AxisOrientationSetting.X_AXIS_AS_TIME);
+		
 		final PlotterPlot plot = new PlotterPlot();
-		plot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
-				PlotConstants.DEFAULT_TIME_SYSTEM,
-                PlotConstants.DEFAULT_TIME_FORMAT,
-				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
-				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
-				TimeAxisSubsequentBoundsSetting.JUMP,
-				PlotConstants.NonTimeAxisSubsequentBoundsSetting.AUTO, 
-				PlotConstants.NonTimeAxisSubsequentBoundsSetting.AUTO, 
+		plot.createChart(
 				new Font("Arial", Font.PLAIN, 12), 
 				1, 
 				Color.gray, 
@@ -108,19 +110,9 @@ public class TestPlotTimeSyncLine {
 				Color.black, 
 				Color.black, 
 				1, 
-				0.5, 
-				0.5,
-				0.5,
-				0, 
-				10, 
-				0, 
-				10,
 				false,
 				true,
 				true,
-				true,
-				PlotConstants.DEFAULT_PLOT_LINE_DRAW,
-				PlotLineConnectionType.STEP_X_THEN_Y,
 				plotView,
 				plotLabelingAlgorithm);
 		plots.add(plot);
@@ -162,7 +154,7 @@ public class TestPlotTimeSyncLine {
 	    plot.refreshDisplay();
 		  
 		// User moves mouse into the general area. 
-	    Rectangle contentRect = plot.plotView.getContents().getBounds();
+	    Rectangle contentRect = plot.getPlotView().getContents().getBounds();
 		plot.timeSyncLine.mouseEntered(new MouseEvent(plot.getPlotPanel(), 1, 0, 0, (int) contentRect.getMinX() + 1, (int) contentRect.getMaxY(), 0, false));
 	
 			
@@ -190,15 +182,9 @@ public class TestPlotTimeSyncLine {
 	
 	@Test
 	public void testMouseExit() {
+		Mockito.when(plotView.getAxisOrientationSetting()).thenReturn(AxisOrientationSetting.X_AXIS_AS_TIME);
 		final PlotterPlot plot = new PlotterPlot();
-		plot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
-				PlotConstants.DEFAULT_TIME_SYSTEM,
-                PlotConstants.DEFAULT_TIME_FORMAT,
-				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
-				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
-				TimeAxisSubsequentBoundsSetting.JUMP,
-				PlotConstants.NonTimeAxisSubsequentBoundsSetting.AUTO, 
-				PlotConstants.NonTimeAxisSubsequentBoundsSetting.AUTO, 
+		plot.createChart(
 				new Font("Arial", Font.PLAIN, 12), 
 				1, 
 				Color.gray, 
@@ -211,19 +197,9 @@ public class TestPlotTimeSyncLine {
 				Color.black, 
 				Color.black, 
 				1, 
-				0.5, 
-				0.5,
-				0.5,
-				0, 
-				10, 
-				0, 
-				10,
 				false,
 				true,
 				true,
-				true,
-				PlotConstants.DEFAULT_PLOT_LINE_DRAW,
-				PlotLineConnectionType.STEP_X_THEN_Y,
 				plotView,
 				plotLabelingAlgorithm);
 		plots.add(plot);
@@ -250,7 +226,7 @@ public class TestPlotTimeSyncLine {
 		
 	    plot.refreshDisplay();
 		
-	    Rectangle contentRect = plot.plotView.getContents().getBounds();
+	    Rectangle contentRect = plot.getPlotView().getContents().getBounds();
 		MouseEvent pressEvent = new MouseEvent(plot.getPlotPanel(), 1, 0, 0, (int) contentRect.getMinX() + 20, (int) contentRect.getMaxY(), 0, false, MouseEvent.BUTTON1);
 		plot.timeSyncLine.mousePressed(pressEvent);
 		Assert.assertTrue(plot.timeSyncLine.timeSyncLineVisible());
@@ -278,15 +254,10 @@ public class TestPlotTimeSyncLine {
 		 * and test that a sync line does not appear. 
 		 */
 		
+		Mockito.when(plotView.getAxisOrientationSetting()).thenReturn(AxisOrientationSetting.Y_AXIS_AS_TIME);
+		
 		PlotterPlot plot = new PlotterPlot();
-		plot.createChart(AxisOrientationSetting.Y_AXIS_AS_TIME, 
-				PlotConstants.DEFAULT_TIME_SYSTEM,
-                PlotConstants.DEFAULT_TIME_FORMAT,
-				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
-				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
-				TimeAxisSubsequentBoundsSetting.JUMP,
-				PlotConstants.NonTimeAxisSubsequentBoundsSetting.AUTO, 
-				PlotConstants.NonTimeAxisSubsequentBoundsSetting.AUTO, 
+		plot.createChart(
 				new Font("Arial", Font.PLAIN, 12), 
 				1, 
 				Color.gray, 
@@ -299,19 +270,9 @@ public class TestPlotTimeSyncLine {
 				Color.black, 
 				Color.black, 
 				1, 
-				0.5, 
-				0.5,
-				0.5,
-				0, 
-				10, 
-				0, 
-				10,
 				false,
 				true,
 				true,
-				true,
-				PlotConstants.DEFAULT_PLOT_LINE_DRAW,
-				PlotLineConnectionType.STEP_X_THEN_Y,
 				plotView,
 				plotLabelingAlgorithm);
 		plots.add(plot);
@@ -326,7 +287,7 @@ public class TestPlotTimeSyncLine {
 		// Plot should have a time sync line. 
 		Assert.assertNotNull(plot.timeSyncLine);
 		
-		Rectangle plotRectangle = plot.plotView.getContents().getBounds();
+		Rectangle plotRectangle = plot.getPlotView().getContents().getBounds();
 		  
 		// User moves mouse into the general area. 
 		plot.timeSyncLine.mouseEntered(new MouseEvent(plot.getPlotPanel(), 1, 0, 0, (int) plotRectangle.getMinX() - 1, (int) plotRectangle.getMaxY() -1, 0, false));
@@ -340,7 +301,7 @@ public class TestPlotTimeSyncLine {
 		Assert.assertFalse(plot.timeSyncLine.timeSyncLineVisible());
 		
 		// Move the mouse below the timeline axis.
-		outsideMouseEvent = new MouseEvent(plot.getPlotPanel(), 1, 0, 0, (int) plotRectangle.getMinX() + 1, (int) plotRectangle.getMaxY() + plot.plotView.getXAxis().getHeight()+ 1, 0, false);
+		outsideMouseEvent = new MouseEvent(plot.getPlotPanel(), 1, 0, 0, (int) plotRectangle.getMinX() + 1, (int) plotRectangle.getMaxY() + plot.getPlotView().getXAxis().getHeight()+ 1, 0, false);
 		plot.timeSyncLine.mousePressed(outsideMouseEvent);	
 		Assert.assertFalse(plot.timeSyncLine.timeSyncLineVisible());
 		plot.timeSyncLine.mouseReleased(outsideMouseEvent);	
@@ -364,7 +325,9 @@ public class TestPlotTimeSyncLine {
 		testPlot.removeTimeSyncLine();
 		Assert.assertFalse(testPlot.isTimeSyncLineVisible());
 		
-		testPlot = new PlotView.Builder(PlotterPlot.class).axisOrientation(AxisOrientationSetting.Y_AXIS_AS_TIME).build();
+		PlotSettings settings = new PlotSettings();
+		settings.setAxisOrientationSetting(AxisOrientationSetting.Y_AXIS_AS_TIME);
+		testPlot = new PlotView.Builder(PlotterPlot.class).plotSettings(settings).build();
 		testPlot.setManifestation(mockPlotViewManifestation);
 		
 		testPlot.addDataSet("Foo");
@@ -380,16 +343,10 @@ public class TestPlotTimeSyncLine {
 
 	@Test
 	public void testShiftAfterClick() {
-		// Click and hold mouse button to start vertical line, then press shift to enter time sync mode. 
+		// Click and hold mouse button to start vertical line, then press shift to enter time sync mode.
+		Mockito.when(plotView.getAxisOrientationSetting()).thenReturn(AxisOrientationSetting.X_AXIS_AS_TIME);
 		final PlotterPlot plot = new PlotterPlot();
-		plot.createChart(AxisOrientationSetting.X_AXIS_AS_TIME, 
-				PlotConstants.DEFAULT_TIME_SYSTEM,
-                PlotConstants.DEFAULT_TIME_FORMAT,
-				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT, 
-				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, 
-				TimeAxisSubsequentBoundsSetting.JUMP,
-				PlotConstants.NonTimeAxisSubsequentBoundsSetting.AUTO, 
-				PlotConstants.NonTimeAxisSubsequentBoundsSetting.AUTO, 
+		plot.createChart(
 				new Font("Arial", Font.PLAIN, 12), 
 				1, 
 				Color.gray, 
@@ -402,19 +359,9 @@ public class TestPlotTimeSyncLine {
 				Color.black, 
 				Color.black, 
 				1, 
-				0.5, 
-				0.5,
-				0.5,
-				0, 
-				10, 
-				0, 
-				10,
 				false,
 				true,
 				true,
-				true,
-				PlotConstants.DEFAULT_PLOT_LINE_DRAW,
-				PlotLineConnectionType.STEP_X_THEN_Y,
 				plotView,
 				plotLabelingAlgorithm);
 		plots.add(plot);
@@ -458,7 +405,7 @@ public class TestPlotTimeSyncLine {
 		plot.refreshDisplay();
 
 		// User clicks inside of the plot time axis area.	
-		Rectangle contentRect = plot.plotView.getContents().getBounds();
+		Rectangle contentRect = plot.getPlotView().getContents().getBounds();
 		MouseEvent pressEvent = new MouseEvent(panel, 1, 0, 0, (int) contentRect.getMinX() + 1, (int) contentRect.getMaxY(), 0, false);
 
 		plot.timeSyncLine.mousePressed(pressEvent);

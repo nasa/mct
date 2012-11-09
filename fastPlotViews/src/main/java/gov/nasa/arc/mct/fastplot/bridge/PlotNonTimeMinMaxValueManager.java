@@ -82,12 +82,12 @@ public class PlotNonTimeMinMaxValueManager {
 			// This is the only time we need perform the expensive operation of 
 			// looking over the whole plot. 
 	
-			if ( dataManager.plot.getCurrentTimeAxisMinAsLong() > timeOfNonTimeMaxValueCurrentlyDisplayed) {
+			if ( dataManager.getPlot().getMinTime() > timeOfNonTimeMaxValueCurrentlyDisplayed) {
 				double[] maxValueAndTime = determineNonTimeMaxDataValueCurrentlyDisplayed();
 				maxNonTimeValueCurrentlyDisplayed = maxValueAndTime[0];
 				timeOfNonTimeMaxValueCurrentlyDisplayed = (long) maxValueAndTime[1];
 			}
-			if ( dataManager.plot.getCurrentTimeAxisMinAsLong() > timeOfNonTimeMinValueCurrentlyDisplayed) {
+			if ( dataManager.getPlot().getMinTime() > timeOfNonTimeMinValueCurrentlyDisplayed) {
 				double[] minValueAndTime = determineNonTimeMinDataValueCurrentlyDisplayed();
 				minNonTimeValueCurrentlyDisplayed = minValueAndTime[0];
 				timeOfNonTimeMinValueCurrentlyDisplayed = (long) minValueAndTime[1];
@@ -118,9 +118,9 @@ public class PlotNonTimeMinMaxValueManager {
 		double[] maxAndTime = new double[2];
 		maxAndTime[0] = -Double.MAX_VALUE;	
 		maxAndTime[1] = 0;		
-		Collection<PlotDataSeries> dataSets = dataManager.dataSeries.values();
+		Collection<PlotDataSeries> dataSets = dataManager.getDataSeries().values();
 		for (PlotDataSeries data: dataSets) {
-			double[] resultForDataSet = data.getMaxValue(dataManager.plot.getCurrentTimeAxisMaxAsLong(), dataManager.plot.getCurrentTimeAxisMinAsLong());
+			double[] resultForDataSet = data.getMaxValue(dataManager.getPlot().getMaxTime(), dataManager.getPlot().getMinTime());
 			if (resultForDataSet[0] > maxAndTime[0]) {
 				maxAndTime = resultForDataSet;	
 			}
@@ -143,9 +143,9 @@ public class PlotNonTimeMinMaxValueManager {
 		double[] minAndTime = new double[2];
 		minAndTime[0] = Double.MAX_VALUE;	
 		minAndTime[1] = 0;		
-		Collection<PlotDataSeries> dataSets = dataManager.dataSeries.values();
+		Collection<PlotDataSeries> dataSets = dataManager.getDataSeries().values();
 		for (PlotDataSeries data: dataSets) {
-			double[] resultForDataSet = data.getMinValue(dataManager.plot.getCurrentTimeAxisMaxAsLong(), dataManager.plot.getCurrentTimeAxisMinAsLong());
+			double[] resultForDataSet = data.getMinValue(dataManager.getPlot().getMaxTime(), dataManager.getPlot().getMinTime());
 			if (resultForDataSet[0] < minAndTime[0]) {
 				minAndTime = resultForDataSet;	
 			}

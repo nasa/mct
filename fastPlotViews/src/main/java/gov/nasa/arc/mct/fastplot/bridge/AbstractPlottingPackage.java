@@ -22,16 +22,11 @@
 package gov.nasa.arc.mct.fastplot.bridge;
 
 import gov.nasa.arc.mct.components.FeedProvider;
-import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.LimitAlarmState;
-import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.NonTimeAxisSubsequentBoundsSetting;
-import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PlotLineConnectionType;
-import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PlotLineDrawingFlags;
-import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.TimeAxisSubsequentBoundsSetting;
-import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.XAxisMaximumLocationSetting;
-import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSetting;
+import gov.nasa.arc.mct.fastplot.settings.PlotConfiguration;
 import gov.nasa.arc.mct.fastplot.utils.AbbreviatingPlotLabelingAlgorithm;
 import gov.nasa.arc.mct.fastplot.view.Axis;
+import gov.nasa.arc.mct.fastplot.view.legend.AbstractLegendEntry;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -46,7 +41,7 @@ import javax.swing.JComponent;
  * 
  * Implementor in bridge pattern.
  */
-public interface AbstractPlottingPackage extends PlotSubject {
+public interface AbstractPlottingPackage extends PlotSubject, PlotConfiguration {
 	
    /**
     * Construct a plot
@@ -86,15 +81,7 @@ public interface AbstractPlottingPackage extends PlotSubject {
     * @param thePlotAbstraction plotAbstraction side of the bridge. 
     * @param thePlotLabelingAlgorithm the plot labeling abbreviation algorithm.
     */
-	public void createChart(AxisOrientationSetting theAxisOrientation, 
-							String theTimeSystem,
-							String theTimeFormat,
-							XAxisMaximumLocationSetting theXAxisSetting, 
-			                YAxisMaximumLocationSetting theYAxisSetting, 
-			                TimeAxisSubsequentBoundsSetting theTimeAxisSubsequentSetting, 
-			                NonTimeAxisSubsequentBoundsSetting theNonTimeAxisMinSubsequentSetting,
-			                NonTimeAxisSubsequentBoundsSetting theNonTimeAxisMaxSubsequentSetting,
-			    			Font timeAxisFont, 
+	public void createChart(Font timeAxisFont, 
 			    			int plotLineThickness,
 			                Color plotBackgroundFrameColor, 
 			                Color plotAreaBackgroundColor,
@@ -106,19 +93,9 @@ public interface AbstractPlottingPackage extends PlotSubject {
 			                Color nonTimeAxisColor, 
 			                Color gridLineColor,
 			                int minSamplesForAutoScale, 
-			                double scrollRescaleTimeMargine,
-			                double scrollRescaleNonTimeMinMargine,
-			                double scrollRescaleNonTimeMaxMargine,
-			                double theNonTimeVaribleAxisMinValue, 
-			                double theNonTimeVaribleAxisMaxValue,
-			                long theTimeVariableAxisMinValue,
-			    			long theTimeVariableAxisMaxValue,
 			    			boolean isCompressionEnabled,
 			    			boolean isTimeLabelsEnabled,
 			    			boolean isLocalControlEnabled,
-			    			boolean ordinalPositionInStackedPlot,
-			    			PlotLineDrawingFlags plotLineDraw,
-			    			PlotLineConnectionType plotLineConnectionType,
 			    			PlotAbstraction thePlotAbstraction,
 			    			AbbreviatingPlotLabelingAlgorithm thePlotLabelingAlgorithm); 
 	
@@ -143,6 +120,14 @@ public interface AbstractPlottingPackage extends PlotSubject {
 	 * @param displayName the display name.
 	 */
 	public void addDataSet(String lowerCase, Color plottingColor, String displayName);	
+	
+	/**
+	 * Add a data set to the plot.
+	 * @param lowerCase lowercase unique name of the data set.
+	 * @param plottingColor desired plotting color of data set.
+	 * @param displayName the display name.
+	 */
+	public void addDataSet(String lowerCase, Color plottingColor, AbstractLegendEntry legend);	
 
 	/**
 	 * Determine if data set is defined in plot.
@@ -175,21 +160,15 @@ public interface AbstractPlottingPackage extends PlotSubject {
      * of its current non time max axis limit. 
      * @return non-time max. limit alarm state.
      */
-    public LimitAlarmState getNonTimeMaxAlarmState();
+    public LimitAlarmState getDependentMaxAlarmState();
     
     /**
      * Return the state of the alarm which indicates if plot has experienced data which is outside.
      * of its current non time min axis limit. 
      * @return non-time min. limit alarm state.
      */
-	public LimitAlarmState getNonTimeMinAlarmState();
+	public LimitAlarmState getDependentMinAlarmState();
 	
-	
-	/**
-	 * Return current time axis minimum as long.
-	 * @return long current time axis minimal.
-	 */
-	public long getCurrentTimeAxisMinAsLong();
 	
 	
 	/**
@@ -202,25 +181,7 @@ public interface AbstractPlottingPackage extends PlotSubject {
 	 * Return current time axis maximum.
 	 * @return Gregorian calendar for current time axis maximum.
 	 */
-	public GregorianCalendar getCurrentTimeAxisMax();
-	
-	/**
-	 * Return current time axis maximum as long.
-	 * @return long current time axis maximum.
-	 */
-	public long getCurrentTimeAxisMaxAsLong();
-	
-	/**
-	 * Return the current nonTime axis minimum.
-	 * @return double current non-time axis minimal.
-	 */
-	public double getCurrentNonTimeAxisMin();
-	
-	/**
-	 * Return current nonTime axis maximum.
-	 * @return double current non-time axis maximum.
-	 */
-	public double getCurrentNonTimeAxisMax();
+	public GregorianCalendar getCurrentTimeAxisMax();	
 	
 	
     /**
@@ -233,55 +194,6 @@ public interface AbstractPlottingPackage extends PlotSubject {
 	 * Instruct the plot to remove any time sync line currently being displayed.
 	 */
 	public void removeTimeSyncLine();
-	
-
-    /**
-     * Return the time axis setting which indicates if time is on the x or y axis.
-     * @return axis orientation setting.
-     */
-	public AxisOrientationSetting getAxisOrientationSetting();
-	
-	/**
-	 * Return the time system setting.
-	 * @return time system setting.
-	 */
-	public String getTimeSystemSetting();
-
-	/**
-	 * Return the time format setting.
-	 * @return time format setting.
-	 */
-	public String getTimeFormatSetting();
-
-	/**
-	 * Return the x-axis maximum location which indicates if the maximum is on the left or right end of this axis.
-	 * @return X-axis maximum location setting.
-	 */
-	public XAxisMaximumLocationSetting getXAxisMaximumLocation();
-	
-	/**
-	 * Return the y-axis maximum location which indicates if the maximum is at the top or bottom of this axis.
-	 * @return Y-axis maximum location setting.
-	 */
-	public YAxisMaximumLocationSetting getYAxisMaximumLocation();
-	
-	/**
-	 * Return the plot's mode when data exceeds the current span of the time axis.
-	 * @return time axis subsequent bounds settings.
-	 */
-	public TimeAxisSubsequentBoundsSetting getTimeAxisSubsequentSetting();
-	
-	/**
-	 * Return the plot's mode when data exceeds the current minimum bound of the non time axis.
-	 * @return non-time axis subsequent bounds setting.
-	 */
-	public NonTimeAxisSubsequentBoundsSetting getNonTimeAxisSubsequentMinSetting();
-	
-	/**
-	 * Return the plot's mode when data exceeds the current maximum bound of the non time axis.
-	 * @return non-time axis subsequent bounds settings.
-	 */
-	public NonTimeAxisSubsequentBoundsSetting getNonTimeAxisSubsequentMaxSetting();
 	
 	/**
 	 * Return the value specified initially as the non time axis minimum bound.
@@ -308,30 +220,6 @@ public interface AbstractPlottingPackage extends PlotSubject {
     public long getInitialTimeMaxSetting();
     
     /**
-     * Return the percentage padding to apply when expanding the time axis.
-     * @return double time padding.
-     */
-    public double getTimePadding();
-    
-    /**
-     * Return the percentage padding to apply when expanding the non time axis minimum bound.
-     * @return double non-time minimal padding.
-     */
-    public double getNonTimeMinPadding();
-       
-    /**
-     * Return the percentage padding to apply when expanding the non time axis minimum bound.
-     * @return double non-time maximum padding.
-     */
-    public double getNonTimeMaxPadding();	
-    
-    /**
-     * Return true if the ordinal position should be used to group stacked plots.
-     * @return true if ordinal position should be used, false if existing collection structure should be used. 
-     */
-    public boolean getOrdinalPositionInStackedPlot();
-    
-    /**
      * Return true if the time sync line is visible. False otherwise.
      * @return boolean flag for time sync line visible.
      */
@@ -341,7 +229,7 @@ public interface AbstractPlottingPackage extends PlotSubject {
      * Inform the plotting package of its related plotAbstraction.
      * @param plotView related plotAbstraction.
      */
-	public void setPlotView(PlotAbstraction plotView);
+	public void setPlotAbstraction(PlotAbstraction plotView);
 	
 	/**
 	 * Notify that time synchronization mode is to end. 
@@ -376,7 +264,7 @@ public interface AbstractPlottingPackage extends PlotSubject {
 	 * Return true if plot data compression is enabled, false otherwise. 
 	 * @return boolean is compression enabled.
 	 */
-	public boolean isCompresionEnabled();
+	public boolean isCompressionEnabled();
 	
 	/**
 	 * Inform the plot that a data buffer update event has started.
@@ -470,4 +358,29 @@ public interface AbstractPlottingPackage extends PlotSubject {
 	 * Updates the compression ratio.
 	 */
 	public void updateCompressionRatio();
+	
+	/**
+	 * Get the PlotAbstraction associated with this plotting package instance.
+	 * @return
+	 */
+	public PlotAbstraction getPlotAbstraction();
+
+	/**
+	 * Get the manager of legends for this plotting package.
+	 * @return
+	 */
+	public LegendManager getLegendManager();
+
+
+	public AbstractPlotDataManager getPlotDataManager();
+	
+	public PlotLocalControlsManager getLocalControlsManager();
+
+
+	public PlotViewActionListener getPlotActionListener();
+
+
+	public PlotLimitManager getLimitManager();
+	
+	public AbstractPlotLine createPlotLine();
 }

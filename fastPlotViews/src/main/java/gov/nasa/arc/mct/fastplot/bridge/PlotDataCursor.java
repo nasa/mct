@@ -95,29 +95,29 @@ class PlotDataCursor {
 
 	PlotDataCursor (PlotterPlot plot)  {
 		parentPlot = plot;
-		dateFormat = TimeFormatUtils.makeDataFormat(parentPlot.timeFormatSetting);
+		dateFormat = TimeFormatUtils.makeDataFormat(parentPlot.getTimeFormatSetting());
 		
-		if (plot.timeSystemSetting != null) {
-            timeSystemFormattedLabel.setTimeSystemAxisLabelName(parentPlot.timeSystemSetting);
+		if (plot.getTimeSystemSetting() != null) {
+            timeSystemFormattedLabel.setTimeSystemAxisLabelName(parentPlot.getTimeSystemSetting());
 		}
 
 		setupTimeSystemLabel();
 		setupXYDisplay();
 		setupMarqueeZoom();
 		setupSlopeLineDisplay();
-		pin = plot.plotAbstraction.createPin();
+		pin = plot.getPlotAbstraction().createPin();
 	}
 	
 	private void setupMarqueeZoom() {
-		MarqueeZoomListener marqueeZoomListener = new MarqueeZoomListener(parentPlot.localControlsManager, parentPlot.plotView, dateFormat, parentPlot.timeAxisFont);
-		parentPlot.plotView.getContents().addMouseListener(marqueeZoomListener);
-		parentPlot.plotView.getContents().addMouseMotionListener(marqueeZoomListener);
+		MarqueeZoomListener marqueeZoomListener = new MarqueeZoomListener(parentPlot.localControlsManager, parentPlot.getPlotView(), dateFormat, parentPlot.getTimeAxisFont());
+		parentPlot.getPlotView().getContents().addMouseListener(marqueeZoomListener);
+		parentPlot.getPlotView().getContents().addMouseMotionListener(marqueeZoomListener);
 	}
 
 	private void setupTimeSystemLabel() {
 		timeSystemFormattedLabel.setSize((int) timeSystemFormattedLabel.getPreferredSize().getWidth(),
 				(int) timeSystemFormattedLabel.getPreferredSize().getHeight());
-		timeSystemFormattedLabel.setFont(parentPlot.timeAxisFont);
+		timeSystemFormattedLabel.setFont(parentPlot.getTimeAxisFont());
 		timeSystemFormattedLabel.setForeground(PlotConstants.DATA_CURSOR_COLOR);
 
 		MessageFormat format = new MessageFormat("<html><body style=\"white-space:nowrap\"><B>" + HTML_WHITESPACES + timeSystemFormattedLabel.getTimeSystemAxisLabelName()
@@ -132,11 +132,11 @@ class PlotDataCursor {
 	private void setupXYDisplay() {
 		pointerXYValueLabel.setSize((int) pointerXYValueLabel.getPreferredSize().getWidth(), 
 				(int) pointerXYValueLabel.getPreferredSize().getHeight());
-		pointerXYValueLabel.setFont(parentPlot.timeAxisFont);
+		pointerXYValueLabel.setFont(parentPlot.getTimeAxisFont());
 		pointerXYValueLabel.setForeground(PlotConstants.DATA_CURSOR_COLOR);
-		pointerXYValueLabel.attach(parentPlot.plotView);
+		pointerXYValueLabel.attach(parentPlot.getPlotView());
 		
-		if (parentPlot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+		if (parentPlot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 			MessageFormat format = new MessageFormat("<html><body style=\"white-space:nowrap\"><B>(X:</B> {0}" + HTML_WHITESPACES + "<B>Y:</B> {1})</body></html>");
 			format.setFormatByArgumentIndex(0, dateFormat);
 			format.setFormatByArgumentIndex(1, PlotConstants.NON_TIME_FORMAT);
@@ -156,7 +156,7 @@ class PlotDataCursor {
 		pointerXYValueLabel.setText("");
 		pointerXYValueLabel.setPreferredSize(size);
 
-		XYPlot plot = parentPlot.plotView;
+		XYPlot plot = parentPlot.getPlotView();
 		XYPlotContents contents = plot.getContents();
 		plot.add(pointerXYValueLabel);
 		plot.add(timeSystemFormattedLabel);
@@ -180,9 +180,9 @@ class PlotDataCursor {
 	@SuppressWarnings("serial")
 	private void setupSlopeLineDisplay() {
 		slopeLine = new SlopeLine();
-		slopeLine.attach(parentPlot.plotView);
-		slopeLine.addListenerForPlot(parentPlot.plotView, slopeLabel);
-		slopeLine.addListenerForPlot(parentPlot.plotView, new SlopeLine.Listener() {
+		slopeLine.attach(parentPlot.getPlotView());
+		slopeLine.addListenerForPlot(parentPlot.getPlotView(), slopeLabel);
+		slopeLine.addListenerForPlot(parentPlot.getPlotView(), new SlopeLine.Listener() {
 			@Override
 			public void slopeLineUpdated(SlopeLine line, XYPlot plot, double arg2, double arg3, double arg4, double arg5) {
 				// ignore
@@ -201,10 +201,10 @@ class PlotDataCursor {
 			}
 		});
 		slopeLine.setForeground(PlotConstants.DATA_CURSOR_COLOR);
-		slopeLabel.setFont(parentPlot.timeAxisFont);
+		slopeLabel.setFont(parentPlot.getTimeAxisFont());
 		slopeLabel.setForeground(PlotConstants.DATA_CURSOR_COLOR);
 
-		if (parentPlot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+		if (parentPlot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 			MessageFormat format = new MessageFormat("<html><body style=\"white-space:nowrap\"><B>&#916;X:</B> {0}" + HTML_WHITESPACES 
 					+ "<B>&#916;Y:</B> {1}" + HTML_WHITESPACES + "<B>"
 					+ BUNDLE.getString("Slope.label") + ":</B> {2}" + PlotConstants.SLOPE_UNIT + "</body></html>");
@@ -268,7 +268,7 @@ class PlotDataCursor {
 		slopeLabel.setText("");
 		slopeLabel.setPreferredSize(size);
 
-		XYPlot plot = parentPlot.plotView;
+		XYPlot plot = parentPlot.getPlotView();
 		plot.add(slopeLabel);
 		XYPlotContents contents = plot.getContents();
 		SpringLayout layout2 = (SpringLayout) plot.getLayout();

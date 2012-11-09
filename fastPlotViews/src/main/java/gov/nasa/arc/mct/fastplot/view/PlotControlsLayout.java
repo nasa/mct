@@ -45,7 +45,7 @@ public class PlotControlsLayout implements LayoutManager2 {
 	 * that reside in this scroll pane, eliminating a search.
 	 */
 	@SuppressWarnings("serial")
-	public class ResizersScrollPane extends JScrollPane {
+	public static class ResizersScrollPane extends JScrollPane {
 
 		private JComponent[] resizers;
 

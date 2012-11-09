@@ -31,6 +31,7 @@ import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.GregorianCalendar;
 
+import plotter.xy.XYAxis;
 import plotter.xy.XYMarkerLine;
 import plotter.xy.XYPlotContents;
 
@@ -48,8 +49,8 @@ public class PlotTimeSyncLine implements MouseListener, MouseMotionListener{
 
 	public PlotTimeSyncLine(PlotterPlot thePlot) {
 		plot = thePlot;
-		plot.plotView.addMouseListener(this);	
-		plot.plotView.addMouseMotionListener(this);
+		plot.getPlotView().addMouseListener(this);	
+		plot.getPlotView().addMouseMotionListener(this);
 	}
 	
 	public boolean inTimeSyncMode() {
@@ -61,10 +62,10 @@ public class PlotTimeSyncLine implements MouseListener, MouseMotionListener{
  		Point2D location = new Point2D.Double(x, y);
 
 		// convert from location within the JPanel to location within the plot axis
-		plot.plotView.toLogical(location, location);
+		plot.getPlotView().toLogical(location, location);
 
 		GregorianCalendar clickTime;
-		if (plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+		if (plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 			clickTime = new GregorianCalendar();
 			clickTime.setTimeInMillis((long) location.getX());
 		} else {
@@ -105,11 +106,14 @@ public class PlotTimeSyncLine implements MouseListener, MouseMotionListener{
 		syncTime = time;
 
 		if(timeSyncLinePlot == null) {
-			timeSyncLinePlot = new XYMarkerLine(plot.getTimeAxis(), time.getTimeInMillis());
-			timeSyncLinePlot.setForeground(PlotConstants.TIME_SYNC_LINE_COLOR);
-			XYPlotContents contents = plot.plotView.getContents();
-			contents.add(timeSyncLinePlot);
-			contents.revalidate();
+			AbstractAxis timeAxis = plot.getTimeAxis();
+			if (timeAxis instanceof XYAxis) { // Only decorate time-like axes; TODO: move to AbstractAxis?
+				timeSyncLinePlot = new XYMarkerLine((XYAxis) timeAxis, time.getTimeInMillis());
+				timeSyncLinePlot.setForeground(PlotConstants.TIME_SYNC_LINE_COLOR);
+				XYPlotContents contents = plot.getPlotView().getContents();
+				contents.add(timeSyncLinePlot);
+				contents.revalidate();
+			}
 		} else {
 			timeSyncLinePlot.setValue(time.getTimeInMillis());
 		}
@@ -121,7 +125,7 @@ public class PlotTimeSyncLine implements MouseListener, MouseMotionListener{
 	void removeTimeSyncLine() {
 		if (timeSyncLinePlot != null) {
 			plot.setUserOperationLockedState(false);
-			XYPlotContents contents = plot.plotView.getContents();
+			XYPlotContents contents = plot.getPlotView().getContents();
 			contents.remove(timeSyncLinePlot);
 			contents.repaint(); // TODO: Only repaint the relevant portion
 //			plot.refreshDisplay();
@@ -138,14 +142,14 @@ public class PlotTimeSyncLine implements MouseListener, MouseMotionListener{
 		if(timeSyncLinePlot != null && mouseDown) {
 			assert syncTime != null;
 			if(state) {
-				plot.plotAbstraction.initiateGlobalTimeSync(syncTime);
+				plot.getPlotAbstraction().initiateGlobalTimeSync(syncTime);
 			} else {
 				GregorianCalendar time = syncTime;
-				Pinnable pin = plot.plotAbstraction.createPin();
+				Pinnable pin = plot.getPlotAbstraction().createPin();
 				pin.setPinned(true);
 				plot.notifyGlobalTimeSyncFinished();
 				syncTime = time;
-				plot.plotAbstraction.showTimeSyncLine(syncTime);
+				plot.getPlotAbstraction().showTimeSyncLine(syncTime);
 				pin.setPinned(false);
 			}
 		}
@@ -165,9 +169,9 @@ public class PlotTimeSyncLine implements MouseListener, MouseMotionListener{
 	
 			// If the shift key modifier is present, initiate the time sync mode on the workstation.
 			if (e.isShiftDown()) {
-				plot.plotAbstraction.updateGlobalTimeSync(syncTime);
+				plot.getPlotAbstraction().updateGlobalTimeSync(syncTime);
 			} else {
-				plot.plotAbstraction.showTimeSyncLine(syncTime);
+				plot.getPlotAbstraction().showTimeSyncLine(syncTime);
 			}
 		}
 	}
@@ -195,15 +199,15 @@ public class PlotTimeSyncLine implements MouseListener, MouseMotionListener{
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		plot.plotView.requestFocus();
+		plot.getPlotView().requestFocus();
 
 		if (plot.isInitialized() && !plot.isUserOperationsLocked() ) {
 			// Test event is inside the time axis area.
 			int x = e.getX();
 			int y = e.getY();
-			Rectangle2D plotRect = plot.plotView.getContents().getBounds();
+			Rectangle2D plotRect = plot.getPlotView().getContents().getBounds();
 			boolean drawLine = false;
-			if (plot.axisOrientation == AxisOrientationSetting.X_AXIS_AS_TIME) {
+			if (plot.getAxisOrientationSetting() == AxisOrientationSetting.X_AXIS_AS_TIME) {
 				double labelHeight = plot.getXAxisLabelHeight();
 				if (x >= (int) plotRect.getMinX() &&
 						x <= (int) plotRect.getMaxX() &&
@@ -229,7 +233,7 @@ public class PlotTimeSyncLine implements MouseListener, MouseMotionListener{
 				if (e.isShiftDown()) {
 					plot.initiateGlobalTimeSync(syncTime);
 				} else {
-					plot.plotAbstraction.showTimeSyncLine(syncTime);
+					plot.getPlotAbstraction().showTimeSyncLine(syncTime);
 				}
 			}
 		}

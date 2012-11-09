@@ -60,7 +60,7 @@ public class TestPlotControlsLayout {
         lowerPanel.add(new JButton("Apply"));
         lowerPanel.add(new JButton("Reset"));
 
-        ResizersScrollPane scroller = layout.new ResizersScrollPane(upperPanel, innerPanel);
+        ResizersScrollPane scroller = new ResizersScrollPane(upperPanel, innerPanel);
         panel.add(scroller, PlotControlsLayout.MIDDLE);
         panel.add(lowerPanel, PlotControlsLayout.LOWER);
         frame.add(panel);

@@ -22,8 +22,6 @@
 package gov.nasa.arc.mct.fastplot.view;
 
 import gov.nasa.arc.mct.components.ExtendedProperties;
-import gov.nasa.arc.mct.fastplot.bridge.PlotAbstraction.LineSettings;
-import gov.nasa.arc.mct.fastplot.bridge.PlotAbstraction.PlotSettings;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.NonTimeAxisSubsequentBoundsSetting;
@@ -31,6 +29,9 @@ import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PlotLineConnectionType;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.TimeAxisSubsequentBoundsSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.XAxisMaximumLocationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSetting;
+import gov.nasa.arc.mct.fastplot.settings.LineSettings;
+import gov.nasa.arc.mct.fastplot.settings.PlotConfiguration;
+import gov.nasa.arc.mct.fastplot.settings.PlotSettings;
 import gov.nasa.arc.mct.services.activity.TimeService;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
@@ -61,24 +62,17 @@ public class TestPlotPersistanceHandler {
 
 
 	@Test
-	public void testMigrateFixed() {
-		
-		final String anyTimeSystem = "anyTimeSystem"; 
-		
-		PlotPersistanceHandler h = new PlotPersistanceHandler(manifestation);
-		h.persistPlotSettings(AxisOrientationSetting.X_AXIS_AS_TIME, 
-				anyTimeSystem,
-                TimeService.DEFAULT_TIME_FORMAT,
-				XAxisMaximumLocationSetting.MAXIMUM_AT_RIGHT,
-				YAxisMaximumLocationSetting.MAXIMUM_AT_TOP, TimeAxisSubsequentBoundsSetting.SCRUNCH, NonTimeAxisSubsequentBoundsSetting.FIXED,
-				NonTimeAxisSubsequentBoundsSetting.FIXED, 0.0, 1.0, new GregorianCalendar(), new GregorianCalendar(), 0.0, 0.0, 0.0, true, false,
-				PlotConstants.DEFAULT_PLOT_LINE_DRAW,
-				PlotLineConnectionType.STEP_X_THEN_Y);
-		manifestation.getViewProperties().setProperty(PlotConstants.TIME_AXIS_SUBSEQUENT_SETTING, "FIXED");
-		PlotSettings settings = h.loadPlotSettingsFromPersistance();
+	public void testMigrateFixed() {		
+		PlotPersistenceHandler h = new PlotPersistenceHandler(manifestation);
+		PlotSettings plotSettings = new PlotSettings();
+		plotSettings.setTimeAxisSubsequentSetting(TimeAxisSubsequentBoundsSetting.SCRUNCH);
 
-		Assert.assertEquals(settings.timeAxisSubsequent, TimeAxisSubsequentBoundsSetting.JUMP);
-		Assert.assertTrue(settings.pinTimeAxis);
+		h.persistPlotSettings(plotSettings);
+		manifestation.getViewProperties().setProperty(PlotConstants.TIME_AXIS_SUBSEQUENT_SETTING, "FIXED");
+		PlotConfiguration settings = h.loadPlotSettingsFromPersistance();
+
+		Assert.assertEquals(settings.getTimeAxisSubsequentSetting(), TimeAxisSubsequentBoundsSetting.JUMP);
+		Assert.assertTrue(settings.getPinTimeAxis());
 	}
 
 	@Test
@@ -88,7 +82,7 @@ public class TestPlotPersistanceHandler {
 		String[]  strings   = { "a", "b", "c"   };
 		boolean[] truth     = { false, true     };
 		
-		PlotPersistanceHandler h = new PlotPersistanceHandler(manifestation);
+		PlotPersistenceHandler h = new PlotPersistenceHandler(manifestation);
 		
 		List<Map<String, LineSettings>> settingsToPersist = new ArrayList<Map<String,LineSettings>>();
 		

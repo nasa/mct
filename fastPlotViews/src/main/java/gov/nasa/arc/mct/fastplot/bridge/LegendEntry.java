@@ -22,10 +22,11 @@
 package gov.nasa.arc.mct.fastplot.bridge;
 
 import gov.nasa.arc.mct.components.FeedProvider;
-import gov.nasa.arc.mct.fastplot.bridge.PlotAbstraction.LineSettings;
+import gov.nasa.arc.mct.fastplot.settings.LineSettings;
 import gov.nasa.arc.mct.fastplot.utils.AbbreviatingPlotLabelingAlgorithm;
 import gov.nasa.arc.mct.fastplot.utils.TruncatingLabel;
 import gov.nasa.arc.mct.fastplot.view.LegendEntryPopupMenuFactory;
+import gov.nasa.arc.mct.fastplot.view.legend.AbstractLegendEntry;
 import gov.nasa.arc.mct.util.LafColor;
 
 import java.awt.BasicStroke;
@@ -48,7 +49,6 @@ import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
-import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -66,7 +66,7 @@ import plotter.xy.LinearXYPlotLine;
  *  Legend entry for a plot line. The class responds to mouse entered events by increasing the brightness of the text labels.
  */
 @SuppressWarnings("serial")
-public class LegendEntry extends JPanel implements MouseListener {
+public class LegendEntry extends JPanel implements MouseListener, AbstractLegendEntry {
 
 	private final static Logger logger = LoggerFactory.getLogger(LegendEntry.class);
 	
@@ -102,6 +102,8 @@ public class LegendEntry extends JPanel implements MouseListener {
 	private String currentToolTipTxt = "";
 	private ToolTipManager toolTipManager;
 	
+	private String dataSetName = "";
+
 	private String thisBaseDisplayName = "";	
 	private String valueString = "";
 	private AbbreviatingPlotLabelingAlgorithm plotLabelingAlgorithm = new AbbreviatingPlotLabelingAlgorithm();
@@ -123,8 +125,9 @@ public class LegendEntry extends JPanel implements MouseListener {
 	 * @param theForegroundColor text color
 	 * @param font text font
 	 */
-	LegendEntry(Color theBackgroundColor, Color theForegroundColor, Font font, AbbreviatingPlotLabelingAlgorithm thisPlotLabelingAlgorithm) { 
+	public LegendEntry(Color theBackgroundColor, Color theForegroundColor, Font font, AbbreviatingPlotLabelingAlgorithm thisPlotLabelingAlgorithm) { 
 		setBorder(EMPTY_BORDER);
+		setOpaque(false);
 		
 		plotLabelingAlgorithm = thisPlotLabelingAlgorithm;
 		
@@ -621,4 +624,29 @@ public class LegendEntry extends JPanel implements MouseListener {
 		if (regressionLine != null)
 			regressionLine.setForeground(foregroundColor);
 	}
+	/**
+	 * @return the dataSetName
+	 */
+	public String getDataSetName() {
+		return dataSetName;
+	}
+
+	/**
+	 * @param dataSetName the dataSetName to set
+	 */
+	public void setDataSetName(String dataSetName) {
+		this.dataSetName = dataSetName;
+	}
+
+	@Override
+	public void attachPlotLine(AbstractPlotLine plotLine) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String getDisplayedName() {
+		return this.baseDisplayName;
+	}
+
 }
