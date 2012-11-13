@@ -21,6 +21,7 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.fastplot.settings;
 
+import gov.nasa.arc.mct.fastplot.bridge.AbstractAxis;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.XAxisMaximumLocationSetting;
@@ -380,12 +381,14 @@ public class PlotSetupPanel extends PlotSettingsPanel {
 
 			@Override
 			public double getActualMinimum(PlotViewManifestation view) {
-				return view.getPlot().getPlotTimeAxis().getStart();
+				AbstractAxis axis = view.getPlot().getPlotTimeAxis();
+				return Math.min(axis.getStart(), axis.getEnd());
 			}
 
 			@Override
 			public double getActualMaximum(PlotViewManifestation view) {
-				return view.getPlot().getPlotTimeAxis().getEnd();
+				AbstractAxis axis = view.getPlot().getPlotTimeAxis();
+				return Math.max(axis.getStart(), axis.getEnd());
 			}
 		};
 		
