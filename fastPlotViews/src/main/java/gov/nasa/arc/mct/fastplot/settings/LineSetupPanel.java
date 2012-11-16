@@ -211,6 +211,7 @@ public class LineSetupPanel extends PlotSettingsSubPanel {
 	@Override
 	public boolean isDirty() {
 		PlotLineDrawingFlags selected = getSelectedDrawingFlags();
+		if (cachedFlags == null || selected == null) return false;
 		return cachedFlags.drawLine()    != selected.drawLine()    ||
 		       cachedFlags.drawMarkers() != selected.drawMarkers() ||
 		       cachedConnectionType      != getSelectedConnectionType();

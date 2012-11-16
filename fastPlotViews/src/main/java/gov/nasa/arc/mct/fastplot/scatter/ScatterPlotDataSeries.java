@@ -6,18 +6,19 @@ import gov.nasa.arc.mct.fastplot.bridge.AbstractPlottingPackage;
 import gov.nasa.arc.mct.fastplot.bridge.LegendEntry;
 import gov.nasa.arc.mct.fastplot.view.legend.AbstractLegendEntry;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.Map.Entry;
 import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 public class ScatterPlotDataSeries implements AbstractPlotDataSeries {
 	private AbstractPlotLine plotLine;
 	private SortedMap<Long, Double> dependent;
 	private SortedMap<Long, Double> independent;
-	private long        lastUpdate = Long.MIN_VALUE;
-	private AbstractLegendEntry legend;
-	private TimestampList timestamps = new TimestampList();
+	private SortedSet<Long>         timestamps = new TreeSet<Long>();
+	private AbstractLegendEntry legend;	
+	
 	
 	public ScatterPlotDataSeries(AbstractPlottingPackage plot, SortedMap<Long, Double> independent, SortedMap<Long, Double> dependent, LegendEntry legend) {
 		super();
@@ -37,23 +38,74 @@ public class ScatterPlotDataSeries implements AbstractPlotDataSeries {
 		return plotLine;
 	}
 	
-	public void updatePlotLine() {
-		for (Entry<Long, Double> entry : dependent.tailMap(lastUpdate + 1).entrySet()) {
-			long t = entry.getKey();
-			if (independent.containsKey(t)) {
-				double depValue = entry.getValue();
-				double indValue = independent.get(t);
-				plotLine.addData(indValue, depValue);
-				timestamps.add(t);
-				lastUpdate = t;
-			}
+	public void updatePlotLine() {	
+		if (timestamps.size() > 0) {
+			addData(independent.headMap(timestamps.first()),
+			        dependent.headMap(timestamps.first()),
+			        false);
+			addData(independent.tailMap(timestamps.last() + 1),
+			        dependent.tailMap(timestamps.last() + 1),
+			        true);
+		} else {
+			addData(independent,
+			        dependent,
+			        true);
 		}
+		
+	}
+	
+	private void addData(SortedMap<Long, Double> iMap, SortedMap<Long, Double> dMap, boolean comesAfter) {
+		if (iMap.size() > 0 && dMap.size() > 0) {
+			Long[] ts = getMatchingTimestamps(iMap, dMap);
+			if (ts.length > 0) {
+				double[][] pairs = getPairs(iMap, dMap, ts);
+				if (comesAfter) {
+					plotLine.appendData(pairs[0], pairs[1]);
+				} else {
+					plotLine.prependData(pairs[0], pairs[1]);
+				}
+			}
+			Collections.addAll(timestamps, ts);
+		}
+	}
+	
+	private double[][] getPairs(SortedMap<Long, Double> a, SortedMap<Long, Double> b, Long[] timestamps) {
+		int sz = timestamps.length;
+		int i = 0;
+		double[][] values = { new double[sz], new double[sz] };
+		for(Long key : timestamps) {
+			values[0][i] = a.get(key);
+			values[1][i] = b.get(key);
+			i++;
+		}
+		
+		return values;
+	}
+	
+	private Long[] getMatchingTimestamps(SortedMap<Long, Double> a, SortedMap<Long, Double> b) {
+		SortedMap<Long, Double> small = a.size() > b.size() ? b : a;
+		SortedMap<Long, Double> large = small == a ? b : a;
+		int count = 0;
+		for (Long key : small.keySet()) if (large.containsKey(key)) count++;
+		Long[] ts = new Long[count];
+		int i = 0;
+		for (Long key : small.keySet()) if (large.containsKey(key)) ts[i++] = key;
+		return ts;
 	}
 
 	public void clearBefore(long timestamp) {
-		int count = timestamps.clearOlder(timestamp);
-		if (count > 0) {
-			plotLine.removeFirst(count);
+		if (!timestamps.isEmpty() && timestamps.first() < timestamp) {
+			SortedSet<Long> head = timestamps.headSet(timestamp);
+			plotLine.removeFirst(head.size());
+			timestamps.retainAll(timestamps.tailSet(timestamp+1));
+		}
+	}
+	
+	public void clearAfter(long timestamp) {
+		if (!timestamps.isEmpty() && timestamps.last() > timestamp) {
+			SortedSet<Long> tail = timestamps.tailSet(timestamp + 1);
+			plotLine.removeLast(tail.size());
+			timestamps.retainAll(timestamps.headSet(timestamp + 1));			
 		}
 	}
 	
@@ -62,41 +114,6 @@ public class ScatterPlotDataSeries implements AbstractPlotDataSeries {
 		legend = entry;
 		entry.attachPlotLine(plotLine);
 	}
-	
-	private class TimestampList {
-		private static final int BLOCK_SIZE = 1024;
-		private int assigned  = 0;
-		private int start     = 0;
-		private List<long[]> timestamps = new ArrayList<long[]>();
-		
-		public void add(long t) {
-			if (assigned >= timestamps.size() * BLOCK_SIZE) {
-				timestamps.add(new long[BLOCK_SIZE]);
-			}
-			long[] dest = timestamps.get(timestamps.size() - 1);
-			dest[assigned++ % BLOCK_SIZE] = t;
-		}
-		
-		public int clearOlder(long t) {
-			int c = 0;
-			for (long[] block : timestamps) {
-				for (long timestamp : block) {
-					if (timestamp >= t) return clear(c - start);
-					c++;
-				}
-			}
-			return clear(c - start);
-		}
-		
-		private int clear(int count) {
-			int c = count;			
-			while (c >= BLOCK_SIZE) {
-				timestamps.remove(0);
-				c -= BLOCK_SIZE;
-			}
-			start = (start + count) % BLOCK_SIZE;
-			return count;
-		}
-	}
+
 
 }

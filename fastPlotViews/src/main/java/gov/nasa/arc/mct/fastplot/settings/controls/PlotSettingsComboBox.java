@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.JComboBox;
-import javax.swing.JRadioButton;
 
 public abstract class PlotSettingsComboBox<T> extends PlotSettingsSubPanel {
 	private static final long serialVersionUID = -5666070801819602174L;
@@ -28,6 +27,7 @@ public abstract class PlotSettingsComboBox<T> extends PlotSettingsSubPanel {
 		comboBox = new JComboBox(wrappedChoices.toArray());
 		if (choices.length > 0) setSelection(choices[0]);
 		add(comboBox);
+		comboBox.addActionListener(this);
 	}
 
 	/**
@@ -38,7 +38,13 @@ public abstract class PlotSettingsComboBox<T> extends PlotSettingsSubPanel {
 	public void setSelection(T object) {
 		this.selection = (T) object;
 		ItemWrapper<T> w = items.get(object);
+		if (w == null) return;
+		
+		// Note: setSelectedItem triggers ActionListeners, but we do not want to 
+		//       trigger Apply/Reset checks with this. So, temporarily stop listening.
+		comboBox.removeActionListener(this);
 		comboBox.setSelectedItem(w);
+		comboBox.addActionListener(this);
 	}
 	
 	@SuppressWarnings("unchecked")

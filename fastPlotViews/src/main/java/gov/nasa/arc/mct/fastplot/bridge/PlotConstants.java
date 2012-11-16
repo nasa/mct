@@ -85,7 +85,7 @@ public class PlotConstants {
 	public static final String GMT = "GMT";
 	public static final String DEFAULT_TIME_ZONE = GMT;
 	public static final String DEFAULT_TIME_SYSTEM = GMT;
-	public static final String DEFAULT_TIME_AXIS_DATA_FORMAT = "DDD/HH:mm:ss"; // add a z to see the time zone.
+	public static final String DEFAULT_TIME_AXIS_DATA_FORMAT = "DDD'/'HH:mm:ss"; // add a z to see the time zone.
 	public static String DEFAULT_TIME_FORMAT = DEFAULT_TIME_AXIS_DATA_FORMAT;
 	
 	// Field names for persistence

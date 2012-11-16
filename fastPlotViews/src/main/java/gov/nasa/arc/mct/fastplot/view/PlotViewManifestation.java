@@ -268,12 +268,12 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 	private void generatePlot() {
 		plotDataAssigner.informFeedProvidersHaveChanged();
 		createPlotAndAddItToPanel();
-		plotDataAssigner.assignFeedsToSubPlots();
+		thePlot.initialDataRequest();
+		plotDataAssigner.assignFeedsToSubPlots();		
 		enforceBackgroundColor(plotFrameBackground);
 		thePlot.addPopupMenus();
 		thePlot.setLineSettings(plotPersistenceHandler.loadLineSettingsFromPersistence());
-		//thePlot.setRegressionPointAssignments(plotPersistanceHandler.loadRegressionSettingsFromPersistence());
-
+		//thePlot.setRegressionPointAssignments(plotPersistenceHandler.loadRegressionSettingsFromPersistence());
 	}
 	
 	@Override
@@ -505,7 +505,7 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 	}
 	
 	private void createPlotAndAddItToPanel() {
-		createPlot();
+		createPlot();		
 		assert thePlot!=null: "Plot must be created";			
 		addPlotToPanel();
 	}

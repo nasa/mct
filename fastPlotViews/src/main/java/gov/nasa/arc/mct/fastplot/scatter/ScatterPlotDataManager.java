@@ -77,7 +77,8 @@ public class ScatterPlotDataManager implements AbstractPlotDataManager {
 			}
 		}
 
-		clearBefore(scatterPlot.getCurrentTimeAxisMin().getTimeInMillis());
+		enforceTimeAxisBounds(scatterPlot.getCurrentTimeAxisMin().getTimeInMillis(),
+				     		  scatterPlot.getCurrentTimeAxisMax().getTimeInMillis());
 	}
 
 	@Override
@@ -106,14 +107,18 @@ public class ScatterPlotDataManager implements AbstractPlotDataManager {
 		return null;
 	}
 	
-	public void clearBefore (long timestamp) {
+	public void enforceTimeAxisBounds (long start, long end) {
 		for (Map<String, ScatterPlotDataSeries> subMap : dataSeriesMap.values()) {
 			for (ScatterPlotDataSeries series : subMap.values()) {
-				series.clearBefore(timestamp);
+				series.clearBefore(start);
+				series.clearAfter(end);
 			}
 		}
 		for (SortedMap<Long, Double> points : dataPoints.values()) {
-			for (Object key : points.headMap(timestamp).keySet().toArray()) {
+			for (Object key : points.headMap(start).keySet().toArray()) {
+				points.remove(key);
+			}
+			for (Object key : points.tailMap(end+1).keySet().toArray()) {
 				points.remove(key);
 			}
 		}
