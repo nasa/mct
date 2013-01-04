@@ -7,10 +7,7 @@ Export-Package: org.apache.batik.bridge,
  org.apache.batik.gvt,
  org.apache.batik.gvt.renderer,
  org.apache.batik.swing.gvt,
- org.apache.batik.swing.svg,
- org.apache.xerces.parsers,
- org.xml.sax,
- org.w3c.dom.svg
+ org.apache.batik.swing.svg
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 DynamicImport-Package: *
 Bundle-ClassPath: batik-swing-1.6.jar,

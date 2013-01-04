@@ -77,8 +77,12 @@ public class SVGRasterizer {
 	public SVGRasterizer(String documentURL) {
 		UserAgent userAgent = new UserAgentAdapter();
 		SVGDocumentLoader loader = new SVGDocumentLoader(documentURL,
-				new DocumentLoader(userAgent));
+				new DocumentLoader(userAgent));		
 		loader.addSVGDocumentLoaderListener(new SVGRasterizerListener());
+		/* Note that Batik uses the context class loader for loading SAX Parser, etc. 
+		 * Context class loader is inappropriate under the Felix implementation of OSGi, 
+		 * so replace it with the regular class loader. */
+		loader.setContextClassLoader(loader.getClass().getClassLoader());
 		loader.start();
 	}
 	
@@ -194,6 +198,7 @@ public class SVGRasterizer {
 				size.width, size.height);
 		
 		gvtRenderer.addGVTTreeRendererListener(new SVGRasterizerListener());
+		gvtRenderer.setContextClassLoader(gvtRenderer.getClass().getClassLoader());
 		gvtRenderer.start();
 	}
 
@@ -213,6 +218,7 @@ public class SVGRasterizer {
 			GVTTreeBuilder gvtBuilder;
 			gvtBuilder = new GVTTreeBuilder(svgDocument, new BridgeContext(new UserAgentAdapter()));
 			gvtBuilder.addGVTTreeBuilderListener(this);
+			gvtBuilder.setContextClassLoader(gvtBuilder.getClass().getClassLoader());
 			gvtBuilder.start();		
 		}
 

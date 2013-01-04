@@ -306,10 +306,14 @@ public abstract class PlotSettingsAxisGroup extends PlotSettingsPanel implements
 					manualUpdates &= !manual.isSelected();
 				}
 			} else {
+				NumericTextField field = (NumericTextField) manualValue;
 				if (hard) {
-					manual.setSelected(true);		
-					NumericTextField field = (NumericTextField) manualValue;
+					manual.setSelected(true);						
 					cachedManualValue = maximal ? getBoundMaximum(settings) : getBoundMinimum(settings); 
+					field.setValue(cachedManualValue);
+				}
+				// Prevent empty manual value field
+				if (field.getText().isEmpty()) {
 					field.setValue(cachedManualValue);
 				}
 				autoControlsCallback.run(); // Update enabled state
