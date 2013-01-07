@@ -26,6 +26,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import junit.framework.TestCase;
 import plotter.DoubleData;
+import plotter.DoubleDataDouble;
 import plotter.PropertyTester;
 import plotter.xy.SimpleXYDataset.MinMaxChangeListener;
 
@@ -221,7 +222,7 @@ public class JUnitSimpleXYDataset extends TestCase {
 		SimpleXYDataset dataset = createDataset(null);
 		PropertyTester t = new PropertyTester(dataset);
 		t.test("maxCapacity", 1, Integer.MAX_VALUE);
-		t.test("XData", new DoubleData(), null);
-		t.test("YData", new DoubleData(), null);
+		t.test("XData", new DoubleDataDouble(), null);
+		t.test("YData", new DoubleDataDouble(), null);
 	}
 }

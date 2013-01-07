@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import plotter.DoubleData;
+import plotter.DoubleDataDouble;
 
 
 /**
@@ -42,10 +43,10 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 	private static final int DEFAULT_LINES_PER_BOUNDING_BOX = 25;
 
 	/** The X data. */
-	private DoubleData xData = new DoubleData();
+	private DoubleData xData = new DoubleDataDouble();
 
 	/** The Y data. */
-	private DoubleData yData = new DoubleData();
+	private DoubleData yData = new DoubleDataDouble();
 
 	/** The X axis, used to retrieve the min and max. */
 	private XYAxis xAxis;
@@ -624,7 +625,10 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 	public void add(double x, double y) {
 		assert invariants();
 		int nPoints = xData.getLength();
-		int lastBoxSize = (nPoints + boundingBoxOffset + linesPerBoundingBox) % linesPerBoundingBox;
+		int lastBoxSize = nPoints + boundingBoxOffset;
+		while(lastBoxSize >= linesPerBoundingBox) {
+			lastBoxSize -= linesPerBoundingBox;
+		}
 		int n = boundingBoxes.size();
 		if(lastBoxSize == 0) {
 			if(n > 0 && !Double.isNaN(x) && !Double.isNaN(y)) {

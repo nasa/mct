@@ -29,7 +29,8 @@ public class JUnitAll extends TestSuite {
 	public static TestSuite suite() {
 		TestSuite suite = new TestSuite("Plotter");
 		suite.addTestSuite(JUnitDateNumberFormat.class);
-		suite.addTestSuite(JUnitDoubleData.class);
+		suite.addTestSuite(JUnitDoubleDataDouble.class);
+		suite.addTestSuite(JUnitDoubleDataFloat.class);
 		suite.addTestSuite(JUnitExpFormat.class);
 		suite.addTestSuite(JUnitIntegerTickMarkCalculator.class);
 		suite.addTestSuite(JUnitLinearTickMarkCalculator.class);

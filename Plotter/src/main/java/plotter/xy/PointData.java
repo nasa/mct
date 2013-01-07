@@ -22,6 +22,7 @@
 package plotter.xy;
 
 import plotter.DoubleData;
+import plotter.DoubleDataDouble;
 
 /**
  * Stores X and Y data together for convenience.
@@ -37,7 +38,7 @@ public class PointData implements CompressionOutput {
 	 * Creates point data with new default {@link DoubleData} objects for X and Y.
 	 */
 	public PointData() {
-		this(new DoubleData(), new DoubleData());
+		this(new DoubleDataDouble(), new DoubleDataDouble());
 	}
 
 

@@ -25,6 +25,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Point2D;
+import java.text.Format;
 import java.text.MessageFormat;
 
 import javax.swing.JLabel;
@@ -37,7 +38,7 @@ public class XYLocationDisplay extends JLabel implements MouseMotionListener, Mo
 	private static final long serialVersionUID = 1L;
 
 	/** Formats the point for display.  The format is given two arguments, the X and Y coordinates. */
-	private MessageFormat format = new MessageFormat("(X: {0}  Y: {1})");
+	private Format format = new MessageFormat("(X: {0}  Y: {1})");
 
 	/** True if the mouse cursor is within the plot contents area. */
 	private boolean haveMouse;
@@ -114,7 +115,7 @@ public class XYLocationDisplay extends JLabel implements MouseMotionListener, Mo
 	 * Returns the format used to display the point.
 	 * @return the format used to display the point
 	 */
-	public MessageFormat getFormat() {
+	public Format getFormat() {
 		return format;
 	}
 
@@ -123,7 +124,7 @@ public class XYLocationDisplay extends JLabel implements MouseMotionListener, Mo
 	 * Sets the format used to display the point.
 	 * @param format the format used to display the point
 	 */
-	public void setFormat(MessageFormat format) {
+	public void setFormat(Format format) {
 		this.format = format;
 	}
 }

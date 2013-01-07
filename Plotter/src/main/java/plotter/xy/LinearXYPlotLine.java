@@ -26,6 +26,7 @@ import java.awt.Graphics2D;
 import java.awt.Stroke;
 
 import plotter.DoubleData;
+import plotter.DoubleDataDouble;
 
 
 /**
@@ -37,10 +38,10 @@ public class LinearXYPlotLine extends XYPlotLine implements XYDataset {
 	private static final long serialVersionUID = 1L;
 
 	/** The X data. */
-	private DoubleData xData = new DoubleData();
+	private DoubleData xData = new DoubleDataDouble();
 
 	/** The Y data. */
-	private DoubleData yData = new DoubleData();
+	private DoubleData yData = new DoubleDataDouble();
 
 	/** The X axis, used to retrieve the min and max. */
 	private XYAxis xAxis;

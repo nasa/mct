@@ -28,6 +28,7 @@ import java.util.List;
 import junit.framework.TestCase;
 
 import plotter.DoubleData;
+import plotter.DoubleDataDouble;
 
 public class JUnitXYReversingDataset extends TestCase {
 	final List<Point2D> points = new ArrayList<Point2D>();
@@ -41,8 +42,8 @@ public class JUnitXYReversingDataset extends TestCase {
 		assertEquals(1, points.size());
 		assertEquals(new Point2D.Double(2, 1), points.get(0));
 
-		DoubleData xData = new DoubleData();
-		DoubleData yData = new DoubleData();
+		DoubleData xData = new DoubleDataDouble();
+		DoubleData yData = new DoubleDataDouble();
 		xData.add(2);
 		yData.add(3);
 		xData.add(3);

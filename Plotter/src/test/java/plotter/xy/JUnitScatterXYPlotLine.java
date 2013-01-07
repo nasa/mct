@@ -38,6 +38,7 @@ import javax.swing.SwingUtilities;
 import junit.framework.TestCase;
 import plotter.CountingGraphics;
 import plotter.DoubleData;
+import plotter.DoubleDataDouble;
 import plotter.LineChecker;
 import plotter.PropertyTester;
 
@@ -89,8 +90,8 @@ public class JUnitScatterXYPlotLine extends TestCase {
 
 
 	private void prependDD(double x, double y) {
-		DoubleData xData = new DoubleData();
-		DoubleData yData = new DoubleData();
+		DoubleData xData = new DoubleDataDouble();
+		DoubleData yData = new DoubleDataDouble();
 		xData.add(x);
 		yData.add(y);
 		line.prepend(xData, yData);

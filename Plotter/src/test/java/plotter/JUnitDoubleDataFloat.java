@@ -1,31 +1,31 @@
 /*******************************************************************************
  * Mission Control Technologies, Copyright (c) 2009-2012, United States Government
- * as represented by the Administrator of the National Aeronautics and Space 
+ * as represented by the Administrator of the National Aeronautics and Space
  * Administration. All rights reserved.
  *
- * The MCT platform is licensed under the Apache License, Version 2.0 (the 
- * "License"); you may not use this file except in compliance with the License. 
- * You may obtain a copy of the License at 
+ * The MCT platform is licensed under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  * http://www.apache.org/licenses/LICENSE-2.0.
  *
- * Unless required by applicable law or agreed to in writing, software 
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT 
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the 
- * License for the specific language governing permissions and limitations under 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
  * the License.
  *
- * MCT includes source code licensed under additional open source licenses. See 
- * the MCT Open Source Licenses file included with this distribution or the About 
- * MCT Licenses dialog available at runtime from the MCT Help menu for additional 
- * information. 
+ * MCT includes source code licensed under additional open source licenses. See
+ * the MCT Open Source Licenses file included with this distribution or the About
+ * MCT Licenses dialog available at runtime from the MCT Help menu for additional
+ * information.
  *******************************************************************************/
 package plotter;
 
 import junit.framework.TestCase;
 
-public class JUnitDoubleData extends TestCase {
+public class JUnitDoubleDataFloat extends TestCase {
 	public void testGrow() {
-		DoubleData data = new DoubleData(4);
+		DoubleData data = new DoubleDataFloat(4);
 		data.add(0);
 		assertEquals(1, data.getLength());
 		data.add(1);
@@ -45,7 +45,7 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testCycle() {
-		DoubleData data = new DoubleData(4);
+		DoubleData data = new DoubleDataFloat(4);
 		data.add(0);
 		assertEquals(1, data.getLength());
 		data.add(1);
@@ -67,7 +67,7 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testAddMultiple() {
-		DoubleData data = new DoubleData(4);
+		DoubleData data = new DoubleDataFloat(4);
 		data.add(0);
 		assertEquals(1, data.getLength());
 		data.add(new double[] {2, 3, 4}, 0, 3);
@@ -81,7 +81,7 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testAddHuge() {
-		DoubleData data = new DoubleData(4);
+		DoubleData data = new DoubleDataFloat(4);
 		data.add(0);
 		assertEquals(1, data.getLength());
 		double[] d = new double[100];
@@ -98,7 +98,7 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testAddOutOfRange() {
-		DoubleData data = new DoubleData();
+		DoubleData data = new DoubleDataFloat();
 		double[] d = new double[10];
 
 		try {
@@ -126,11 +126,40 @@ public class JUnitDoubleData extends TestCase {
 	}
 
 
+	public void testAddOutOfRangeFloat() {
+		DoubleDataFloat data = new DoubleDataFloat();
+		float[] d = new float[10];
+
+		try {
+			data.add(d, -1, 1);
+			fail("Should have thrown an IndexOutOfBoundsException");
+		} catch(IndexOutOfBoundsException e) {
+		}
+
+		try {
+			data.add(d, 10, 1);
+			fail("Should have thrown an IndexOutOfBoundsException");
+		} catch(IndexOutOfBoundsException e) {
+		}
+
+		try {
+			data.add(d, 5, 6);
+			fail("Should have thrown an IndexOutOfBoundsException");
+		} catch(IndexOutOfBoundsException e) {
+		}
+
+		// should all work
+		data.add(d, 0, 1);
+		data.add(d, 9, 1);
+		data.add(d, 5, 5);
+	}
+
+
 	public void testAddDoubleData() {
-		DoubleData data = new DoubleData(4);
+		DoubleDataFloat data = new DoubleDataFloat(4);
 		data.add(0);
 		assertEquals(1, data.getLength());
-		DoubleData data2 = new DoubleData();
+		DoubleDataFloat data2 = new DoubleDataFloat();
 		data2.add(new double[] { 2, 3, 4 }, 0, 3);
 		data.add(data2, 0, 3);
 		assertEquals(4, data.getLength());
@@ -143,10 +172,10 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testAddDoubleData2() {
-		DoubleData data = new DoubleData(4);
+		DoubleDataFloat data = new DoubleDataFloat(4);
 		data.add(0);
 		assertEquals(1, data.getLength());
-		DoubleData data2 = new DoubleData();
+		DoubleDataFloat data2 = new DoubleDataFloat();
 		data2.add(new double[] { 2, 3, 4 }, 0, 3);
 		data.add(data2, 1, 2);
 		assertEquals(3, data.getLength());
@@ -158,10 +187,10 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testAddDoubleDataWithCycle() {
-		DoubleData data = new DoubleData(4);
+		DoubleDataFloat data = new DoubleDataFloat(4);
 		data.add(0);
 		assertEquals(1, data.getLength());
-		DoubleData data2 = new DoubleData(4);
+		DoubleDataFloat data2 = new DoubleDataFloat(4);
 		data2.add(1);
 		data2.add(2);
 		data2.add(3);
@@ -180,10 +209,10 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testAddDoubleDataOutOfRange() {
-		DoubleData data = new DoubleData(4);
+		DoubleDataFloat data = new DoubleDataFloat(4);
 		data.add(0);
 		assertEquals(1, data.getLength());
-		DoubleData data2 = new DoubleData();
+		DoubleDataFloat data2 = new DoubleDataFloat();
 		data2.add(new double[] { 2, 3, 4 }, 0, 3);
 
 		try {
@@ -214,7 +243,7 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testAddMultipleWithCycle() {
-		DoubleData data = new DoubleData(4);
+		DoubleData data = new DoubleDataFloat(4);
 		data.add(0);
 		assertEquals(1, data.getLength());
 		data.add(1);
@@ -232,7 +261,7 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testPrependMultiple() {
-		DoubleData data = new DoubleData(4);
+		DoubleData data = new DoubleDataFloat(4);
 		data.add(0);
 		assertEquals(1, data.getLength());
 		data.prepend(new double[] {2, 3, 4}, 0, 3);
@@ -245,8 +274,22 @@ public class JUnitDoubleData extends TestCase {
 	}
 
 
+	public void testPrependMultipleFloat() {
+		DoubleDataFloat data = new DoubleDataFloat(4);
+		data.add(0);
+		assertEquals(1, data.getLength());
+		data.prepend(new float[] {2, 3, 4}, 0, 3);
+		assertEquals(4, data.getLength());
+		assertEquals(2.0, data.get(0));
+		assertEquals(3.0, data.get(1));
+		assertEquals(4.0, data.get(2));
+		assertEquals(0.0, data.get(3));
+		assertEquals(4, data.getCapacity());
+	}
+
+
 	public void testPrependMultipleWithCycle() {
-		DoubleData data = new DoubleData(4);
+		DoubleData data = new DoubleDataFloat(4);
 		data.add(0);
 		assertEquals(1, data.getLength());
 		data.add(1);
@@ -263,8 +306,26 @@ public class JUnitDoubleData extends TestCase {
 	}
 
 
+	public void testPrependMultipleFloatWithCycle() {
+		DoubleDataFloat data = new DoubleDataFloat(4);
+		data.add(0);
+		assertEquals(1, data.getLength());
+		data.add(1);
+		assertEquals(2, data.getLength());
+		data.removeFirst(1);
+		assertEquals(1, data.getLength());
+		data.prepend(new float[] {2, 3, 4}, 0, 3);
+		assertEquals(4, data.getLength());
+		assertEquals(2.0, data.get(0));
+		assertEquals(3.0, data.get(1));
+		assertEquals(4.0, data.get(2));
+		assertEquals(1.0, data.get(3));
+		assertEquals(4, data.getCapacity());
+	}
+
+
 	public void testPrependMultipleWithCycle2() {
-		DoubleData data = new DoubleData(4);
+		DoubleData data = new DoubleDataFloat(4);
 		data.add(0);
 		assertEquals(1, data.getLength());
 		data.add(1);
@@ -272,7 +333,7 @@ public class JUnitDoubleData extends TestCase {
 		data.removeFirst(1);
 		assertEquals(1, data.getLength());
 
-		DoubleData data2 = new DoubleData(4);
+		DoubleData data2 = new DoubleDataFloat(4);
 		data2.add(0);
 		data2.add(1);
 		data2.add(2);
@@ -293,7 +354,7 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testPrependOutOfRange() {
-		DoubleData data = new DoubleData(4);
+		DoubleData data = new DoubleDataFloat(4);
 		data.add(0);
 		double[] d = new double[] { 2, 3, 4 };
 
@@ -327,9 +388,9 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testPrependDoubleDataOutOfRange() {
-		DoubleData data = new DoubleData(4);
+		DoubleData data = new DoubleDataFloat(4);
 		data.add(0);
-		DoubleData d = new DoubleData();
+		DoubleData d = new DoubleDataFloat();
 		d.add(2);
 		d.add(3);
 		d.add(4);
@@ -387,7 +448,7 @@ public class JUnitDoubleData extends TestCase {
 
 
 	private void testBinarySearch(double[] values, double d, int index) {
-		DoubleData data = new DoubleData(4);
+		DoubleData data = new DoubleDataFloat(4);
 		data.add(values, 0, values.length);
 		assertEquals(index, data.binarySearch(d));
 	}
@@ -427,7 +488,7 @@ public class JUnitDoubleData extends TestCase {
 
 
 	private void testDictionarySearch(double[] values, double d, int index) {
-		DoubleData data = new DoubleData(4);
+		DoubleData data = new DoubleDataFloat(4);
 		data.add(values, 0, values.length);
 		assertEquals(index, data.dictionarySearch(d));
 	}
@@ -435,7 +496,7 @@ public class JUnitDoubleData extends TestCase {
 
 	public void testInsertCloseToHead() {
 		for(int pad = 0; pad < 8; pad++) {
-			DoubleData data = new DoubleData(8);
+			DoubleData data = new DoubleDataFloat(8);
 			for(int i = 0; i < pad; i++) {
 				data.add(-1);
 			}
@@ -462,7 +523,7 @@ public class JUnitDoubleData extends TestCase {
 
 	public void testInsertCloseToTail() {
 		for(int pad = 0; pad < 8; pad++) {
-			DoubleData data = new DoubleData(8);
+			DoubleData data = new DoubleDataFloat(8);
 			for(int i = 0; i < pad; i++) {
 				data.add(-1);
 			}
@@ -488,7 +549,7 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testInsertGrow() {
-		DoubleData data = new DoubleData(4);
+		DoubleData data = new DoubleDataFloat(4);
 		for(int i = 0; i < 4; i++) {
 			data.add(i);
 		}
@@ -504,7 +565,7 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testInsertOutOfRange() {
-		DoubleData data = new DoubleData(4);
+		DoubleData data = new DoubleDataFloat(4);
 		for(int i = 0; i < 4; i++) {
 			data.add(i);
 		}
@@ -531,8 +592,8 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testInsertDoubleData() {
-		DoubleData data = new DoubleData(4);
-		DoubleData data2 = new DoubleData(4);
+		DoubleData data = new DoubleDataFloat(4);
+		DoubleData data2 = new DoubleDataFloat(4);
 		for(int i = 0; i < 4; i++) {
 			data.add(i);
 			data2.add(i + 4);
@@ -550,8 +611,8 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testInsertDoubleDataNearTail() {
-		DoubleData data = new DoubleData(4);
-		DoubleData data2 = new DoubleData(4);
+		DoubleData data = new DoubleDataFloat(4);
+		DoubleData data2 = new DoubleDataFloat(4);
 		for(int i = 0; i < 4; i++) {
 			data.add(i);
 			data2.add(i + 4);
@@ -569,8 +630,8 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testInsertDoubleDataOutOfRange() {
-		DoubleData data = new DoubleData(4);
-		DoubleData data2 = new DoubleData(4);
+		DoubleData data = new DoubleDataFloat(4);
+		DoubleData data2 = new DoubleDataFloat(4);
 		for(int i = 0; i < 4; i++) {
 			data.add(i);
 			data2.add(i + 4);
@@ -614,7 +675,7 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testCopyFrom() {
-		DoubleData data = new DoubleData(8);
+		DoubleData data = new DoubleDataFloat(8);
 		for(int i = 0; i < 4; i++) {
 			data.add(i);
 		}
@@ -629,8 +690,24 @@ public class JUnitDoubleData extends TestCase {
 	}
 
 
+	public void testCopyFromFloat() {
+		DoubleDataFloat data = new DoubleDataFloat(8);
+		for(int i = 0; i < 4; i++) {
+			data.add(i);
+		}
+		assertEquals(4, data.getLength());
+		float[] d = new float[] {5, 6, 7, 8};
+		data.copyFrom(d, 1, 1, 2);
+		assertEquals(4, data.getLength());
+		assertEquals(0.0, data.get(0));
+		assertEquals(6.0, data.get(1));
+		assertEquals(7.0, data.get(2));
+		assertEquals(3.0, data.get(3));
+	}
+
+
 	public void testCopyFromWithCycle() {
-		DoubleData data = new DoubleData(8);
+		DoubleData data = new DoubleDataFloat(8);
 		for(int i = 0; i < 8; i++) {
 			data.add(i);
 		}
@@ -654,8 +731,33 @@ public class JUnitDoubleData extends TestCase {
 	}
 
 
+	public void testCopyFromFloatWithCycle() {
+		DoubleDataFloat data = new DoubleDataFloat(8);
+		for(int i = 0; i < 8; i++) {
+			data.add(i);
+		}
+		data.removeFirst(4);
+		data.add(8);
+		data.add(9);
+		data.add(10);
+		data.add(11);
+		assertEquals(8, data.getLength());
+		float[] d = new float[] {13, 14, 15, 16, 17, 18, 19, 20, 21};
+		data.copyFrom(d, 2, 1, 5);
+		assertEquals(8, data.getLength());
+		assertEquals(4.0, data.get(0));
+		assertEquals(15.0, data.get(1));
+		assertEquals(16.0, data.get(2));
+		assertEquals(17.0, data.get(3));
+		assertEquals(18.0, data.get(4));
+		assertEquals(19.0, data.get(5));
+		assertEquals(10.0, data.get(6));
+		assertEquals(11.0, data.get(7));
+	}
+
+
 	public void testCopyFromOutOfRange() {
-		DoubleData data = new DoubleData(8);
+		DoubleData data = new DoubleDataFloat(8);
 		for(int i = 0; i < 4; i++) {
 			data.add(i);
 		}
@@ -704,8 +806,58 @@ public class JUnitDoubleData extends TestCase {
 	}
 
 
+	public void testCopyFromFloatOutOfRange() {
+		DoubleDataFloat data = new DoubleDataFloat(8);
+		for(int i = 0; i < 4; i++) {
+			data.add(i);
+		}
+		assertEquals(4, data.getLength());
+		float[] d = new float[] { 5, 6, 7, 8 };
+
+		try {
+			data.copyFrom(d, 0, 0, -1);
+			fail("Should throw an exception");
+		} catch(IndexOutOfBoundsException e) {
+			// should happen
+		}
+
+		try {
+			data.copyFrom(d, -1, 0, 1);
+			fail("Should throw an exception");
+		} catch(IndexOutOfBoundsException e) {
+			// should happen
+		}
+
+		try {
+			data.copyFrom(d, 0, -1, 1);
+			fail("Should throw an exception");
+		} catch(IndexOutOfBoundsException e) {
+			// should happen
+		}
+
+		try {
+			data.copyFrom(d, 2, 0, 3);
+			fail("Should throw an exception");
+		} catch(IndexOutOfBoundsException e) {
+			// should happen
+		}
+
+		try {
+			data.copyFrom(d, 0, 2, 3);
+			fail("Should throw an exception");
+		} catch(IndexOutOfBoundsException e) {
+			// should happen
+		}
+
+		// should work
+		data.copyFrom(d, 2, 0, 2);
+		data.copyFrom(d, 0, 2, 2);
+		data.copyFrom(d, 0, 0, 1);
+	}
+
+
 	private DoubleData init(int cap, int off, int len) {
-		DoubleData data = new DoubleData(cap);
+		DoubleData data = new DoubleDataFloat(cap);
 		for(int i = 0; i < off; i++) {
 			data.add(0);
 		}
@@ -909,8 +1061,8 @@ public class JUnitDoubleData extends TestCase {
 	}
 
 	public void testCopyFromDoubleData() {
-		DoubleData data = new DoubleData(8);
-		DoubleData data2 = new DoubleData(8);
+		DoubleData data = new DoubleDataFloat(8);
+		DoubleData data2 = new DoubleDataFloat(8);
 		for(int i = 0; i < 8; i++) {
 			data.add(i);
 			data2.add(i + 8);
@@ -929,8 +1081,8 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testCopyFromDoubleDataWithCycle() {
-		DoubleData data = new DoubleData(8);
-		DoubleData data2 = new DoubleData(8);
+		DoubleData data = new DoubleDataFloat(8);
+		DoubleData data2 = new DoubleDataFloat(8);
 		for(int i = 0; i < 8; i++) {
 			data.add(i);
 			data2.add(i + 8);
@@ -953,8 +1105,8 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testCopyFromDoubleDataOutOfRange() {
-		DoubleData data = new DoubleData(8);
-		DoubleData data2 = new DoubleData(8);
+		DoubleData data = new DoubleDataFloat(8);
+		DoubleData data2 = new DoubleDataFloat(8);
 		for(int i = 0; i < 8; i++) {
 			data.add(i);
 			data2.add(i + 8);
@@ -1095,7 +1247,7 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testRemoveFirst() {
-		DoubleData data = new DoubleData();
+		DoubleData data = new DoubleDataFloat();
 		data.add(0);
 		data.add(1);
 		data.add(2);
@@ -1126,7 +1278,7 @@ public class JUnitDoubleData extends TestCase {
 
 
 	public void testRemoveLast() {
-		DoubleData data = new DoubleData();
+		DoubleData data = new DoubleDataFloat();
 		data.add(0);
 		data.add(1);
 		data.add(2);

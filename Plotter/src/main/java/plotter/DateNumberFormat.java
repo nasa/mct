@@ -36,13 +36,25 @@ public class DateNumberFormat extends NumberFormat {
 
 	private final DateFormat format;
 
+	private final long offset;
+
 
 	/**
 	 * Creates a number format based on <code>format</code>
 	 * @param format date format to view as a number format
 	 */
 	public DateNumberFormat(DateFormat format) {
+		this(format, 0);
+	}
+
+
+	/**
+	 * Creates a number format based on <code>format</code>
+	 * @param format date format to view as a number format
+	 */
+	public DateNumberFormat(DateFormat format, long offset) {
 		this.format = format;
+		this.offset = offset;
 	}
 
 
@@ -54,14 +66,14 @@ public class DateNumberFormat extends NumberFormat {
 
 	@Override
 	public StringBuffer format(long number, StringBuffer toAppendTo, FieldPosition pos) {
-		toAppendTo.append(format.format(new Date(number)));
+		toAppendTo.append(format.format(new Date(number + offset)));
 		return toAppendTo;
 	}
 
 
 	@Override
 	public StringBuffer format(double number, StringBuffer toAppendTo, FieldPosition pos) {
-		toAppendTo.append(format.format(new Date((long) number)));
+		toAppendTo.append(format.format(new Date((long) number + offset)));
 		return toAppendTo;
 	}
 
