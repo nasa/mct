@@ -21,28 +21,17 @@
  *******************************************************************************/
 package plotter.xy;
 
-import java.awt.Shape;
 
-import javax.swing.Icon;
-import javax.swing.JComponent;
 
 import plotter.DoubleData;
+import plotter.PlotLine;
 
 /**
  * Base class for all XY plot lines.
  * @author Adam Crume
  */
-public abstract class XYPlotLine extends JComponent {
-	private static final long serialVersionUID = 1L;
-
-	/** Shape used to draw the outline of each data point.  May be null. */
-	protected Shape pointOutline;
-
-	/** Shape used to fill each data point.  May be null. */
-	protected Shape pointFill;
-
-	/** Icon to draw at each data point.  May be null */
-	protected Icon pointIcon;
+public abstract class XYPlotLine extends PlotLine {
+	private static final long serialVersionUID = 2L;
 
 	/**
 	 * Returns the X data.
@@ -69,21 +58,6 @@ public abstract class XYPlotLine extends JComponent {
 
 
 	/**
-	 * Repaints a data point and adjoining line segments.
-	 * @param index index of the data point
-	 */
-	public abstract void repaintData(int index);
-
-
-	/**
-	 * Repaints data points and adjoining line segments.
-	 * @param index index of the first data point
-	 * @param count number of data points
-	 */
-	public abstract void repaintData(int index, int count);
-
-
-	/**
 	 * Returns the independent dimension.  May be null.
 	 * @return the independent dimension
 	 */
@@ -107,76 +81,4 @@ public abstract class XYPlotLine extends JComponent {
 	 * @param len number of points to add
 	 */
 	public abstract void prepend(double[] x, int xoff, double[] y, int yoff, int len);
-
-
-	/**
-	 * Removes points from the beginning.
-	 * @param removeCount number of points to remove
-	 */
-	public abstract void removeFirst(int removeCount);
-
-
-	/**
-	 * Removes points from the end.
-	 * @param removeCount number of points to remove
-	 */
-	public abstract void removeLast(int removeCount);
-
-
-	/**
-	 * Removes all points.
-	 */
-	public abstract void removeAllPoints();
-
-
-	/**
-	 * Returns the point outline.
-	 * @return the point outline
-	 */
-	public Shape getPointOutline() {
-		return pointOutline;
-	}
-
-
-	/**
-	 * Sets the point outline
-	 * @param pointOutline the point outline
-	 */
-	public void setPointOutline(Shape pointOutline) {
-		this.pointOutline = pointOutline;
-	}
-
-
-	/**
-	 * Returns the point fill.
-	 * @return the point fill
-	 */
-	public Shape getPointFill() {
-		return pointFill;
-	}
-
-
-	/**
-	 * Sets the point fill.
-	 * @param pointFill the point fill
-	 */
-	public void setPointFill(Shape pointFill) {
-		this.pointFill = pointFill;
-	}
-
-
-	/**
-	 * @return the icon used to draw each data point
-	 */
-	public Icon getPointIcon() {
-		return pointIcon;
-	}
-
-
-	/**
-	 * @param pointIcon the icon to draw at each data point
-	 */
-	public void setPointIcon(Icon pointIcon) {
-		this.pointIcon = pointIcon;
-	}
 }

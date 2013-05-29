@@ -24,7 +24,6 @@ package plotter.xy;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.Stroke;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,9 +52,6 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 
 	/** The Y axis, used to retrieve the min and max. */
 	private XYAxis yAxis;
-
-	/** The stroke used to draw the line, or null to use the default. */
-	private Stroke stroke;
 
 	/** Number of line segments per bounding box. */
 	private int linesPerBoundingBox;
@@ -485,24 +481,6 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 	 */
 	public XYAxis getYAxis() {
 		return yAxis;
-	}
-
-
-	/**
-	 * Returns the stroke used to draw the line.
-	 * @return the stroke used to draw the line
-	 */
-	public Stroke getStroke() {
-		return stroke;
-	}
-
-
-	/**
-	 * Sets the stroke used to draw the line.
-	 * @param stroke the stroke used to draw the line
-	 */
-	public void setStroke(Stroke stroke) {
-		this.stroke = stroke;
 	}
 
 
