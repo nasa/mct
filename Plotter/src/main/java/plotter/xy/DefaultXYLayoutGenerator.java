@@ -25,6 +25,8 @@ import java.awt.Component;
 
 import javax.swing.SpringLayout;
 
+import plotter.Legend;
+
 /**
  * Sets up the default layout for an {@link XYPlot}.
  * This layout installs a {@link SpringLayout} on the plot
@@ -55,6 +57,7 @@ public class DefaultXYLayoutGenerator {
 		XYPlotContents contents = null;
 		XYLocationDisplay locationDisplay = null;
 		SlopeLineDisplay slopeDisplay = null;
+		Legend legend = null;
 		for(Component c : plot.getComponents()) {
 			if(c instanceof XYPlotContents) {
 				contents = (XYPlotContents) c;
@@ -76,6 +79,8 @@ public class DefaultXYLayoutGenerator {
 			} else if(c instanceof SlopeLineDisplay) {
 				slopeDisplay = (SlopeLineDisplay) c;
 				layout.putConstraint(SpringLayout.NORTH, c, 0, SpringLayout.NORTH, plot);
+			} else if(c instanceof Legend) {
+				legend = (Legend) c;
 			}
 		}
 
@@ -113,6 +118,11 @@ public class DefaultXYLayoutGenerator {
 				yAxis.setEndMargin(margin);
 			} else {
 				layout.putConstraint(SpringLayout.WEST, contents, 0, SpringLayout.WEST, plot);
+			}
+
+			if(legend != null) {
+				layout.putConstraint(SpringLayout.NORTH, legend, 0, SpringLayout.NORTH, contents);
+				layout.putConstraint(SpringLayout.EAST, legend, 0, SpringLayout.EAST, contents);
 			}
 		}
 

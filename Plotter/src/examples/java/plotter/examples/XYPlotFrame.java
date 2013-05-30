@@ -27,10 +27,12 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.text.MessageFormat;
 
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.SpringLayout;
 
+import plotter.Legend;
 import plotter.xy.DefaultXYLayoutGenerator;
 import plotter.xy.LinearXYAxis;
 import plotter.xy.SlopeLine;
@@ -41,6 +43,7 @@ import plotter.xy.XYGrid;
 import plotter.xy.XYLocationDisplay;
 import plotter.xy.XYPlot;
 import plotter.xy.XYPlotContents;
+import plotter.xy.XYPlotLine;
 
 public class XYPlotFrame extends JFrame {
 	private static final long serialVersionUID = 1L;
@@ -58,6 +61,10 @@ public class XYPlotFrame extends JFrame {
 	private XYLocationDisplay locationDisplay;
 
 	private SlopeLineDisplay slopeLineDisplay;
+
+	private Legend legend;
+
+	private boolean useLegend;
 
 
 	public void setup() {
@@ -114,6 +121,15 @@ public class XYPlotFrame extends JFrame {
 		slopeLineDisplay.setFormat(new MessageFormat("<html><b>&Delta;x:</b> {0}  <b>&Delta;y:</b> {1}</html>"));
 		plot.add(slopeLineDisplay);
 
+		if(useLegend) {
+			legend = new Legend();
+			legend.setForeground(Color.white);
+			legend.setBackground(Color.black);
+			legend.setFont(new Font("Arial", 0, 12));
+			legend.setBorder(BorderFactory.createMatteBorder(0, 1, 1, 0, Color.darkGray));
+			plot.add(legend, 0);
+		}
+
 		new DefaultXYLayoutGenerator().generateLayout(plot);
 
 		SpringLayout layout2 = (SpringLayout) plot.getLayout();
@@ -145,9 +161,20 @@ public class XYPlotFrame extends JFrame {
 	}
 
 
+	/**
+	 * @deprecated Use {@link #addPlotLine(String,XYPlotLine)} instead
+	 */
 	public void addPlotLine(JComponent plotLine) {
+		addPlotLine(null, (XYPlotLine)plotLine);
+	}
+
+
+	public void addPlotLine(String description, XYPlotLine plotLine) {
 		contents.add(plotLine);
 		contents.setComponentZOrder(grid, contents.getComponentCount() - 1);
+		if(description != null && legend != null) {
+			legend.addLine(description, plotLine);
+		}
 	}
 
 
@@ -178,5 +205,20 @@ public class XYPlotFrame extends JFrame {
 
 	public XYPlot getPlot() {
 		return plot;
+	}
+
+
+	public boolean isUseLegend() {
+		return useLegend;
+	}
+
+
+	public void setUseLegend(boolean useLegend) {
+		this.useLegend = useLegend;
+	}
+
+
+	public Legend getLegend() {
+		return legend;
 	}
 }
