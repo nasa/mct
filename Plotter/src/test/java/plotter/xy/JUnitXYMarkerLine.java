@@ -87,6 +87,39 @@ public class JUnitXYMarkerLine extends TestCase {
 		setupX();
 		line.setValue(.5);
 		CountingGraphics g = paint();
+		LineChecker c = new LineChecker();
+		for(int y = 0; y < 200; y += 8) {
+			c.require(99, y, 99, y + 3);
+		}
+		c.check(g.getLines());
+	}
+
+
+	public void testPaintSimpleY() throws InterruptedException, InvocationTargetException {
+		setupY();
+		line.setValue(.5);
+		CountingGraphics g = paint();
+		LineChecker c = new LineChecker();
+		for(int x = 0; x < 200; x += 8) {
+			c.require(x, 100, x + 3, 100);
+		}
+		c.check(g.getLines());
+	}
+
+
+	public void testPaintNonBasicStroke() throws InterruptedException, InvocationTargetException {
+		setupX();
+		line.setStroke(new Stroke() {
+			Stroke s = new BasicStroke(1, 0, 0, 1, new float[] { 4, 4 }, 0);
+
+
+			@Override
+			public Shape createStrokedShape(Shape p) {
+				return s.createStrokedShape(p);
+			}
+		});
+		line.setValue(.5);
+		CountingGraphics g = paint();
 		assertEquals(2, g.getPointCount());
 
 		LineChecker c = new LineChecker();
@@ -95,8 +128,17 @@ public class JUnitXYMarkerLine extends TestCase {
 	}
 
 
-	public void testPaintSimpleY() throws InterruptedException, InvocationTargetException {
+	public void testPaintNonBasicStrokeY() throws InterruptedException, InvocationTargetException {
 		setupY();
+		line.setStroke(new Stroke() {
+			Stroke s = new BasicStroke(1, 0, 0, 1, new float[] { 4, 4 }, 0);
+
+
+			@Override
+			public Shape createStrokedShape(Shape p) {
+				return s.createStrokedShape(p);
+			}
+		});
 		line.setValue(.5);
 		CountingGraphics g = paint();
 		assertEquals(2, g.getPointCount());
@@ -128,7 +170,9 @@ public class JUnitXYMarkerLine extends TestCase {
 		line.setValue(.5);
 		CountingGraphics g = paint(new Rectangle(0, 49, 200, 100));
 		LineChecker c = new LineChecker();
-		c.require(99, 48, 99, 149);
+		for(int y = 48; y < 149; y += 8) {
+			c.require(99, y, 99, y + 3);
+		}
 		c.check(g.getLines());
 	}
 
@@ -138,7 +182,9 @@ public class JUnitXYMarkerLine extends TestCase {
 		line.setValue(.5);
 		CountingGraphics g = paint(new Rectangle(49, 0, 100, 200));
 		LineChecker c = new LineChecker();
-		c.require(48, 100, 149, 100);
+		for(int x = 48; x < 149; x += 8) {
+			c.require(x, 100, x + 3, 100);
+		}
 		c.check(g.getLines());
 	}
 
@@ -149,7 +195,9 @@ public class JUnitXYMarkerLine extends TestCase {
 		line.setValue(.5);
 		CountingGraphics g = paint(new Rectangle(0, 49, 200, 100));
 		LineChecker c = new LineChecker();
-		c.require(99, 40, 99, 149);
+		for(int y = 40; y < 149; y += 10) {
+			c.require(99, y, 99, y + 4);
+		}
 		c.check(g.getLines());
 	}
 
@@ -160,7 +208,9 @@ public class JUnitXYMarkerLine extends TestCase {
 		line.setValue(.5);
 		CountingGraphics g = paint(new Rectangle(49, 0, 100, 200));
 		LineChecker c = new LineChecker();
-		c.require(40, 100, 149, 100);
+		for(int x = 40; x < 149; x += 10) {
+			c.require(x, 100, x + 4, 100);
+		}
 		c.check(g.getLines());
 	}
 
