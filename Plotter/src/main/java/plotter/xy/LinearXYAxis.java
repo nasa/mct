@@ -61,10 +61,6 @@ public class LinearXYAxis extends XYAxis {
 
 	/** Format used to display values in labels. */
 	private NumberFormat format = NumberFormat.getInstance();
-	
-
-	/** Time system axis label name. */
-	private String timeSystemAxisLabelName;
 
 	
 	/**
@@ -342,15 +338,5 @@ public class LinearXYAxis extends XYAxis {
 	 */
 	public void setFormat(NumberFormat format) {
 		this.format = format;
-	}
-	
-	@Override
-	public String getTimeSystemAxisLabelName() {
-		return timeSystemAxisLabelName;
-	}
-	 
-	@Override
-	public void setTimeSystemAxisLabelName(String labelName) {
-		timeSystemAxisLabelName = labelName;
 	}
 }

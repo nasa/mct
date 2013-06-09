@@ -166,7 +166,6 @@ public class QCPlotObjects {
 			if (plot.isTimeLabelEnabled) {
 				SimpleDateFormat format = TimeFormatUtils.makeDataFormat(plot.getTimeFormatSetting());
 				xAxis.setFormat(new DateNumberFormat(format));
-                xAxis.setTimeSystemAxisLabelName(timeSystemId);
 			} else {
 				xAxis.setShowLabels(false);
 			}
@@ -223,7 +222,6 @@ public class QCPlotObjects {
 			if (plot.isTimeLabelEnabled) {
 				SimpleDateFormat format = TimeFormatUtils.makeDataFormat(plot.getTimeFormatSetting());
                 yAxis.setFormat(new DateNumberFormat(format));
-                yAxis.setTimeSystemAxisLabelName(timeSystemId);
 			} else {
 				yAxis.setShowLabels(false);
 			}
