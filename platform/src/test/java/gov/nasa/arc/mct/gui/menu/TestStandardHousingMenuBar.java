@@ -121,6 +121,18 @@ public class TestStandardHousingMenuBar {
     protected void teardown() {
         new PlatformAccess().setPlatform(null);
     }
+    
+    @Test
+    public void testThisMenuNameProperty() {
+        // Check that default is "This"
+        Assert.assertEquals(new ThisMenu().getText(), "This");
+        // Check that property mct.menu.this overrides default
+        System.setProperty("mct.menu.this", "That");
+        Assert.assertEquals(new ThisMenu().getText(), "That");
+        // Check that cleared property still shows default
+        System.clearProperty("mct.menu.this");
+        Assert.assertEquals(new ThisMenu().getText(), "This");
+    }
 
     @Test(expectedExceptions = IllegalStateException.class)
     public void testNullHousing() {

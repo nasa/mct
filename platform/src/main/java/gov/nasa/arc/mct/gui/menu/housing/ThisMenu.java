@@ -25,6 +25,7 @@ import gov.nasa.arc.mct.gui.ActionContext;
 import gov.nasa.arc.mct.gui.ContextAwareMenu;
 import gov.nasa.arc.mct.gui.MenuItemInfo;
 import gov.nasa.arc.mct.gui.MenuItemInfo.MenuItemType;
+import gov.nasa.arc.mct.util.property.MCTProperties;
 import gov.nasa.arc.mct.components.DetectGraphicsDevices;
 
 import java.util.Arrays;
@@ -41,7 +42,8 @@ public class ThisMenu extends ContextAwareMenu {
     private static final ResourceBundle bundle = ResourceBundle.getBundle("gov/nasa/arc/mct/gui/actions/Bundle");
     
     public ThisMenu() {
-        super("This", new String[]{THIS_ADDITIONS});
+        // Note that name can be overridden either through mct.properties or system properties
+        super(MCTProperties.DEFAULT_MCT_PROPERTIES.getProperty("mct.menu.this", bundle.getString("ThisMenu.label")), new String[] { THIS_ADDITIONS });
     }
 
     @Override
