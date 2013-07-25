@@ -196,8 +196,15 @@ public class Inspector extends View {
         if (!isComponentWriteableByUser(view.getManifestedComponent()))
             return;
         
-        Object[] options = {
+        // Show options - Save, Abort, or maybe Save All
+        Object[] options = view.getManifestedComponent().getAllModifiedObjects().isEmpty() ?
+        		new Object[]{
+                BUNDLE.getString("view.modified.alert.save"),            
+                BUNDLE.getString("view.modified.alert.abort"),
+            } :
+        	new Object[]{
                 BUNDLE.getString("view.modified.alert.save"),
+                BUNDLE.getString("view.modified.alert.saveAll"),
                 BUNDLE.getString("view.modified.alert.abort"),
             };
     
@@ -211,7 +218,14 @@ public class Inspector extends View {
         
         if (answer == OptionBox.YES_OPTION) {
             PlatformAccess.getPlatform().getPersistenceProvider().persist(Collections.singleton(view.getManifestedComponent()));
-        }                    
+        } else if (answer < options.length - 1) { // Save All
+            AbstractComponent comp = view.getManifestedComponent();
+            Set<AbstractComponent> allModifiedObjects = comp.getAllModifiedObjects();
+            if (comp.isDirty()) {
+                allModifiedObjects.add(comp);
+            }
+            PlatformAccess.getPlatform().getPersistenceProvider().persist(allModifiedObjects);
+        }
     }
     
     private boolean isComponentWriteableByUser(AbstractComponent component) {

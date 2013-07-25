@@ -22,11 +22,17 @@
 package gov.nasa.arc.mct.core.policy;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
+import gov.nasa.arc.mct.components.collection.Group;
 import gov.nasa.arc.mct.platform.core.access.PlatformAccess;
 import gov.nasa.arc.mct.policy.ExecutionResult;
 import gov.nasa.arc.mct.policy.Policy;
 import gov.nasa.arc.mct.policy.PolicyContext;
 
+/**
+ * A Policy which enforces the rule that certain actions (generally speaking, 
+ * model changes to component) can only be performed by owners, with 
+ * exception for group-owned and wildcard-owned components.
+ */
 public class CheckComponentOwnerIsUserPolicy implements Policy {
 
     @Override
@@ -34,10 +40,17 @@ public class CheckComponentOwnerIsUserPolicy implements Policy {
         AbstractComponent component = context.getProperty(PolicyContext.PropertyName.TARGET_COMPONENT.getName(), AbstractComponent.class);
         if (component == null)
             return new ExecutionResult(context, false, "Invalid component.");
-        // Allow dropping into every object type owned by everyone and duplicating every object type owned by everyone (except drop boxes)
-//        
-        if (!component.getOwner().equals("*") && !component.getOwner().equals(PlatformAccess.getPlatform().getCurrentUser().getUserId()))
-            return new ExecutionResult(context, false, "User does not own this component.");
+
+        // "*" is the wildcard owner, so always allow this
+        // Otherwise, check for a match on owner
+        // Finally, check if there is Group ownership of this component
+        if (!component.getOwner().equals("*") && !component.getOwner().equals(PlatformAccess.getPlatform().getCurrentUser().getUserId())) {
+            Group group = component.getCapability(Group.class); // Check for group ownership
+            if (group == null || !group.getDiscipline().equals(PlatformAccess.getPlatform().getCurrentUser().getDisciplineId())) {
+                return new ExecutionResult(context, false, "User does not own this component.");
+            }
+        }
+            
         
         return new ExecutionResult(context, true, "");
     }
