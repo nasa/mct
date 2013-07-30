@@ -281,6 +281,10 @@ public class InfoView extends View {
         
         // any of the model specific properties could have changed so reload all the properties
         addExtendedContent();
+        
+        // make sure view redraws on screen
+        revalidate();
+        repaint();
     }
     
     @Override
