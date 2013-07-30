@@ -293,7 +293,7 @@
   			<plugin>
   			<groupId>org.apache.maven.plugins</groupId>
   			<artifactId>maven-checkstyle-plugin</artifactId>
-  			<version>2.4</version>
+  			<version>2.6</version> <!--Harleigh: need v2.6 or higher to be compatable with maven 3+-->
   			<executions>
   				<execution>
   					<id>published-api-checks</id>
