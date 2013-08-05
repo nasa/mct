@@ -7,7 +7,10 @@ import gov.nasa.arc.mct.gui.ContextAwareAction;
 import gov.nasa.arc.mct.gui.housing.MCTContentArea;
 import gov.nasa.arc.mct.gui.housing.MCTHousing;
 import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
+import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
+import gov.nasa.arc.mct.policy.PolicyContext;
+import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.services.internal.component.Updatable;
 
 import java.awt.event.ActionEvent;
@@ -33,14 +36,14 @@ public class ThisSaveAllAction extends ContextAwareAction{
         return getCenterPaneComponent() != null;
     }
 
-//    private boolean isComponentWriteableByUser(AbstractComponent component) {
-//        Platform p = PlatformAccess.getPlatform();
-//        PolicyContext policyContext = new PolicyContext();
-//        policyContext.setProperty(PolicyContext.PropertyName.TARGET_COMPONENT.getName(), component);
-//        policyContext.setProperty(PolicyContext.PropertyName.ACTION.getName(), 'w');
-//        String inspectionKey = PolicyInfo.CategoryType.OBJECT_INSPECTION_POLICY_CATEGORY.getKey();
-//        return p.getPolicyManager().execute(inspectionKey, policyContext).getStatus();
-//    }
+    private boolean isComponentWriteableByUser(AbstractComponent component) {
+        Platform p = PlatformAccess.getPlatform();
+        PolicyContext policyContext = new PolicyContext();
+        policyContext.setProperty(PolicyContext.PropertyName.TARGET_COMPONENT.getName(), component);
+        policyContext.setProperty(PolicyContext.PropertyName.ACTION.getName(), 'w');
+        String inspectionKey = PolicyInfo.CategoryType.OBJECT_INSPECTION_POLICY_CATEGORY.getKey();
+        return p.getPolicyManager().execute(inspectionKey, policyContext).getStatus();
+    }
     
     private AbstractComponent getCenterPaneComponent() {
         MCTHousing housing = actionContext.getTargetHousing();
@@ -51,7 +54,20 @@ public class ThisSaveAllAction extends ContextAwareAction{
     @Override
     public boolean isEnabled() {
         AbstractComponent ac = getCenterPaneComponent();
-        return !ac.isStale() && ac.isDirty() || !ac.getAllModifiedObjects().isEmpty();
+        Set<AbstractComponent> modified = ac.getAllModifiedObjects();
+        
+        // Ensure that policy permits saving ALL these components
+        boolean hasOnlyWriteableComponents = isComponentWriteableByUser(ac);
+        if (hasOnlyWriteableComponents) {
+            for (AbstractComponent mod : modified) {
+                if (!isComponentWriteableByUser(mod)) {
+                    hasOnlyWriteableComponents = false;
+                    break;
+                }
+            }
+        }
+                
+        return (!ac.isStale() && ac.isDirty() || !modified.isEmpty()) && hasOnlyWriteableComponents;
     }
 
     /**
