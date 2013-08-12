@@ -25,6 +25,7 @@ public class TestTruncatingLabel {
 		truncatingLabel.setText(TEXT);
 		plainLabel.setText(TEXT);
 		
+    @SuppressWarnings("serial")//Harleigh108: this removes the warning received when we build with respect to java 7:for JPanel
 		JPanel testPanel = new JPanel() {
 			public int getWidth() {
 				return width;

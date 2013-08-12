@@ -264,6 +264,10 @@ public class DatabaseSearchUI extends JPanel implements SelectionProvider {
         removePropertyChangeListener(SelectionProvider.SELECTION_CHANGED_PROP, listener);        
     }
 
+    //Harleigh108: this removes the warning received when we build with respect to java 7; getSelectedValues is now Deprecated in java7
+    //from java7 javadocs (for JList) 'As of JDK 1.7, replaced by getSelectedValuesList()'
+    //Note: we supress this warning to stay compatable with java6
+        @SuppressWarnings("deprecation")
     @Override
     public Collection<View> getSelectedManifestations() {
         Object[] selectedValues = list.getSelectedValues();

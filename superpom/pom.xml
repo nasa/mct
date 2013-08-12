@@ -141,11 +141,22 @@
   				<source>1.6</source>
   				<target>1.6</target>
   				<encoding>ISO-8859-1</encoding>
+                <!-- Harleigh108: Werror has us fail on warnings.  Xlint args: 'all' gives all warnings, but we do not want the
+                     following warnings to appear:
+                       *Warnings for rawtypes (this is from Java7)
+                       *Warnings for unckecked (this is also from Java7)
+                       *Bootstrap warnings (like 'warning: [options] bootstrap class path not set in conjunction with -source 1.6'
+                        which appears when a user runs maven with Java 7, and our Maven is set-up to handle users (still) with Java6)
+                       *Warnings for class-paths
+                 -->
   				<compilerArguments>
-  					<Werror />
-  					<Xlint:all />
-  					<Xlint:-path />
-  				</compilerArguments>
+  				 <Werror />
+                 <Xlint:all />
+                 <Xlint:-rawtypes />
+                 <Xlint:-unchecked />
+                 <Xlint:-options />
+                 <Xlint:-path />
+          </compilerArguments>
             	<showDeprecation>true</showDeprecation>
   			</configuration>
   		</plugin>
