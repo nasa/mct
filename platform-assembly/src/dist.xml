@@ -73,6 +73,16 @@
 	</files>
 
     <dependencySets>
+        <dependencySet>
+    		<outputDirectory>.</outputDirectory>
+    		<useProjectArtifact>true</useProjectArtifact>
+    		<includes>
+				<include>gov.nasa.arc.mct:startup</include>
+    		</includes>
+    		<useTransitiveDependencies>false</useTransitiveDependencies>
+    		<useTransitiveFiltering>false</useTransitiveFiltering>
+    		<fileMode>0777</fileMode>
+    	</dependencySet>
     	<dependencySet>
     		<outputDirectory>lib</outputDirectory>
     		<useProjectArtifact>true</useProjectArtifact>
@@ -92,7 +102,9 @@
     		<outputDirectory>ext</outputDirectory>
     		<useProjectArtifact>false</useProjectArtifact>
     		<includes>
-				<include>mysql:mysql-connector-java</include>
+				<include>org.apache.derby:derby</include>
+				<include>org.apache.derby:derbyclient</include>
+				<include>log4j:log4j</include>
     		</includes>
     		<useTransitiveDependencies>true</useTransitiveDependencies>
     		<useTransitiveFiltering>true</useTransitiveFiltering>

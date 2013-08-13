@@ -393,6 +393,16 @@
         <artifactId>mysql-connector-java</artifactId>
         <version>5.1.16</version>
     </dependency>
+      	<dependency>
+  		<groupId>org.apache.derby</groupId>
+        <artifactId>derby</artifactId>
+        <version>10.8.2.2</version>
+    </dependency>  	
+    <dependency>
+  		<groupId>org.apache.derby</groupId>
+        <artifactId>derbyclient</artifactId>
+        <version>10.8.2.2</version>
+    </dependency>
   	<dependency>
   		<groupId>gov.nasa.arc.mct</groupId>
   		<artifactId>mctCoreTaxonomyProvider</artifactId>

@@ -30,4 +30,7 @@ Bundle-ClassPath:
  	hibernate-c3p0-4.0.1.Final.jar,
  	hibernate-ehcache-4.0.1.Final.jar,
  	ehcache-core-2.4.3.jar,
- 	jboss-transaction-api_1.1_spec-1.0.0.Final.jar
+ 	jboss-transaction-api_1.1_spec-1.0.0.Final.jar,
+ 	mysql-connector-java-5.1.16.jar,
+ 	derby-10.8.2.2.jar,
+ 	derbyclient-10.8.2.2.jar

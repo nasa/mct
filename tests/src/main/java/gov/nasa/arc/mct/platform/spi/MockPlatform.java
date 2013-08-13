@@ -94,6 +94,12 @@ public class MockPlatform implements Platform {
 				// TODO Auto-generated method stub
 				
 			}
+
+			@Override
+			public <T> T showInputDialog(String title, String message,
+					T[] options, T defaultOption) {
+				return defaultOption;
+			}
 		};
 	}
 

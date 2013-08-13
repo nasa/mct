@@ -49,7 +49,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import org.slf4j.Logger;
@@ -72,6 +75,8 @@ public class WindowManagerImpl implements WindowManager {
     static final double NON_LEAF_VERTICAL_SCALE = 0.7;
     private static final double MAX_SCALE_FACTOR = 0.85;
 
+    private static Icon mctIcon = new ImageIcon(WindowManagerImpl.class.getResource("/images/mcticon.png"));
+    
     /**
      * Creates a new instance of the window manager. Protected, to enforce the
      * singleton pattern.
@@ -268,5 +273,11 @@ public class WindowManagerImpl implements WindowManager {
                 }
             }
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T showInputDialog(String title, String message, T[] options, T defaultOption) {
+        return (T) JOptionPane.showInputDialog(null, message, title, JOptionPane.QUESTION_MESSAGE, mctIcon, options, defaultOption);
     }
 }

@@ -29,6 +29,7 @@
 
 package gov.nasa.arc.mct.identitymgr.mcc;
 
+import gov.nasa.arc.mct.identitymgr.IIdentityManager;
 import gov.nasa.arc.mct.identitymgr.impl.IdentityManagerFactory;
 import gov.nasa.arc.mct.util.exception.MCTException;
 
@@ -103,9 +104,11 @@ public class MCCIdentityManagerTest {
         Assert.assertEquals(mccIDManagerSubsystem.getCurrentUser(), initialUser);
     }
 
-    @Test(expectedExceptions = MCTException.class)
+    @Test
     public void badSite() throws MCTException, IOException {
-        IdentityManagerFactory.newIdentityManager("properties/invalid.mcc.properties", null);
+        // We should only load an MCCIdentityManager if site is mcc
+        IIdentityManager manager = IdentityManagerFactory.newIdentityManager("properties/invalid.mcc.properties", null);
+        Assert.assertFalse(manager instanceof MCCIdentityManager);
     }
 
 }
