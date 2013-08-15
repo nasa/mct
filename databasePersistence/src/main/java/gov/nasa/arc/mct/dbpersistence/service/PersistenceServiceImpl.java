@@ -740,10 +740,10 @@ public class PersistenceServiceImpl implements PersistenceProvider {
     	Collection<AbstractComponent> delegateComponets = new ArrayList<AbstractComponent>();
     	for (final AbstractComponent ac : cachedComponents) {
     		Updatable updatable = ac.getCapability(Updatable.class);
-    		updatable.setStaleByVersion(c.getObjVersion());
+    		updatable.setStaleByVersion(c.getComponentId(), c.getObjVersion());
     		cleanCacheIfNecessary(c.getComponentId(), c.getObjVersion());
     		if (ac.getWorkUnitDelegate() != null) {
-    			ac.getWorkUnitDelegate().getCapability(Updatable.class).setStaleByVersion(Integer.MAX_VALUE);
+    			ac.getWorkUnitDelegate().getCapability(Updatable.class).setStaleByVersion(c.getComponentId(), c.getObjVersion());
     			delegateComponets.add(ac.getWorkUnitDelegate());
     		}
     	}

@@ -59,9 +59,11 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -1048,6 +1050,40 @@ public abstract class AbstractComponent implements Cloneable {
             if (getVersion() < version) {
                 AbstractComponent.this.isStale = true ;
             }
+        }
+        
+        @Override
+        public synchronized void setStaleByVersion(String componentId, int version) {
+            AbstractComponent component = findComponentById(componentId);
+            if (component != null && component.getVersion() < version) {
+                AbstractComponent.this.isStale = true ;
+            }
+        }        
+
+        /*  
+         * Search recursively for a component with a specific id. This is used 
+         * to support setStaleByVersion for work unit delegates. In principle this 
+         * search could take a long time, but in practice this will probably not be 
+         * the case as this should only be triggered when incoming changes occur 
+         * in a view which contains the specified components. The component's presence 
+         * in that view should generally imply that the component is not particularly 
+         * deep within the graph (hence the choice of a breadth-first search)
+         */
+        private AbstractComponent findComponentById(String id) {
+            Set<String> ignore = new HashSet<String>();
+            Queue<AbstractComponent> queue = new LinkedList<AbstractComponent>();
+            queue.add(AbstractComponent.this);
+            AbstractComponent toCheck;
+            while ( (toCheck = queue.poll()) != null) {
+                String checkedId = toCheck.getComponentId();
+                if (checkedId.equals(id)) {
+                    return toCheck;
+                } else if (!ignore.contains(checkedId)) {
+                    ignore.add(checkedId);
+                    queue.addAll(toCheck.getComponents());
+                }
+            }
+            return null;            
         }
     }    
     

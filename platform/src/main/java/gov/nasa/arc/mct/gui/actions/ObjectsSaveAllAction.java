@@ -12,7 +12,6 @@ import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.services.internal.component.Updatable;
 
 import java.awt.event.ActionEvent;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -87,17 +86,17 @@ public class ObjectsSaveAllAction extends ContextAwareAction{
     @Override
     public void actionPerformed(ActionEvent e) {
         AbstractComponent ac = getInspectorComponent();        
-        Set<AbstractComponent> allModifiedObjects = ac.getAllModifiedObjects();
-        if (ac.isDirty()) {
-            if (allModifiedObjects == Collections.EMPTY_SET)
-                allModifiedObjects = new HashSet<AbstractComponent>();
-            allModifiedObjects.add(ac);
-        }
-        try {            
+        
+        Set<AbstractComponent> allModifiedObjects = new HashSet<AbstractComponent>();
+        allModifiedObjects.addAll(ac.getAllModifiedObjects());
+        allModifiedObjects.add(ac);
+
+        try {
             PlatformAccess.getPlatform().getPersistenceProvider().persist(allModifiedObjects);
         } catch (OptimisticLockException ole) {
             handleStaleObject(ac);
         }
+        
         ac.notifiedSaveAllSuccessful();
     }
 
