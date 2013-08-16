@@ -306,8 +306,18 @@ class FeedRenderingPool {
         return requiredSubscriptions;
     }
     
+    /**
+     * Get the current subscription manager (may return null)
+     * @return the current subscription manager, or null if these is none
+     */
     SubscriptionManager getSubscriptionManager() {
-        return PlatformAccess.getPlatform().getSubscriptionManager();
+        try {
+            return PlatformAccess.getPlatform().getSubscriptionManager();
+        } catch (IllegalStateException ise) {
+            // This may happen if OSGi is shutting down,
+            // which occurs on a separate thread.
+            return null;
+        }
     }
     
     /**

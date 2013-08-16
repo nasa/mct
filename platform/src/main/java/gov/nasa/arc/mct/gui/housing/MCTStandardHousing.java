@@ -37,7 +37,7 @@ import gov.nasa.arc.mct.gui.TwiddleView;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.ViewProvider;
 import gov.nasa.arc.mct.gui.housing.registry.UserEnvironmentRegistry;
-import gov.nasa.arc.mct.osgi.platform.EquinoxOSGIRuntimeImpl;
+import gov.nasa.arc.mct.osgi.platform.OSGIRuntimeImpl;
 import gov.nasa.arc.mct.osgi.platform.OSGIRuntime;
 import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
@@ -193,7 +193,7 @@ public class MCTStandardHousing extends MCTAbstractHousing implements TwiddleVie
     
                         switch (answer) {
                         case OptionBox.YES_OPTION:
-                            OSGIRuntime osgiRuntime = EquinoxOSGIRuntimeImpl.getOSGIRuntime();
+                            OSGIRuntime osgiRuntime = OSGIRuntimeImpl.getOSGIRuntime();
                             try {
                                 osgiRuntime.stopOSGI();
                             } catch (Exception e1) {

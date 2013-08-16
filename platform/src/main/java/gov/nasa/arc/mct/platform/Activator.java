@@ -6,7 +6,7 @@ import gov.nasa.arc.mct.exception.DefaultExceptionHandler;
 import gov.nasa.arc.mct.gui.FeedManagerImpl;
 import gov.nasa.arc.mct.gui.impl.MenuExtensionManager;
 import gov.nasa.arc.mct.identitymgr.impl.IdentityManagerFactory;
-import gov.nasa.arc.mct.osgi.platform.EquinoxOSGIRuntimeImpl;
+import gov.nasa.arc.mct.osgi.platform.OSGIRuntimeImpl;
 import gov.nasa.arc.mct.platform.spi.PersistenceProvider;
 import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
@@ -63,7 +63,7 @@ public class Activator implements BundleActivator {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        EquinoxOSGIRuntimeImpl.getOSGIRuntime().setBundleContext(bc);
+        OSGIRuntimeImpl.getOSGIRuntime().setBundleContext(bc);
         bc.registerService(new String[] { gov.nasa.arc.mct.services.component.ComponentRegistry.class
                 .getName() }, ExternalComponentRegistryImpl.getInstance(), d);
 

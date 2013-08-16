@@ -43,8 +43,8 @@ import org.osgi.framework.BundleException;
 import org.osgi.framework.InvalidSyntaxException;
 import org.osgi.framework.ServiceReference;
 
-public class EquinoxOSGIRuntimeImpl implements OSGIRuntime {
-    private static final MCTLogger logger = MCTLogger.getLogger(EquinoxOSGIRuntimeImpl.class);
+public class OSGIRuntimeImpl implements OSGIRuntime {
+    private static final MCTLogger logger = MCTLogger.getLogger(OSGIRuntimeImpl.class);
 
     /**
      * A directory along the classpath where we expect to find additional
@@ -57,9 +57,9 @@ public class EquinoxOSGIRuntimeImpl implements OSGIRuntime {
     /** Amount of time to wait for framework to stop when stopping the framework. */
     private static final long FRAMEWORK_STOP_WAIT_TIME = 5000;
 
-    private static EquinoxOSGIRuntimeImpl osgiRuntime = new EquinoxOSGIRuntimeImpl();
+    private static OSGIRuntimeImpl osgiRuntime = new OSGIRuntimeImpl();
 
-    public static EquinoxOSGIRuntimeImpl getOSGIRuntime() {
+    public static OSGIRuntimeImpl getOSGIRuntime() {
         return osgiRuntime;
     }
 
@@ -234,9 +234,26 @@ public class EquinoxOSGIRuntimeImpl implements OSGIRuntime {
 
     @Override
     public void stopOSGI() throws BundleException, InterruptedException {
-        //framework.stop();
-        //framework.waitForStop(FRAMEWORK_STOP_WAIT_TIME);
-        //framework = null;
+        // Stop all active bundles
+        if (bc != null) {
+            Bundle[] bundles = bc.getBundles();
+            // Stop bundles in reverse order (plugins, platform, osgi)
+            // Doing so in the opposite order will generate errors
+            // (due to stopping SCR before other bundles.)
+            for (int i = bundles.length - 1; i >= 0; i--) {
+                Bundle bundle = bundles[i];
+                // Fragments do not participate in bundle lifecycle
+                if (!isFragment(bundle) && bundle.getState() == Bundle.ACTIVE) {
+                    try {
+                        bundle.stop();
+                        logger.debug("Stopped bundle " + bundle.getLocation());
+                    } catch (BundleException ex) {
+                        logger.error(ex, "Error stopping bundle {0}", bundle.getLocation());
+                    }
+                }
+            
+            }
+        }
         bc = null;
     }
 

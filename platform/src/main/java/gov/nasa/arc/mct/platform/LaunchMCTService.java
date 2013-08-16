@@ -24,7 +24,7 @@ import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.context.GlobalContext;
 import gov.nasa.arc.mct.gui.impl.MenuExtensionManager;
 import gov.nasa.arc.mct.gui.impl.StatusAreaWidgetRegistryImpl;
-import gov.nasa.arc.mct.osgi.platform.EquinoxOSGIRuntimeImpl;
+import gov.nasa.arc.mct.osgi.platform.OSGIRuntimeImpl;
 import gov.nasa.arc.mct.osgi.platform.OSGIRuntime;
 import gov.nasa.arc.mct.platform.spi.PersistenceProvider;
 import gov.nasa.arc.mct.platform.spi.Platform;
@@ -177,7 +177,7 @@ public class LaunchMCTService {
     }
     
     private void startOptionalModules() {
-        OSGIRuntime osgiRuntime = EquinoxOSGIRuntimeImpl.getOSGIRuntime();
+        OSGIRuntime osgiRuntime = OSGIRuntimeImpl.getOSGIRuntime();
         osgiRuntime.startExternalBundles();
     }
     
