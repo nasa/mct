@@ -1,6 +1,9 @@
 package gov.nasa.arc.mct.defaults.view;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
+import gov.nasa.arc.mct.components.PropertyDescriptor;
+import gov.nasa.arc.mct.components.PropertyDescriptor.VisualControlDescriptor;
+import gov.nasa.arc.mct.components.PropertyEditor;
 import gov.nasa.arc.mct.context.GlobalContext;
 import gov.nasa.arc.mct.platform.spi.RoleAccess;
 import gov.nasa.arc.mct.platform.spi.RoleService;
@@ -8,14 +11,43 @@ import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 import gov.nasa.arc.mct.services.internal.component.User;
 
+import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JTextField;
 
 import org.mockito.Mockito;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public class TestInfoView {
+    // This is just elaborate mocking to avoid NPEs
+    User mockUser = Mockito.mock(User.class);
+    RoleService mockRoleService = Mockito.mock(RoleService.class);   
+    AbstractComponent comp = Mockito.mock(AbstractComponent.class);
+    ViewInfo info = new ViewInfo(InfoView.class, "Info", ViewType.CENTER);
+        
+    @BeforeMethod
+    public void setup() {
+        // Setup minimum expected environment for info view
+        Mockito.when(comp.getOwner()).thenReturn("*");
+        Mockito.when(comp.getComponentTypeID()).thenReturn("");   
+        Mockito.when(mockUser.getUserId()).thenReturn("");
+        Mockito.when(mockRoleService.getAllUsers()).thenReturn(Collections.singleton(""));
+        GlobalContext.getGlobalContext().switchUser(mockUser, Mockito.mock(Runnable.class));
+        new RoleAccess().addRoleService(mockRoleService);
+    }
+    
     @Test
     public void testUpdateMonitoredGUI() {
         /* This test ensures that updateMonitoredGUI triggers revalidate/repaint */
@@ -23,20 +55,7 @@ public class TestInfoView {
         final AtomicInteger repaintCalls = new AtomicInteger(0);
         final AtomicInteger revalidateCalls = new AtomicInteger(0);
         
-        // This is just elaborate mocking to avoid NPEs
-        User mockUser = Mockito.mock(User.class);
-        RoleService mockRoleService = Mockito.mock(RoleService.class);
-        Mockito.when(mockUser.getUserId()).thenReturn("");
-        Mockito.when(mockRoleService.getAllUsers()).thenReturn(Collections.singleton(""));
-        GlobalContext.getGlobalContext().switchUser(mockUser, Mockito.mock(Runnable.class));
-        new RoleAccess().addRoleService(mockRoleService);
-        
-        AbstractComponent comp = Mockito.mock(AbstractComponent.class);
-        ViewInfo info = new ViewInfo(InfoView.class, "Info", ViewType.CENTER);
-        
-        Mockito.when(comp.getOwner()).thenReturn("*");
-        Mockito.when(comp.getComponentTypeID()).thenReturn("");
-        
+       
         // We can't mock InfoView because we want to test its code, but we 
         // do want to verify that methods of its Swing superclass are invoked. 
         InfoView infoView = new InfoView(comp, info) {
@@ -57,5 +76,138 @@ public class TestInfoView {
         infoView.updateMonitoredGUI();
         Assert.assertEquals(repaintCalls.get(), 1);
         Assert.assertEquals(revalidateCalls.get(), 1);        
+    }
+    
+    @Test (dataProvider = "getExtendedFieldTestCases")
+    public void testExtendedFieldRefresh(VisualControlDescriptor a, VisualControlDescriptor b) {
+        // Verify that making a change to the second extended property
+        // triggers an update in the first extended property.
+        
+        List<PropertyDescriptor> mockDescriptors = Arrays.asList(buildMockDescriptor(a), buildMockDescriptor(b));       
+        
+        Mockito.when(comp.getFieldDescriptors()).thenReturn(mockDescriptors);
+        PropertyDescriptor lastPropertyDescriptor = mockDescriptors.get(mockDescriptors.size() - 1);        
+        
+        // Build a new info view
+        InfoView infoView = new InfoView(comp, info);
+        
+        // First, verify that the appropriate get method has been called
+        // (this implies that info view was populated with extended descriptors upon instantiation)
+        for (PropertyDescriptor mockDescriptor : mockDescriptors) {
+            switch (mockDescriptor.getVisualControlDescriptor()) {
+            case CheckBox:
+            case ComboBox:
+                Mockito.verify(mockDescriptor.getPropertyEditor(), Mockito.times(1)).getValue();
+                break;
+            case Label:
+            case TextField:
+                Mockito.verify(mockDescriptor.getPropertyEditor(), Mockito.times(1)).getAsText();
+                break;
+            }
+        }
+        
+        ActionEvent mockEvent = Mockito.mock(ActionEvent.class);
+        
+        // Act as if user changed a property
+        switch (lastPropertyDescriptor.getVisualControlDescriptor()) {
+        case CheckBox: {
+            JCheckBox checkBox = findLastComponentOfType(infoView, JCheckBox.class);
+            checkBox.doClick();
+            break;
+        }
+        case ComboBox: {
+            JComboBox comboBox = findLastComponentOfType(infoView, JComboBox.class);
+            comboBox.setSelectedItem("other");
+            break;            
+        }
+        case Label: {
+            // Non-editable
+            break;
+        }
+        case TextField: {
+            JTextField textField = findLastComponentOfType(infoView, JTextField.class);
+            textField.setText("changed");
+            for (ActionListener listener : textField.getActionListeners()) {
+                listener.actionPerformed(mockEvent);
+            }
+            break;
+        }
+        }
+        
+        // Verify that some get method has been called on the OTHER mock
+        // (this implies that changes to one field cause others to be refreshed)
+        // Since labels cannot be edited, we don't expect this to occur 
+        // if the property in the last position was a label. In that case, 
+        // it is expected that get methods have not been called again.
+        int expectedTimes = (lastPropertyDescriptor.getVisualControlDescriptor() == VisualControlDescriptor.Label) ?
+                1 : 2;
+        PropertyDescriptor mockDescriptor = mockDescriptors.get(0);
+        switch (mockDescriptor.getVisualControlDescriptor()) {
+        case CheckBox:
+            Mockito.verify(mockDescriptor.getPropertyEditor(), Mockito.times(expectedTimes)).getValue();
+            break;
+        case ComboBox:
+            Mockito.verify(mockDescriptor.getPropertyEditor(), Mockito.times(expectedTimes)).getValue();
+            break;
+        case Label:
+            Mockito.verify(mockDescriptor.getPropertyEditor(), Mockito.times(expectedTimes)).getAsText();
+            break;
+        case TextField:
+            Mockito.verify(mockDescriptor.getPropertyEditor(), Mockito.times(expectedTimes)).getAsText();
+            break;
+        }
+            
+        
+        
+    }
+    
+    /*
+     * Find the last, deepest component of a given type in the Swing hierarchy.
+     * Used to identify a property field (which are placed after the default fields
+     * in info view.)
+     * If InfoView layout changes, this will need to change too.
+     */
+    private <T extends JComponent> T findLastComponentOfType(JComponent container, Class<T> componentClass) {
+        T result = componentClass.isAssignableFrom(container.getClass()) ? componentClass.cast(container) : null;
+        
+        for (Component c : container.getComponents()) {
+            if (c instanceof JComponent) {
+                T candidate = findLastComponentOfType((JComponent) c, componentClass);
+                result = candidate != null ? candidate : result;
+            }
+        }
+        
+        return result;        
+    }
+    
+    @DataProvider
+    public Object[][] getExtendedFieldTestCases() {
+        // Test all combinations of two VCDs
+        Object[][] testCases = new Object[VisualControlDescriptor.values().length * VisualControlDescriptor.values().length][2];
+        int i = 0;
+        for (VisualControlDescriptor a : VisualControlDescriptor.values()) {
+            for (VisualControlDescriptor b : VisualControlDescriptor.values()) {
+                testCases[i  ][0] = a;
+                testCases[i++][1] = b;
+            }            
+        }
+        return testCases;
+    }
+    
+    private PropertyDescriptor buildMockDescriptor(VisualControlDescriptor vcd) {
+        PropertyDescriptor mockDescriptor = Mockito.mock(PropertyDescriptor.class);
+        PropertyEditor mockEditor = Mockito.mock(PropertyEditor.class);
+        
+        Mockito.when(mockDescriptor.getShortDescription()).thenReturn("mock");
+        Mockito.when(mockDescriptor.getVisualControlDescriptor()).thenReturn(vcd);
+        Mockito.when(mockDescriptor.getPropertyEditor()).thenReturn(mockEditor);
+        Mockito.when(mockDescriptor.isFieldMutable()).thenReturn(true);
+        
+        // Change the result of get() method, to trigger refresh
+        Mockito.when(mockEditor.getTags()).thenReturn(Arrays.asList("mock", "other"));
+        Mockito.when(mockEditor.getAsText()).thenReturn("mock");
+        Mockito.when(mockEditor.getValue()).thenReturn(vcd != VisualControlDescriptor.CheckBox ? "mock" : Boolean.TRUE);       
+        
+        return mockDescriptor;
     }
 }

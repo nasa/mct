@@ -53,6 +53,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
 import java.util.concurrent.Callable;
@@ -110,6 +111,7 @@ public class InfoView extends View {
     private String initialDisplayNameText;
     private String initialOwnerText;
     private Map<JComponent,Object> extendedFieldCache = new HashMap<JComponent,Object>();
+    private Map<PropertyDescriptor, JComponent> extendedFieldComponents = new HashMap<PropertyDescriptor, JComponent>();
     private Color borderUIColor = UIManager.getColor("border");
     private Color bgUIColor = UIManager.getColor("TextField.background");
     private Color fgUIColor = UIManager.getColor("TextField.foreground");
@@ -503,6 +505,43 @@ public class InfoView extends View {
         extendedProperties.invalidate();
     }
 
+    /**
+     * Refresh extended fields. Called after making changes to a component, in case 
+     * there are interdependencies between fields (sometimes changing one field 
+     * may also indirectly change another, depending on component implementation.)
+     */
+    private void refreshExtendedFields() {
+        for (Entry<PropertyDescriptor, JComponent> visualComponent : this.extendedFieldComponents.entrySet()) {
+            populateVisualComponent(visualComponent.getValue(), visualComponent.getKey());
+        }
+    }
+    
+    private void populateVisualComponent(JComponent component, PropertyDescriptor p) {
+        Object newValue = null;
+        // Set the visual component (specific method calls vary by component type)
+        // Note that the methods used here should not trigger action listeners on the component!
+        switch (p.getVisualControlDescriptor()) {
+        case Label: {
+            ((JLabel)component).setText((String) (newValue = p.getPropertyEditor().getAsText()));
+            break;
+        }
+        case TextField: {
+            ((JTextField)component).setText((String) (newValue = p.getPropertyEditor().getAsText()));
+            break;
+        }
+        case CheckBox: {
+            ((JCheckBox)component).setSelected((Boolean) (newValue = p.getPropertyEditor().getValue()));
+            break;
+        }
+        case ComboBox: {
+            ((JComboBox)component).getModel().setSelectedItem(newValue = p.getPropertyEditor().getValue());
+            break;
+        }
+        }
+        // Cache the new value (will be used if validation fails)
+        extendedFieldCache.put(component, newValue);
+    }
+    
     private JComponent makeVisualComponent(PropertyDescriptor p) {
         JComponent jComponent = null;
         VisualControlDescriptor visualControlDescriptorType = p.getVisualControlDescriptor();
@@ -589,6 +628,8 @@ public class InfoView extends View {
         }
         }
         
+        extendedFieldComponents.put(p, jComponent);
+        
         return jComponent;
     }
 
@@ -625,7 +666,7 @@ public class InfoView extends View {
                         ed.setValue(currentSelection); 
                         extendedFieldCache.put(key, currentSelection);
                         getManifestedComponent().save();
-                        
+                        refreshExtendedFields();
                     } catch (IllegalArgumentException e1) {
                         jComponent.setSelected(prev);
                         ed.setValue(prev);
@@ -650,6 +691,7 @@ public class InfoView extends View {
                         ed.setValue(currentSelection); 
                         extendedFieldCache.put(key, currentSelection);
                         getManifestedComponent().save();
+                        refreshExtendedFields();
 
                     } catch (IllegalArgumentException e1) {
                         jComponent.setSelectedItem(prev);
@@ -670,6 +712,7 @@ public class InfoView extends View {
                 ed.setAsText(currentText); 
                 extendedFieldCache.put(jComponent, (Object)currentText); 
                 getManifestedComponent().save();
+                refreshExtendedFields();
             } catch (IllegalArgumentException e1) {
                 jComponent.setText(prev);
                 ed.setAsText(prev);
