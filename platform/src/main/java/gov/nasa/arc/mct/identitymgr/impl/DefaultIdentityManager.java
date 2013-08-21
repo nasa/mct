@@ -37,7 +37,7 @@ public class DefaultIdentityManager extends IdentityManager {
             Object[] users = persistence.getAllUsers().toArray();
             if (users.length > 0) {
                 Arrays.sort(users);
-                username = (String) windowing.showInputDialog(bundle.getString("TITLE"), bundle.getString("QUESTION"), users, users[0]); //NOI18N
+                username = (String) windowing.showInputDialog(bundle.getString("TITLE"), bundle.getString("QUESTION"), users, users[0], null); //NOI18N
             }
         }        
         

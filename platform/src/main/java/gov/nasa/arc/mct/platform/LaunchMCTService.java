@@ -60,6 +60,7 @@ public class LaunchMCTService {
     private boolean componentProvidersChanged = false;
     private boolean requiresRefresh = false;
     private boolean pluginsLoaded = false;
+    private boolean haveInitialized = false;
     private Timer t;
             
     public void bind(PersistenceProvider provider) {
@@ -99,12 +100,16 @@ public class LaunchMCTService {
                              requiresRefresh = true;
                              t.cancel();
                              t = null;
-                             SwingUtilities.invokeLater(new Runnable() {
-                                 @Override
-                                 public void run() {
-                                     initUserInterface();
-                                 }
-                             });
+                             if (!haveInitialized) { // Only init once
+                                 haveInitialized = true;
+                                 
+                                 SwingUtilities.invokeLater(new Runnable() {
+                                     @Override
+                                     public void run() {
+                                         initUserInterface();
+                                     }
+                                 });
+                             }
                          }
                      }
                  }

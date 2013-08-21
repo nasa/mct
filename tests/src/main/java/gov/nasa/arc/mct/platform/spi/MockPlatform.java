@@ -97,7 +97,7 @@ public class MockPlatform implements Platform {
 
 			@Override
 			public <T> T showInputDialog(String title, String message,
-					T[] options, T defaultOption) {
+					T[] options, T defaultOption, Map<String, Object> hints) {
 				return defaultOption;
 			}
 		};

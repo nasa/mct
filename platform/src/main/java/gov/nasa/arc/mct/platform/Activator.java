@@ -24,6 +24,7 @@ import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 
@@ -76,8 +77,30 @@ public class Activator implements BundleActivator {
     }
 
     @Override
-    public void stop(BundleContext arg0) throws Exception {
-    	
+    public void stop(final BundleContext bc) throws Exception {
+        // Once the platform bundle stops, we expect MCT shut down.
+        // Timer is used to make sure all bundles have been stopped,
+        // then System.exit() is invoked to ensure that any leaked 
+        // background threads keep the process alive.
+        t.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    // Don't exit if any bundles have no completely stopped
+                    for (Bundle b : bc.getBundles()) {
+                        switch (b.getState()) {
+                        case Bundle.ACTIVE:
+                        case Bundle.STARTING:
+                        case Bundle.STOPPING:
+                            return;
+                        }
+                    }
+                } catch (IllegalStateException ise) {
+                    // This just implies that bundle shutdown was already complete
+                }
+                System.exit(0);
+            }            
+        }, 0, 200);        
     }
 
 }

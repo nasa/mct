@@ -9,6 +9,7 @@ import gov.nasa.arc.mct.services.internal.component.User;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -80,21 +81,21 @@ public class TestDefaultIdentityManager {
         // No input dialog should be shown if there are no users in the DB
         Mockito.when(mockPersistence.getAllUsers()).thenReturn(Collections.<String>emptySet());        
         new DefaultIdentityManager(mockProperties);        
-        Mockito.verify(mockWindowing, Mockito.never()).showInputDialog(Mockito.anyString(), Mockito.anyString(), Mockito.<Object[]>any(), Mockito.any());
+        Mockito.verify(mockWindowing, Mockito.never()).showInputDialog(Mockito.anyString(), Mockito.anyString(), Mockito.<Object[]>any(), Mockito.any(), Mockito.<Map<String,Object>>any());
     }
     
     @Test
     public void testDialogForUsers() {
         // If multiple users are present, input dialog should be shown                     
         new DefaultIdentityManager(mockProperties);        
-        Mockito.verify(mockWindowing, Mockito.times(1)).showInputDialog(Mockito.anyString(), Mockito.anyString(), Mockito.<Object[]>any(), Mockito.any());
+        Mockito.verify(mockWindowing, Mockito.times(1)).showInputDialog(Mockito.anyString(), Mockito.anyString(), Mockito.<Object[]>any(), Mockito.any(), Mockito.<Map<String,Object>>any());
     }
     
     @Test
     public void testSelectionForUsers() {
         // Verify that IdentityManager matches selection from shown dialog               
         for (int i = 0; i < 3; i++) {
-            Mockito.when(mockWindowing.showInputDialog(Mockito.anyString(), Mockito.anyString(), Mockito.<Object[]>any(), Mockito.any())).thenReturn(users[i]);
+            Mockito.when(mockWindowing.showInputDialog(Mockito.anyString(), Mockito.anyString(), Mockito.<Object[]>any(), Mockito.any(), Mockito.<Map<String,Object>>any())).thenReturn(users[i]);
             IdentityManager identityManager = new DefaultIdentityManager(mockProperties);        
             Assert.assertEquals(identityManager.getCurrentUser(), users[i]);
             Assert.assertEquals(identityManager.getCurrentGroup(), groups[i]);
@@ -108,7 +109,7 @@ public class TestDefaultIdentityManager {
             Mockito.when(mockProperties.getProperty("mct.user")).thenReturn(users[i]);
             IdentityManager identityManager = new DefaultIdentityManager(mockProperties);   
             // Input dialog should not be shown - mct.user was set!
-            Mockito.verify(mockWindowing, Mockito.never()).showInputDialog(Mockito.anyString(), Mockito.anyString(), Mockito.<Object[]>any(), Mockito.any());
+            Mockito.verify(mockWindowing, Mockito.never()).showInputDialog(Mockito.anyString(), Mockito.anyString(), Mockito.<Object[]>any(), Mockito.any(), Mockito.<Map<String,Object>>any());
             
             // But we should still have "loaded" the requested user
             Assert.assertEquals(identityManager.getCurrentUser(), users[i]);

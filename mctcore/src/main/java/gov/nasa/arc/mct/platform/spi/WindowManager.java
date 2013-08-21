@@ -26,6 +26,7 @@ import gov.nasa.arc.mct.gui.View;
 
 import java.awt.Component;
 import java.awt.GraphicsConfiguration;
+import java.util.Map;
 
 /**
  * The <code>WindowManager</code> interface represents the window manager provided by
@@ -90,7 +91,9 @@ public interface WindowManager {
      * @param message the message to display describing the question
      * @param options the set of options available to the user
      * @param defaultOption the option which should be selected by default
+     * @param hints used for platform-specific hints; may be null (same as "no hints")
      * @return the option chosen by the user (null if cancelled)
      */
-    public <T> T showInputDialog(String title, String message, T[] options, T defaultOption);
+    public <T> T showInputDialog(String title, String message, T[] options, T defaultOption, Map<String, Object> hints);
+    
 }

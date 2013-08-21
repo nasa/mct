@@ -22,6 +22,7 @@
 package gov.nasa.arc.mct.gui.impl;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
+import gov.nasa.arc.mct.gui.OptionBox;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.housing.MCTAbstractHousing;
 import gov.nasa.arc.mct.gui.housing.MCTHousing;
@@ -47,6 +48,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.Icon;
@@ -76,6 +78,11 @@ public class WindowManagerImpl implements WindowManager {
     private static final double MAX_SCALE_FACTOR = 0.85;
 
     private static Icon mctIcon = new ImageIcon(WindowManagerImpl.class.getResource("/images/mcticon.png"));
+    
+    // Hints for showInputDialog
+    public static final String PARENT_COMPONENT = "PARENT_COMPONENT";
+    public static final String OPTION_TYPE = "OPTION_TYPE";
+    public static final String MESSAGE_TYPE = "MESSAGE_TYPE";
     
     /**
      * Creates a new instance of the window manager. Protected, to enforce the
@@ -277,7 +284,46 @@ public class WindowManagerImpl implements WindowManager {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T showInputDialog(String title, String message, T[] options, T defaultOption) {
-        return (T) JOptionPane.showInputDialog(null, message, title, JOptionPane.QUESTION_MESSAGE, mctIcon, options, defaultOption);
+    public <T> T showInputDialog(String title, String message, T[] options, T defaultOption, Map<String, Object> hints) {
+        // Consider platform-specific behavior
+        if (hints != null) {
+            // Parent swing component (for modal-style dialogs)            
+            Component parentComponent = null;
+            Object parent = hints.get(PARENT_COMPONENT);
+            if (parent != null && parent instanceof Component) {
+                parentComponent = (Component) parent;
+            }
+            
+            // Options indicator (OptionBox.YES_NO_OPTION, for example)
+            Integer optionType = null;
+            Object optionObj = hints.get(OPTION_TYPE);
+            if (optionObj != null && optionObj instanceof Integer) {
+                optionType = (Integer) optionObj;
+            }
+            
+            // Options indicator (OptionBox.YES_NO_OPTION, for example)
+            Integer messageType = null;
+            Object messageObj = hints.get(MESSAGE_TYPE);
+            if (messageObj != null && messageObj instanceof Integer) {
+                messageType = (Integer) messageObj;
+            }
+            
+            // Only use OptionBox if some known hint has been set
+            if (parentComponent != null || optionType != null || messageType != null) {
+                int answer = OptionBox.showOptionDialog(parentComponent, 
+                        message,  
+                        title,   
+                        optionType != null ? optionType.intValue() : OptionBox.OK_CANCEL_OPTION,
+                        messageType != null ? messageType.intValue() : OptionBox.INFORMATION_MESSAGE, 
+                        messageType == null ? mctIcon : null, // Let icon be chosen by Swing, IF message type is set 
+                        options, 
+                        defaultOption);
+                
+                return answer >= 0 && answer < options.length ? options[answer] : null;
+            }
+        }
+        
+        // Otherwise, fall back to generic dialog
+        return (T) JOptionPane.showInputDialog(null, message, title, JOptionPane.QUESTION_MESSAGE, mctIcon, options, defaultOption);        
     }
 }
