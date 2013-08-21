@@ -166,7 +166,10 @@ public class GraphicalControlPanelTest {
 			
 		for (String propertyName : dropDowns) {
 			Assert.assertNull   (viewProperties.getProperty(propertyName, String.class));
-			window.comboBox(propertyName).selectItem(4); // Note, this is sensitive to defaults (only calls on change)
+			// Note, this is sensitive to defaults (only calls on change)
+			// So, we do it at least twice every time
+			window.comboBox(propertyName).selectItem(1); 
+			window.comboBox(propertyName).selectItem(2); 
 			Assert.assertNotNull(viewProperties.getProperty(propertyName, String.class));					
 		}
 
