@@ -24,15 +24,15 @@ package gov.nasa.arc.mct.gui.dialogs;
 
 import gov.nasa.arc.mct.services.component.CreateWizardUI;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -49,7 +49,8 @@ import javax.swing.JPanel;
 public class NewObjectDialog extends JDialog {
     
     private static final ResourceBundle bundle;
-
+    private static final int PADDING = 12;
+    
     private final JButton create = new JButton();
     private final CreateWizardUI wizard;
     private boolean confirm = false;
@@ -98,10 +99,12 @@ public class NewObjectDialog extends JDialog {
         controlPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
         controlPanel.add(create);
         controlPanel.add(cancel);
-
-        setLayout(new GridLayout(2, 1));
-        add(wizard.getUI(create));
-        add(controlPanel);
+        
+        // Allocate most available space to wizard's UI, with create/cancel on the bottom
+        setLayout(new BorderLayout());
+        getRootPane().setBorder(BorderFactory.createEmptyBorder(PADDING,PADDING,PADDING-1,PADDING-1));
+        add(wizard.getUI(create), BorderLayout.CENTER);
+        add(controlPanel, BorderLayout.SOUTH); 
 
         // Set Create button as default to respond to enter key
         this.getRootPane().setDefaultButton(create);
@@ -110,10 +113,15 @@ public class NewObjectDialog extends JDialog {
         create.setName("createButton");
         cancel.setName("cancelButton");
 
+        // Pack window to fit contents and position
         pack();
         setLocationRelativeTo(frame);
-        setSize(new Dimension((int) (getTitle().length() * 11.0), (int) getSize().getHeight()));
-     
+        
+        // Make sure there is room for the title
+        int estimatedTitleWidth = getTitle().length() * 10;
+        if (getSize().getWidth() < estimatedTitleWidth) {
+            setSize(new Dimension(estimatedTitleWidth, (int) getSize().getHeight()));
+        } 
     }
     
     public boolean getConfirm(){
