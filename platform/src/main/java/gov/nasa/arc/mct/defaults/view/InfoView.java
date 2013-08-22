@@ -40,8 +40,10 @@ import gov.nasa.arc.mct.util.LookAndFeelSettings;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -62,15 +64,22 @@ import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.BasicArrowButton;
+import javax.swing.plaf.basic.BasicScrollBarUI;
 import javax.swing.text.Document;
+import javax.swing.text.JTextComponent;
 import javax.swing.text.PlainDocument;
 
 import org.slf4j.Logger;
@@ -465,6 +474,7 @@ public class InfoView extends View {
     private void addExtendedContent() {
         extendedProperties.removeAll();
         extendedFieldCache.clear();
+        extendedFieldComponents.clear();
         List<PropertyDescriptor> fields = getManifestedComponent().getFieldDescriptors();
         if (fields == null) {
             return;
@@ -537,19 +547,25 @@ public class InfoView extends View {
             ((JComboBox)component).getModel().setSelectedItem(newValue = p.getPropertyEditor().getValue());
             break;
         }
+        case TextArea: {
+            ((JTextArea)component).setText((String) (newValue = p.getPropertyEditor().getAsText()));
+            break;
+        }
         }
         // Cache the new value (will be used if validation fails)
         extendedFieldCache.put(component, newValue);
     }
     
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private JComponent makeVisualComponent(PropertyDescriptor p) {
         JComponent jComponent = null;
         VisualControlDescriptor visualControlDescriptorType = p.getVisualControlDescriptor();
         boolean isPrivateAndMutable = p.isFieldMutable();
 
+        PropertyEditor<Object> ed = (PropertyEditor<Object>) p.getPropertyEditor();
+        
         switch (visualControlDescriptorType) {
         case Label: {
-            PropertyEditor<?> ed = p.getPropertyEditor();
             String valueText = ed.getAsText();
             jComponent = new JLabel(valueText);
             jComponent.setEnabled(true);
@@ -557,7 +573,6 @@ public class InfoView extends View {
             break;
         }
         case TextField: {
-            PropertyEditor<?> ed = p.getPropertyEditor();
             String valueText = ed.getAsText();
             jComponent = new JTextField(valueText, DISPLAY_NAME_LENGTH);
             if (p.isFieldMutable()) {
@@ -573,7 +588,6 @@ public class InfoView extends View {
             break;
         }
         case CheckBox: {
-            PropertyEditor<?> ed = p.getPropertyEditor();
             Boolean isSelected = (Boolean) ed.getValue();
             jComponent = new JCheckBox();
             ((JCheckBox)jComponent).setSelected(isSelected); 
@@ -590,8 +604,6 @@ public class InfoView extends View {
             break;
         }
         case ComboBox: {
-            @SuppressWarnings("unchecked")
-            PropertyEditor<Object> ed = (PropertyEditor<Object>) p.getPropertyEditor();
             List <Object> comboItems = ed.getTags();
             jComponent = new JComboBox(comboItems.toArray(new String[comboItems.size()]));
             JComboBox combo = (JComboBox)jComponent;
@@ -625,10 +637,47 @@ public class InfoView extends View {
                     b.setBorder(new EmptyBorder(0, 0,0,0)); //match look of text fields
                 }
             }
+            break;
+        }
+        case TextArea: {
+            JTextArea textArea = new JTextArea(ed.getAsText());
+            jComponent = textArea;
+            
+            textArea.setRows(6);
+            textArea.setColumns(40);
+            textArea.setLineWrap(true);
+            textArea.setWrapStyleWord(true);
+            
+            JScrollPane scrollPane = new JScrollPane();
+            scrollPane.getViewport().add(textArea);
+            scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);           
+            
+            if (borderUIColor != null) {
+                scrollPane.setBorder(BorderFactory.createLineBorder(borderUIColor));
+                scrollPane.getVerticalScrollBar().setUI(new FlatScrollBarUI());
+            }
+            
+            if (isPrivateAndMutable) {
+                hookupComponentListeners(textArea, ed);
+                jComponent.setEnabled(true);
+                jComponent.setFocusable(true); 
+            } else {
+                jComponent.setEnabled(false);
+                jComponent.setFocusable(false); 
+            }
+            
+            extendedFieldComponents.put(p, textArea);     
+            
+            jComponent = scrollPane;
+            break;
         }
         }
         
-        extendedFieldComponents.put(p, jComponent);
+        // Some VisualControlDescriptors may have added this already
+        // (for instance, if the real control is embedded with jComponent)
+        if (!extendedFieldComponents.containsKey(p)) {
+            extendedFieldComponents.put(p, jComponent);
+        }
         
         return jComponent;
     }
@@ -702,8 +751,22 @@ public class InfoView extends View {
             }
         });        
     }
+    
+    private void hookupComponentListeners(final JTextArea jComponent, final PropertyEditor<?> ed) {
+        jComponent.addFocusListener(new FocusListener() {
 
-    private void saveTextField(final JTextField jComponent, final PropertyEditor<?> ed) {
+            @Override
+            public void focusLost(FocusEvent e) {
+                saveTextField(jComponent, ed);
+            }
+            
+            @Override
+            public void focusGained(FocusEvent e) {
+            }
+        });
+    }
+
+    private void saveTextField(final JTextComponent jComponent, final PropertyEditor<?> ed) {
         String prev = (String) extendedFieldCache.get(jComponent); 
         String currentText = jComponent.getText().trim();
 
@@ -732,4 +795,52 @@ public class InfoView extends View {
         return rv;
     }
     
+
+
+private class FlatScrollBarUI extends BasicScrollBarUI {
+    @Override
+    protected void paintDecreaseHighlight(Graphics g) {}
+
+    @Override
+    protected void paintIncreaseHighlight(Graphics g) {}
+
+    @Override
+    protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(borderUIColor != null ? borderUIColor : fgUIColor);
+        g2.fill(thumbBounds);
+        g2.setColor(bgUIColor);
+        int x = (thumbBounds.x)+ thumbBounds.width / 2;
+        int y = (thumbBounds.y) + thumbBounds.height / 2;
+        int w = thumbBounds.width / 4;
+        g2.drawLine(x-w, y-2, x+w, y-2);
+        g2.drawLine(x-w, y+0, x+w, y+0);
+        g2.drawLine(x-w, y+2, x+w, y+2);
+    }
+
+    @Override
+    protected void paintTrack(Graphics g, JComponent c, Rectangle trackBounds) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(bgUIColor);
+        g2.fill(trackBounds);
+        g2.setColor(borderUIColor != null ? borderUIColor : fgUIColor);
+        g2.draw(trackBounds);
+    }
+
+    @Override
+    protected JButton createDecreaseButton(int orientation) {
+        Color fgColor = borderUIColor != null ? borderUIColor : fgUIColor;
+        JButton b = new BasicArrowButton(orientation, bgUIColor, bgUIColor, fgColor, fgColor);
+        b.setBorder(BorderFactory.createLineBorder(fgColor, 1));
+        return b;
+    }
+
+    @Override
+    protected JButton createIncreaseButton(int orientation) {
+        Color fgColor = borderUIColor != null ? borderUIColor : fgUIColor;
+        JButton b = new BasicArrowButton(orientation, bgUIColor, bgUIColor, fgColor, fgColor);
+        b.setBorder(BorderFactory.createLineBorder(fgColor, 1));
+        return b;
+    }
+}
 }

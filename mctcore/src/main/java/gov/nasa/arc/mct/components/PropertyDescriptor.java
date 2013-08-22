@@ -40,7 +40,9 @@ public class PropertyDescriptor  {
         /**A check box component such as a JCheckBox. It is initialized and modified using getValue and setValue of type Boolean. */
         CheckBox,
         /**A combo box component such as a JComboBox, initialized and modified using getValue and setValue. Its enumerated list is populated using getTags. */
-        ComboBox;
+        ComboBox,
+        /**A text area component such as a JTextArea, initialized and modified using getValueAsText and setValueAsText. Used for long-form text. */
+        TextArea;
     };
 
     private boolean isFieldMutable = false;

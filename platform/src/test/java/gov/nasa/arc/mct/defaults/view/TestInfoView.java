@@ -14,6 +14,8 @@ import gov.nasa.arc.mct.services.internal.component.User;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -22,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
 import org.mockito.Mockito;
@@ -128,9 +131,25 @@ public class TestInfoView {
             JTextField textField = findLastComponentOfType(infoView, JTextField.class);
             textField.setText("changed");
             for (ActionListener listener : textField.getActionListeners()) {
-                listener.actionPerformed(mockEvent);
+                // Don't invoke listeners related to platform-specific Swing implementation
+                // (may lead to inconsistent behavior when running tests on other platforms)
+                if (listener.getClass().getName().startsWith("gov.nasa.arc.mct")) {
+                    listener.actionPerformed(mockEvent);
+                }
             }
             break;
+        }
+        case TextArea: {
+            JTextArea textArea = findLastComponentOfType(infoView, JTextArea.class);
+            textArea.setText("changed");
+            for (FocusListener listener : textArea.getFocusListeners()) {
+                // Don't invoke listeners related to platform-specific Swing implementation
+                // (may lead to inconsistent behavior when running tests on other platforms)
+                if (listener.getClass().getName().startsWith("gov.nasa.arc.mct")) {
+                    listener.focusLost(Mockito.mock(FocusEvent.class));
+                }
+            }
+            break;            
         }
         }
         
@@ -155,6 +174,9 @@ public class TestInfoView {
         case TextField:
             Mockito.verify(mockDescriptor.getPropertyEditor(), Mockito.times(expectedTimes)).getAsText();
             break;
+        case TextArea:
+            Mockito.verify(mockDescriptor.getPropertyEditor(), Mockito.times(expectedTimes)).getAsText();
+            break;            
         }
             
         
