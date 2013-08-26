@@ -29,6 +29,7 @@ import gov.nasa.arc.mct.util.property.MCTProperties;
 import gov.nasa.arc.mct.components.DetectGraphicsDevices;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.ResourceBundle;
 
 /**
@@ -38,6 +39,7 @@ import java.util.ResourceBundle;
 public class ThisMenu extends ContextAwareMenu {
     private static final String THIS_ADDITIONS = "/this/additions";
     private static final String THIS_OPEN_EXT = "/this/open.ext";
+    private static final String THIS_CLOSE_EXT = "/this/close.ext";
     
     private static final ResourceBundle bundle = ResourceBundle.getBundle("gov/nasa/arc/mct/gui/actions/Bundle");
     
@@ -53,6 +55,7 @@ public class ThisMenu extends ContextAwareMenu {
     
     @Override
     protected void populate() {
+        // "Open object" and related menu actions
         addMenuItemInfos(THIS_OPEN_EXT, 
                 Arrays.asList(
                         new MenuItemInfo("THIS_OPEN_ACTION_ID", MenuItemType.NORMAL),
@@ -60,7 +63,15 @@ public class ThisMenu extends ContextAwareMenu {
                         new MenuItemInfo("THIS_SAVE_ACTION", MenuItemType.NORMAL),
                         new MenuItemInfo("THIS_SAVE_ALL_ACTION", MenuItemType.NORMAL),
                         new MenuItemInfo("VIEW_REVERT_TO_COMMITTED", MenuItemType.NORMAL),
-                        new MenuItemInfo(bundle.getString("ExportThisAsImageCommandKey"), MenuItemType.NORMAL),
+                        new MenuItemInfo(bundle.getString("ExportThisAsImageCommandKey"), MenuItemType.NORMAL)
+                ));
+        
+        // Placeholder for plugin-introduced additions
+        addMenuItemInfos(THIS_ADDITIONS, Collections.<MenuItemInfo>emptyList());
+        
+        // Quit action - should always be on the bottom, after separator
+        addMenuItemInfos(THIS_CLOSE_EXT,
+                Arrays.asList(
                         new MenuItemInfo("QUIT_ACTION", MenuItemType.NORMAL)
                 ));
     }

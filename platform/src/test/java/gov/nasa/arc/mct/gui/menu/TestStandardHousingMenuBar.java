@@ -26,6 +26,8 @@ import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.context.GlobalContext;
 import gov.nasa.arc.mct.defaults.view.MCTHousingViewManifestation;
 import gov.nasa.arc.mct.gui.ContextAwareMenu;
+import gov.nasa.arc.mct.gui.MenuItemInfo;
+import gov.nasa.arc.mct.gui.MenuSection;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.housing.MCTHousingFactory;
 import gov.nasa.arc.mct.gui.housing.MCTStandardHousing;
@@ -38,6 +40,7 @@ import gov.nasa.arc.mct.gui.menu.housing.ObjectsMenu;
 import gov.nasa.arc.mct.gui.menu.housing.ThisMenu;
 import gov.nasa.arc.mct.gui.menu.housing.ViewMenu;
 import gov.nasa.arc.mct.gui.menu.housing.WindowsMenu;
+import gov.nasa.arc.mct.gui.actions.QuitAction;
 import gov.nasa.arc.mct.gui.util.TestSetupUtilities;
 import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
@@ -57,6 +60,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
 
 public class TestStandardHousingMenuBar {
 
@@ -134,6 +138,23 @@ public class TestStandardHousingMenuBar {
         Assert.assertEquals(new ThisMenu().getText(), "This");
     }
 
+    @Test
+    public void testThisOrder() {
+        ContextAwareMenu thisMenu = new ThisMenu() {{
+            populate();
+        }};
+        List<MenuSection> menuSections = thisMenu.getMenuSections();
+        
+        // Should have multiple sections (quit should be in its own)
+        Assert.assertTrue(menuSections.size() > 1);
+        
+        // Quit should be at the bottom of the last section
+        MenuSection lastSection = menuSections.get(menuSections.size() - 1);
+        List<MenuItemInfo> infos = lastSection.getMenuItemInfoList();
+        MenuItemInfo lastMenuItem = infos.get(infos.size() - 1);
+        Assert.assertTrue(QuitAction.class.isAssignableFrom(lastMenuItem.getActionClass()));
+    }
+    
     @Test(expectedExceptions = IllegalStateException.class)
     public void testNullHousing() {
         if (GraphicsEnvironment.isHeadless()) {
