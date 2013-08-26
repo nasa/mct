@@ -40,7 +40,6 @@ import gov.nasa.arc.mct.gui.menu.housing.ObjectsMenu;
 import gov.nasa.arc.mct.gui.menu.housing.ThisMenu;
 import gov.nasa.arc.mct.gui.menu.housing.ViewMenu;
 import gov.nasa.arc.mct.gui.menu.housing.WindowsMenu;
-import gov.nasa.arc.mct.gui.actions.QuitAction;
 import gov.nasa.arc.mct.gui.util.TestSetupUtilities;
 import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
@@ -140,9 +139,12 @@ public class TestStandardHousingMenuBar {
 
     @Test
     public void testThisOrder() {
-        ContextAwareMenu thisMenu = new ThisMenu() {{
-            populate();
-        }};
+        ContextAwareMenu thisMenu = new ThisMenu() {
+            private static final long serialVersionUID = 1L;
+            {
+                populate();
+            }
+        };
         List<MenuSection> menuSections = thisMenu.getMenuSections();
         
         // Should have multiple sections (quit should be in its own)
@@ -152,7 +154,7 @@ public class TestStandardHousingMenuBar {
         MenuSection lastSection = menuSections.get(menuSections.size() - 1);
         List<MenuItemInfo> infos = lastSection.getMenuItemInfoList();
         MenuItemInfo lastMenuItem = infos.get(infos.size() - 1);
-        Assert.assertTrue(QuitAction.class.isAssignableFrom(lastMenuItem.getActionClass()));
+        Assert.assertTrue(lastMenuItem.getCommandKey().equals("QUIT_ACTION"));
     }
     
     @Test(expectedExceptions = IllegalStateException.class)
