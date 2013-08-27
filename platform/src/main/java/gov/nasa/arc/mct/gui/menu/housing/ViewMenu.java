@@ -38,6 +38,7 @@ import gov.nasa.arc.mct.gui.MenuItemInfo.MenuItemType;
 @SuppressWarnings("serial")
 public class ViewMenu extends ContextAwareMenu {
     
+    private static final String VIEW_REFRESH_EXT = "/view/refresh.ext";
     private static final String VIEW_SELECT_EXT = "/view/select.ext";
     private static final String VIEW_AREAS_VISIBILITY_EXT = "/view/areas.visibility.ext";
     private static final String VIEW_FORMATTING_EXT = "/view/formatting.ext";
@@ -66,5 +67,9 @@ public class ViewMenu extends ContextAwareMenu {
         addMenuItemInfos(VIEW_AREAS_VISIBILITY_EXT, Arrays.asList(
                 new MenuItemInfo("VIEW_SHOW_CANVAS_TITLE_BAR", MenuItemType.CHECKBOX),
                 new MenuItemInfo("VIEW_CONTROL_AREAS", MenuItemType.NORMAL)));
+        
+        addMenuItemInfos(VIEW_REFRESH_EXT, Arrays.asList(
+                new MenuItemInfo("VIEW_REFRESH_ACTION", MenuItemType.NORMAL)
+                ));
     } 
 }

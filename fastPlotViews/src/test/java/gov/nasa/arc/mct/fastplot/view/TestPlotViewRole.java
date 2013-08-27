@@ -216,8 +216,8 @@ public class TestPlotViewRole {
 			
 	}
 	
-	@Test
-	public void testIgnoresPredictiveTimeService() {
+	@Test (dataProvider="ingoresPredictiveTimeServiceTestCases")
+	public void testIgnoresPredictiveTimeService(boolean p1, boolean p2, boolean p3, int t) {
         MockitoAnnotations.initMocks(this);
 		
         Mockito.when(feed1Component.getCapability(FeedProvider.class)).thenReturn(feed1);
@@ -243,24 +243,21 @@ public class TestPlotViewRole {
 		
 		PlotViewManifestation plot;
 		
-        Mockito.when(feed1.isPrediction()).thenReturn(false);
-        Mockito.when(feed2.isPrediction()).thenReturn(false);
-        Mockito.when(feed3.isPrediction()).thenReturn(false);
+        Mockito.when(feed1.isPrediction()).thenReturn(p1);
+        Mockito.when(feed2.isPrediction()).thenReturn(p2);
+        Mockito.when(feed3.isPrediction()).thenReturn(p3);
 		plot = new PlotViewManifestation(component, new ViewInfo(PlotViewManifestation.class,"",ViewType.OBJECT));
-		Assert.assertEquals(plot.getCurrentMCTTime(), 1); // First non-predictive;
-		
-        Mockito.when(feed1.isPrediction()).thenReturn(true);
-        Mockito.when(feed2.isPrediction()).thenReturn(false);
-        Mockito.when(feed3.isPrediction()).thenReturn(false);
-		plot = new PlotViewManifestation(component, new ViewInfo(PlotViewManifestation.class,"",ViewType.OBJECT));
-		Assert.assertEquals(plot.getCurrentMCTTime(), 2); // First non-predictive;
-		
-		Mockito.when(feed1.isPrediction()).thenReturn(true);
-        Mockito.when(feed2.isPrediction()).thenReturn(true);
-        Mockito.when(feed3.isPrediction()).thenReturn(true);
-		plot = new PlotViewManifestation(component, new ViewInfo(PlotViewManifestation.class,"",ViewType.OBJECT));
-		Assert.assertEquals(plot.getCurrentMCTTime(), 1); // First non-predictive;
-		
+		Assert.assertEquals(plot.getCurrentMCTTime(), t); // First non-predictive;
+				
+	}
+	
+	@DataProvider
+	public Object[][] ingoresPredictiveTimeServiceTestCases() {
+		return new Object[][]{
+				{true,true,true,1},
+				{true,false,false,2},
+				{false,false,false,1}				
+		};
 	}
 	
 	private TimeService makeStaticTimeService(final long time) {

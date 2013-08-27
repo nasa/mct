@@ -68,7 +68,8 @@ public class CenterPaneRevertToCommitted extends ContextAwareAction {
         PersistenceProvider persistenceProvider = PlatformAccess.getPlatform().getPersistenceProvider();
         View embeddedView = housingManifestation.getContentArea().getHousedViewManifestation();
         AbstractComponent updatedComponent = persistenceProvider.getComponent(housingManifestation.getContentArea().getOwnerComponent().getComponentId());        
-        housingManifestation.getContentArea().setOwnerComponentCanvasManifestation(embeddedView.getInfo().createView(updatedComponent));        
+        housingManifestation.getContentArea().setOwnerComponentCanvasManifestation(embeddedView.getInfo().createView(updatedComponent));
+        housingManifestation.setManifestedComponent(updatedComponent);
     }
 
 }
