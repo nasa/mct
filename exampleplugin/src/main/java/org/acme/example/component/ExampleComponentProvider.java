@@ -34,6 +34,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.ResourceBundle;
 
+import javax.swing.ImageIcon;
+
 import org.acme.example.actions.APICreationAction;
 import org.acme.example.actions.AboutExampleAction;
 import org.acme.example.actions.AddOrRemoveNodeBorderAction;
@@ -69,7 +71,9 @@ public class ExampleComponentProvider extends AbstractComponentProvider {
 		telemetryComponentType = new ComponentTypeInfo(
 				bundle.getString("telemetry_display_name"),  
 				bundle.getString("telemetry_description"), 
-				TelemetryComponent.class);
+				TelemetryComponent.class,
+				true,
+				new ImageIcon(getClass().getResource("/icons/mct_icon_telemetry.png")));
 	}
 
 	

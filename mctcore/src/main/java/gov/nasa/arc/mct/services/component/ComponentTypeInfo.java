@@ -26,6 +26,8 @@ package gov.nasa.arc.mct.services.component;
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.util.MCTIcons;
 
+import java.awt.Color;
+
 import javax.swing.ImageIcon;
 
 /**
@@ -35,6 +37,9 @@ import javax.swing.ImageIcon;
  *
  */
 public class ComponentTypeInfo {
+    private static final int ICON_SIZE = 14;
+    private static final Color BASE_ICON_COLOR = Color.WHITE;
+    
     private final String displayName;
     private final String description;
     private final Class<? extends AbstractComponent> componentClass;
@@ -130,7 +135,11 @@ public class ComponentTypeInfo {
         this.componentTypeId = id;
         this.isCreatable = isCreatable;
         this.wizard = wizard;
-        this.icon = icon;
+        this.icon = MCTIcons.processIcon(
+                        icon != null ? icon : 
+                            MCTIcons.generateIcon(
+                                            componentClass.getName().hashCode(),
+                                            ICON_SIZE, BASE_ICON_COLOR));
     }
     
     
@@ -192,7 +201,7 @@ public class ComponentTypeInfo {
      * @return icon for component type
      */
     public final ImageIcon getIcon() {
-        return icon == null ? MCTIcons.getComponent() : icon;
+        return icon;
     }
     
     @Override
@@ -205,6 +214,5 @@ public class ComponentTypeInfo {
     public final int hashCode() {
         return getId().hashCode();
     }
-    
-    
+
 }

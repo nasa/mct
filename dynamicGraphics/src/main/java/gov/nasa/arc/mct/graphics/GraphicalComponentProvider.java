@@ -78,7 +78,7 @@ public class GraphicalComponentProvider extends AbstractComponentProvider {
 						bundle.getString("Component_Description"), 
 						GraphicalComponent.class, 
 						new GraphicalComponentWizardUI(),
-						new ImageIcon(GraphicalComponentProvider.class.getResource("/icons/importSVG.png"))));
+						null));//new ImageIcon(GraphicalComponentProvider.class.getResource("/icons/importSVG.png"))));
 	}
 	
 	
