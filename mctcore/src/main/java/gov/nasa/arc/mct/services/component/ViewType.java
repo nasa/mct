@@ -96,5 +96,11 @@ public enum ViewType {
      * the component should not use this view type; however, other view which support the <code>OBJECT</code> type that
      * do not mutate component properties should define a view info with this type. 
      */
-    EMBEDDED
+    EMBEDDED,
+    
+    /**
+     * An embedded view suitable for switching components, such as the 
+     * drop-down in the Inspector area.
+     */
+    VIEW_SWITCHER
 }

@@ -21,16 +21,26 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.gui;
 
+import gov.nasa.arc.mct.services.component.ViewInfo;
+
 /**
  * Defines a provider of view manifestations.
  */
 public interface ViewProvider {
 
     /**
-     * Gets a new view manifestation.
+     * Gets the view housed within this view.
      * 
      * @return the view manifestation
      */
     public View getHousedViewManifestation();
     
+    
+    /**
+     * Set the view housed within this view.
+     * 
+     * @param viewInfo the type of view to create
+     * @return true if the view was changed; otherwise false 
+     */
+    public boolean setHousedViewManifestation(ViewInfo viewInfo);
 }

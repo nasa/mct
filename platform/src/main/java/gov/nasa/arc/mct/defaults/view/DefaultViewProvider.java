@@ -33,6 +33,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import javax.swing.ImageIcon;
+
 /**
  * This class provides default views for those
  * components that do not provide a view. 
@@ -52,7 +54,9 @@ public class DefaultViewProvider extends AbstractComponentProvider {
         viewInfos.add(new ViewInfo(MCTDirectoryArea.class, MCTDirectoryArea.VIEW_NAME, ViewType.NAVIGATOR));
         viewInfos.add(new ViewInfo(LabelViewManifestation.class, bundle.getString("LabelViewRoleName"), ViewType.TITLE));
         viewInfos.add(new ViewInfo(InspectionArea.class, InspectionArea.INSPECTION_AREA_VIEW_PROP_KEY, ViewType.RIGHT));
-        viewInfos.add(new ViewInfo(InfoView.class, bundle.getString("InfoViewName"), ViewType.OBJECT));
+        viewInfos.add(new ViewInfo(SwitcherView.class, bundle.getString("SwitcherViewName"), ViewType.VIEW_SWITCHER));
+        viewInfos.add(new ViewInfo(InfoView.class, bundle.getString("InfoViewName"), ViewType.OBJECT, 
+                new ImageIcon(getClass().getResource("/icons/mct_icon_menu_info.png"))));
 
         myViewInfos = viewInfos;
 	}

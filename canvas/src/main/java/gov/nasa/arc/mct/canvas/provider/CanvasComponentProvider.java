@@ -74,14 +74,12 @@ public class CanvasComponentProvider extends AbstractComponentProvider {
                     Arrays.asList(
                                     new ViewInfo(CanvasManifestation.class, bundle.getString("Canvas"), "gov.nasa.arc.mct.canvas.view.CanvasView", 
                                           ViewType.OBJECT,
-                                          new ImageIcon(CanvasComponentProvider.class.getResource("/images/canvasViewButton-OFF.png")),
-                                          new ImageIcon(CanvasComponentProvider.class.getResource("/images/canvasViewButton-ON.png"))),
+                                          new ImageIcon(CanvasComponentProvider.class.getResource("/icons/mct_icon_menu_canvas.png"))),
                                     new ViewInfo(CanvasManifestation.class, bundle.getString("Canvas"), "gov.nasa.arc.mct.canvas.view.CanvasView", 
                                           ViewType.CENTER),
                                     new ViewInfo(CanvasManifestation.class, bundle.getString("Canvas"), "gov.nasa.arc.mct.canvas.view.CanvasView", 
                                                           ViewType.EMBEDDED,
-                                                          new ImageIcon(CanvasComponentProvider.class.getResource("/images/canvasViewButton-OFF.png")),
-                                                          new ImageIcon(CanvasComponentProvider.class.getResource("/images/canvasViewButton-ON.png"))), 
+                                                          new ImageIcon(CanvasComponentProvider.class.getResource("/icons/mct_icon_menu_canvas.png"))), 
                                     new ViewInfo(PanelInspector.class, "Panel Inspector", ViewType.CENTER_OWNED_INSPECTOR));
     @Override
     public Collection<MenuItemInfo> getMenuItemInfos() {

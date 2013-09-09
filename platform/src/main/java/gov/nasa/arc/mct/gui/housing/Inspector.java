@@ -22,11 +22,13 @@
 package gov.nasa.arc.mct.gui.housing;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
+import gov.nasa.arc.mct.defaults.view.SwitcherView;
+import gov.nasa.arc.mct.gui.SettingsButton;
 import gov.nasa.arc.mct.gui.OptionBox;
 import gov.nasa.arc.mct.gui.SelectionProvider;
-import gov.nasa.arc.mct.gui.Twistie;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.ViewRoleSelection;
+import gov.nasa.arc.mct.gui.impl.WindowManagerImpl;
 import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
 import gov.nasa.arc.mct.policy.PolicyContext;
@@ -44,6 +46,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.beans.PropertyChangeEvent;
@@ -51,13 +54,11 @@ import java.beans.PropertyChangeListener;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -75,16 +76,12 @@ public class Inspector extends View {
 
     private static final Color BACKGROUND_COLOR = LafColor.WINDOW_BORDER.darker();
     private static final Color FOREGROUND_COLOR = LafColor.WINDOW.brighter();
-    private static final ImageIcon BUTTON_ICON = new ImageIcon(Inspector.class.getResource("/images/infoViewButton-OFF.png"));
-    private static final ImageIcon BUTTON_PRESSED_ICON = new ImageIcon(Inspector.class.getResource("/images/infoViewButton-ON.png"));
-    
-    private static final String DASH = " - ";
-    
+   
     private static final ResourceBundle BUNDLE = 
             ResourceBundle.getBundle(
                     Inspector.class.getName().substring(0, 
                             Inspector.class.getName().lastIndexOf("."))+".Bundle");
-
+   
     private static final String INFO_VIEW_TYPE = "gov.nasa.arc.mct.defaults.view.InfoView";
     private static String preferredViewType = INFO_VIEW_TYPE;
 
@@ -137,15 +134,21 @@ public class Inspector extends View {
     private JComponent viewControls;
     private JPanel titlebar = new JPanel();
     private JPanel statusbar = new JPanel();
-    private JPanel viewButtonBar = new JPanel();
     private GridBagConstraints c = new GridBagConstraints();
-    private ControllerTwistie controllerTwistie;
-
+    private JToggleButton controlAreaToggle = new SettingsButton();
+    
     public Inspector(AbstractComponent ac, ViewInfo vi) {    
         super(ac,vi);
         STALE_LABEL.setToolTipText(BUNDLE.getString("view.modified.status.bar.tooltip.text"));
         registerSelectionChange();        
         setLayout(new BorderLayout());
+        
+        controlAreaToggle.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showOrHideController(controlAreaToggle.isSelected());
+            }            
+        });
                 
         titlebar.setLayout(new GridBagLayout());
         JLabel titleLabel = new JLabel("Inspector:  ");
@@ -170,8 +173,6 @@ public class Inspector extends View {
         viewTitle.addMouseMotionListener(new WidgetDragger());
         viewTitle.addMouseListener(new MCTPopupOpenerForInspector(this));
         titlebar.setBackground(BACKGROUND_COLOR);
-        viewButtonBar.setLayout(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        viewButtonBar.setBackground(BACKGROUND_COLOR);
         statusbar.setBackground(BACKGROUND_COLOR);
         statusbar.setLayout(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         
@@ -188,37 +189,49 @@ public class Inspector extends View {
         return view.getManifestedComponent();
     }
     
-    private void commitOrAbortPendingChanges() {
+    /**
+     * Prompt the user to commit or abort pending changes, 
+     * if there are any. Note that this may not be possible 
+     * (component may not be writeable, for instance). 
+     * 
+     * This only returns false when the action is explicitly 
+     * aborted (so if there is no prompt because the user 
+     * chooses Save, this still returns true.)
+     * 
+     * @return false if change was aborted
+     */
+    private boolean commitOrAbortPendingChanges() {
         AbstractComponent committedComponent = PlatformAccess.getPlatform().getPersistenceProvider().getComponent(view.getManifestedComponent().getComponentId());
         if (committedComponent == null)
-            return;
+            return true;
         
         if (!isComponentWriteableByUser(view.getManifestedComponent()))
-            return;
+            return true;
+        
+        String save = BUNDLE.getString("view.modified.alert.save");
+        String saveAll = BUNDLE.getString("view.modified.alert.saveAll");
+        String abort = BUNDLE.getString("view.modified.alert.abort");
         
         // Show options - Save, Abort, or maybe Save All
-        Object[] options = view.getManifestedComponent().getAllModifiedObjects().isEmpty() ?
-        		new Object[]{
-                BUNDLE.getString("view.modified.alert.save"),            
-                BUNDLE.getString("view.modified.alert.abort"),
-            } :
-        	new Object[]{
-                BUNDLE.getString("view.modified.alert.save"),
-                BUNDLE.getString("view.modified.alert.saveAll"),
-                BUNDLE.getString("view.modified.alert.abort"),
-            };
+        String[] options = view.getManifestedComponent().getAllModifiedObjects().isEmpty() ?
+        		    new String[]{ save, abort } :
+        		    new String[]{ save, saveAll, abort};
     
-        int answer = OptionBox.showOptionDialog(view, 
-                MessageFormat.format(BUNDLE.getString("view.modified.alert.text"), view.getInfo().getViewName(), view.getManifestedComponent().getDisplayName()),                         
-                BUNDLE.getString("view.modified.alert.title"),
-                OptionBox.YES_NO_OPTION,
-                OptionBox.WARNING_MESSAGE,
-                null,
-                options, options[0]);
+        Map<String, Object> hints = new HashMap<String, Object>();
+        hints.put(WindowManagerImpl.MESSAGE_TYPE, OptionBox.WARNING_MESSAGE);
+        hints.put(WindowManagerImpl.OPTION_TYPE, OptionBox.YES_NO_OPTION);
+        hints.put(WindowManagerImpl.PARENT_COMPONENT, view);
+
+        Object answer = PlatformAccess.getPlatform().getWindowManager().showInputDialog(
+                BUNDLE.getString("view.modified.alert.title"), 
+                MessageFormat.format(BUNDLE.getString("view.modified.alert.text"), view.getInfo().getViewName(), view.getManifestedComponent().getDisplayName()), 
+                options, 
+                options[0], 
+                hints);
         
-        if (answer == OptionBox.YES_OPTION) {
+        if (answer.equals(save)) {
             PlatformAccess.getPlatform().getPersistenceProvider().persist(Collections.singleton(view.getManifestedComponent()));
-        } else if (answer < options.length - 1) { // Save All
+        } else if (answer.equals(saveAll)) { // Save All
             AbstractComponent comp = view.getManifestedComponent();
             Set<AbstractComponent> allModifiedObjects = comp.getAllModifiedObjects();
             if (comp.isDirty()) {
@@ -226,6 +239,8 @@ public class Inspector extends View {
             }
             PlatformAccess.getPlatform().getPersistenceProvider().persist(allModifiedObjects);
         }
+        
+        return true;
     }
     
     private boolean isComponentWriteableByUser(AbstractComponent component) {
@@ -256,14 +271,12 @@ public class Inspector extends View {
         Inspector.this.add(inspectorScrollPane, BorderLayout.CENTER);
         Inspector.this.revalidate();
         content = inspectorScrollPane;
-        viewTitle.setText(view.getManifestedComponent().getDisplayName() + DASH + view.getInfo().getViewName());
+        viewTitle.setText(view.getManifestedComponent().getDisplayName());
         viewControls = view.getControlManifestation();
-        if (viewControls == null)
-            controllerTwistie.setVisible(false);
-        else {
-            controllerTwistie.changeState(false);
-            controllerTwistie.setVisible(true);
+        if (controlAreaToggle.isSelected()) { // Close control area if it's open
+            controlAreaToggle.doClick();
         }
+        controlAreaToggle.setEnabled(viewControls != null);
            
         STALE_LABEL.setVisible(false);
         populateStatusBar();
@@ -285,20 +298,6 @@ public class Inspector extends View {
     public View getHousedViewManifestation() {
         return view;
     }
-
-    private ButtonGroup createViewSelectionButtons(AbstractComponent ac, ViewInfo selectedViewInfo) {
-        ButtonGroup buttonGroup = new ButtonGroup();
-        final Set<ViewInfo> viewInfos = ac.getViewInfos(ViewType.OBJECT);
-        for (ViewInfo vi : viewInfos) {
-            ViewChoiceButton button = new ViewChoiceButton(vi);
-            buttonGroup.add(button);
-            viewButtonBar.add(button);
-            
-            if (vi.equals(selectedViewInfo))
-                buttonGroup.setSelected(button.getModel(), true);
-        }
-        return buttonGroup;
-    }
     
     private void selectedManifestationChanged(View view) {
         remove(content);
@@ -309,25 +308,30 @@ public class Inspector extends View {
             content = emptyPanel;
         } else {
             viewTitle.setIcon(view.getManifestedComponent().getIcon());
-            viewTitle.setText(view.getManifestedComponent().getDisplayName() + DASH + view.getInfo().getViewName());
+            viewTitle.setText(view.getManifestedComponent().getDisplayName());
             viewTitle.setTransferHandler(new WidgetTransferHandler());
             if (this.view != null)
                 this.view.removePropertyChangeListener(VIEW_STALE_PROPERTY, objectStaleListener);
             content = this.view = view.getInfo().createView(view.getManifestedComponent());
-            JComponent viewControls = getViewControls();
-            c.weightx = 0;
-            controllerTwistie = new ControllerTwistie();
-            if (viewControls == null)
-                controllerTwistie.setVisible(false);
-            else
-                controllerTwistie.changeState(false);
-            titlebar.add(controllerTwistie, c);
-            createViewSelectionButtons(view.getManifestedComponent(), view.getInfo());
 
+            if (controlAreaToggle.isSelected()) { // Close control area if it's open
+                controlAreaToggle.doClick();
+            }
+            controlAreaToggle.setEnabled(getViewControls() != null);
+            
             c.anchor = GridBagConstraints.LINE_END;
             c.gridwidth = GridBagConstraints.REMAINDER;
             c.weightx = 0;       
-            titlebar.add(viewButtonBar, c);
+            JPanel p = new JPanel(new BorderLayout());
+            View switcher = SwitcherView.VIEW_INFO.createView(view.getManifestedComponent());
+            switcher.addMonitoredGUI(this);
+            switcher.setForeground(FOREGROUND_COLOR);
+            p.setOpaque(false);
+            p.add(switcher, BorderLayout.CENTER);
+            p.add(controlAreaToggle, BorderLayout.EAST);
+            titlebar.add(p, c);
+            
+            
             populateStatusBar();
             this.view.addPropertyChangeListener(VIEW_STALE_PROPERTY, objectStaleListener);
             this.view.requestFocusInWindow();
@@ -400,11 +404,6 @@ public class Inspector extends View {
             viewControls = view.getControlManifestation();
         return viewControls;
     }
-    
-    @Override
-    public SelectionProvider getSelectionProvider() {
-        return super.getSelectionProvider();
-    }
 
     private boolean isLocked = false;
     
@@ -423,6 +422,22 @@ public class Inspector extends View {
             view.exitLockedState();
     }
     
+    
+    
+    @Override
+    public boolean setHousedViewManifestation(ViewInfo viewInfo) {
+        AbstractComponent ac = view.getManifestedComponent();
+        if (!ac.isStale() && ac.isDirty()) {
+            if (!commitOrAbortPendingChanges()) {
+                return false;
+            }
+        }
+        refreshInspector(viewInfo);
+        preferredViewType = viewInfo.getType();
+        return true;
+    }
+
+
     private static final class WidgetDragger extends MouseMotionAdapter {
         @Override
         public void mouseDragged(MouseEvent e) {
@@ -447,41 +462,5 @@ public class Inspector extends View {
             }
         }
     }
-    
-    private final class ViewChoiceButton extends JToggleButton {
-        private static final String SWITCH_TO = "Switch to ";
 
-        public ViewChoiceButton(final ViewInfo viewInfo) {
-            setBorder(BorderFactory.createEmptyBorder());
-            setAction(new AbstractAction() {
-                
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    AbstractComponent ac = view.getManifestedComponent();
-                    if (!ac.isStale() && ac.isDirty()) {
-                        commitOrAbortPendingChanges();
-                    }
-                    refreshInspector(viewInfo);
-                    preferredViewType = viewInfo.getType();
-                }
-                
-            });
-            setIcon(viewInfo.getIcon() == null ? BUTTON_ICON : viewInfo.getIcon());
-            setPressedIcon(viewInfo.getIcon() == null ? BUTTON_ICON : viewInfo.getIcon());
-            setSelectedIcon(viewInfo.getSelectedIcon() == null ?  BUTTON_PRESSED_ICON : viewInfo.getSelectedIcon());
-            setToolTipText(SWITCH_TO + viewInfo.getViewName());
-        }        
-    }
-    
-    private final class ControllerTwistie extends Twistie {
-        
-        public ControllerTwistie() {
-            super();
-        }
-        
-        @Override
-        protected void changeStateAction(boolean state) {
-            showOrHideController(state);
-        }        
-    }
 }

@@ -228,7 +228,14 @@ public class MCTStandardHousing extends MCTAbstractHousing implements TwiddleVie
     }
 
     public boolean isControlAreaVisible() {
-        return this.housingViewManifestation.isControlAreaVisible();
+        boolean visible = this.housingViewManifestation.isControlAreaVisible();
+        for (WeakReference<ControlProvider> controlArea : controlAreas) {
+            ControlProvider cp = controlArea.get();
+            if (cp != null) {
+                visible |= cp.isControlShowing();
+            }
+        }
+        return visible;
     }
 
     public void setDirectoryArea(View directoryArea) {

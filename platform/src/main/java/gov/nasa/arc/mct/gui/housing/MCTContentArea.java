@@ -31,7 +31,7 @@ package gov.nasa.arc.mct.gui.housing;
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.gui.CompositeViewManifestationProvider;
 import gov.nasa.arc.mct.gui.SelectionProvider;
-import gov.nasa.arc.mct.gui.Twistie;
+import gov.nasa.arc.mct.gui.SettingsButton;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.ViewProvider;
 import gov.nasa.arc.mct.gui.housing.MCTHousing.ControlProvider;
@@ -46,6 +46,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -65,6 +67,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
@@ -156,9 +159,15 @@ public class MCTContentArea extends JPanel implements CompositeViewManifestation
             splitPane.setDividerSize(flag ? dividerSize : 0);
             if (controlManifestation != null) {
                controlManifestation.setVisible(flag);
+               titleBar.controlToggle.setSelected(flag);
             }
             revalidate();
        }
+    }
+    
+    @Override
+    public boolean isControlShowing() {
+        return controlManifestation.isVisible();    
     }
 
     public void markStale(boolean isStale) {
@@ -358,22 +367,17 @@ public class MCTContentArea extends JPanel implements CompositeViewManifestation
         private static final int HORIZONTAL_SPACING = 5;
         private final JLabel title;
 
-        private Twistie controlTwistie;
-        
-        private class ControlAreaTwistie extends Twistie {
-                @Override
-                protected void changeStateAction(boolean state) {
-                    showControl(state);
-                }    
-        }
+        private JToggleButton controlToggle = new SettingsButton();
     
         /**
          * Inform the title area that it has been hidden and that it
          * should update its visual state appropriately. 
          */
         public void setTitleAreaVisible(boolean state){
-            if (controlTwistie!=null) {
-              controlTwistie.changeState(state);
+            if (controlToggle!=null) {
+                if (controlToggle.isSelected() != state) {
+                    controlToggle.doClick();
+                }
             }
         }
         
@@ -381,17 +385,24 @@ public class MCTContentArea extends JPanel implements CompositeViewManifestation
             setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
             setBackground(BACKGROUND_COLOR);
 
+            controlToggle.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    showControl(controlToggle.isSelected());
+                }                
+            });
+            
             title = new JLabel(text);
             title.setForeground(FOREGROUND_COLOR);
             add(Box.createHorizontalStrut(HORIZONTAL_SPACING));
             add(title);
             add(Box.createHorizontalStrut(HORIZONTAL_SPACING));
 
-            // Only add Twistie if control manifestation not null. 
-            if (controlManifestation != null) {
-                controlTwistie = new ControlAreaTwistie();
-                add(controlTwistie);         
-            }
+            // Only enable control toggle if control manifestation not null. 
+            controlToggle.setEnabled(controlManifestation != null);
+            add(Box.createHorizontalGlue());
+            add(controlToggle);
+            
             // Add popup listener to title bar.      
             MouseListener popupListener = new PopupListener();
             this.addMouseListener(popupListener);
@@ -402,6 +413,7 @@ public class MCTContentArea extends JPanel implements CompositeViewManifestation
         private void instrumentNamesInCanvasTitle(JLabel title) {
             this.setName("canvasTitleArea");
             title.setName("title");
+            controlToggle.setName("settingsToggle");
         }
     }
 
@@ -446,6 +458,13 @@ public class MCTContentArea extends JPanel implements CompositeViewManifestation
         boolean popupActivated() {
             return popupActivated;
         }  
+    }
+
+    @Override
+    public boolean setHousedViewManifestation(ViewInfo viewInfo) {
+        View newView = viewInfo.createView(ownerComponent);
+        setOwnerComponentCanvasManifestation(newView);
+        return true;
     }
 
 

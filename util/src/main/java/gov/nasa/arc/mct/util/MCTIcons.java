@@ -195,9 +195,29 @@ public class MCTIcons {
             return processedIcons.get(icon);
         } else if (processedIcons.containsValue(icon)) { // Already processed
             return icon;
-        }
+        } 
+            
+        // Process icon with default appearance parameters
+        ImageIcon newIcon = processIcon(icon, 0.775f, 0.85f, 0.95f, true);
+        processedIcons.put(icon, newIcon);
         
-        float coloration[] = {0.775f,0.85f,0.95f,1f};
+        return newIcon;
+    }
+    
+    /**
+     * Process the given icon to be consistent with MCT 
+     * icon look and feel. Desired color can be specified 
+     * and drop shadow can be enabled / disabled. 
+     *  
+     * @param icon the icon to process
+     * @param r scale for red channel
+     * @param g scale for green channel
+     * @param b scale for blue channel
+     * @param dropShadow whether or not to add drop shadow
+     * @return a processed icon
+     */
+    public static ImageIcon processIcon(ImageIcon icon, float r, float g, float b, boolean dropShadow) {
+        float coloration[] = {r,g,b,1f};
         float preshadow[] = {0f,0f,0.25f,0.125f};
         float shadow[] = {0.1f,0.1f,0.1f,0.65f};
         float offset[] = {0f,0f,0f,0f};
@@ -208,22 +228,21 @@ public class MCTIcons {
                 icon.getIconHeight() + 2,
                 BufferedImage.TYPE_4BYTE_ABGR);
 
-        // Draw the icon upper-left "shadow" (subtle outline)
-        icon.paintIcon(null, bufferedImage.getGraphics(), 0, 0);           
-        bufferedImage = new RescaleOp(preshadow, offset, null).filter(bufferedImage, null);
-        
-        // Draw the lower-right shadow
-        icon.paintIcon(null, bufferedImage.getGraphics(), 2, 2);
-        bufferedImage =  new RescaleOp(shadow, offset, null).filter(bufferedImage, null);
+        if (dropShadow) {
+            // Draw the icon upper-left "shadow" (subtle outline)
+            icon.paintIcon(null, bufferedImage.getGraphics(), 0, 0);           
+            bufferedImage = new RescaleOp(preshadow, offset, null).filter(bufferedImage, null);
+            
+            // Draw the lower-right shadow
+            icon.paintIcon(null, bufferedImage.getGraphics(), 2, 2);
+            bufferedImage =  new RescaleOp(shadow, offset, null).filter(bufferedImage, null);
+        }
         
         // Repaint original icon & colorize
         icon.paintIcon(null, bufferedImage.getGraphics(), 1, 1);
         bufferedImage =  new RescaleOp(coloration, offset, null).filter(bufferedImage, null);
         
-        ImageIcon newIcon = new ImageIcon(bufferedImage);
-        processedIcons.put(icon, newIcon);
-        
-        return newIcon;
+        return new ImageIcon(bufferedImage);
     }
 
 }

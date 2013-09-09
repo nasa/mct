@@ -50,12 +50,10 @@ public class PlotViewProvider extends AbstractComponentProvider {
 		
 		viewInfos = Arrays.asList(
 				new ViewInfo(PlotViewManifestation.class, PlotViewManifestation.VIEW_ROLE_NAME, "gov.nasa.arc.mct.fastplot.view.PlotViewRole", ViewType.OBJECT, 
-						new ImageIcon(getClass().getResource("/images/plotViewButton-OFF.png")),
-						new ImageIcon(getClass().getResource("/images/plotViewButton-ON.png"))),
+						new ImageIcon(getClass().getResource("/icons/mct_icon_menu_plot.png"))),
 				new ViewInfo(PlotViewManifestation.class, PlotViewManifestation.VIEW_ROLE_NAME, "gov.nasa.arc.mct.fastplot.view.PlotViewRole", ViewType.CENTER),
 				new ViewInfo(PlotViewManifestation.class, PlotViewManifestation.VIEW_ROLE_NAME, "gov.nasa.arc.mct.fastplot.view.PlotViewRole", ViewType.EMBEDDED, 
-						new ImageIcon(getClass().getResource("/images/plotViewButton-OFF.png")),
-						new ImageIcon(getClass().getResource("/images/plotViewButton-ON.png"))));
+						new ImageIcon(getClass().getResource("/icons/mct_icon_menu_plot.png"))));
 	}
 	
 	@Override

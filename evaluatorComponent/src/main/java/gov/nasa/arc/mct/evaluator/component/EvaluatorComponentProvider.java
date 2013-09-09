@@ -73,8 +73,7 @@ public class EvaluatorComponentProvider extends AbstractComponentProvider {
 			views.add(new ViewInfo(InfoViewManifestation.class, InfoViewManifestation.VIEW_NAME, ViewType.OBJECT));
 			views.add(new ViewInfo(ExpressionsViewManifestation.class, ExpressionsViewManifestation.VIEW_NAME, ExpressionsViewManifestation.class.getName(),
 					ViewType.OBJECT,
-                    new ImageIcon(ExpressionsViewManifestation.class.getResource("/images/evalViewButton-OFF.png")),
-                    new ImageIcon(ExpressionsViewManifestation.class.getResource("/images/evalViewButton-ON.png"))));
+                    new ImageIcon(ExpressionsViewManifestation.class.getResource("/icons/mct_icon_menu_settings.png"))));
 			views.add(new ViewInfo(ExpressionsViewManifestation.class, ExpressionsViewManifestation.VIEW_NAME, ExpressionsViewManifestation.class.getName(), ViewType.CENTER, null, null, true, EvaluatorComponent.class));
 			return views;
 		}		

@@ -24,7 +24,9 @@ package gov.nasa.arc.mct.services.component;
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.util.LookAndFeelSettings;
+import gov.nasa.arc.mct.util.MCTIcons;
 
+import java.awt.Color;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Callable;
@@ -36,6 +38,9 @@ import javax.swing.ImageIcon;
  *
  */
 public class ViewInfo {
+    private static final int ICON_SIZE = 9;
+    private static final Color BASE_ICON_COLOR = Color.WHITE;
+    
     private final Constructor<? extends View> viewConstructor;
     private final String type;
     private final String viewName;
@@ -79,6 +84,32 @@ public class ViewInfo {
     }
 
     /**
+     * Creates a new instance of ViewInfo. 
+     * @param aViewClass representing a view.
+     * @param name human readable name of the view 
+     * @param viewType for this view
+     * @param icon to be placed in a button for this view. This icon is typically used for drop-down showing in the inspector.
+     * @throws IllegalArgumentException if the view type is null or the class doesn't have the right type of constructor
+     */
+    public ViewInfo(Class<? extends View> aViewClass, String name, ViewType viewType, ImageIcon icon) throws IllegalArgumentException {
+        this(aViewClass, name, aViewClass.getName(), viewType, icon, icon, false, null);
+    }
+    
+    /**
+     * Creates a new instance of ViewInfo. 
+     * @param aViewClass representing a view.
+     * @param name human readable name of the view
+     * @param aType representing the type used when serializing the view state. The type must be unique across all serialized view
+     * states so the default type used is the fully qualified class name. 
+     * @param viewType for this view
+     * @param icon to be placed in a button for this view. This icon is typically used for drop-down showing in the inspector.
+     * @throws IllegalArgumentException if the view type is null or the class doesn't have the right type of constructor
+     */
+    public ViewInfo(Class<? extends View> aViewClass, String name, String aType, ViewType viewType, ImageIcon icon) throws IllegalArgumentException {
+        this(aViewClass, name, aType, viewType, icon, icon, false, null);
+    }
+    
+    /**
      * Creates a new instance of ViewInfo. This constructor should only be used when
      * attempting to provide backward compatibility for views which have already been serialized. The
      * serialized mapping uses the type to determine how to map the state to a view type. 
@@ -113,8 +144,12 @@ public class ViewInfo {
     public ViewInfo(Class<? extends View> aViewClass, String name, String aType, ViewType viewType, ImageIcon icon, ImageIcon selectedIcon, boolean shouldExpandCenterPaneInWindow, Class<? extends AbstractComponent> preferredComponentType) throws IllegalArgumentException {
         type = aType;
         viewName = name;
-        this.icon = icon;
-        this.selectedIcon = selectedIcon;
+        this.icon = MCTIcons.processIcon(
+                        icon != null ? icon : 
+                            MCTIcons.generateIcon(
+                                            aViewClass.getName().hashCode(),
+                                            ICON_SIZE, BASE_ICON_COLOR));
+        this.selectedIcon = icon;
         if (name == null) {
             throw new IllegalArgumentException("name must be specified for " + aViewClass);
         }
@@ -215,8 +250,10 @@ public class ViewInfo {
     
     /**
      * Returns the icon to be placed in a button for this view when the button is selected.
+     * @deprecated view switching buttons have been removed
      * @return an icon; null if not provided
      */
+    @Deprecated
     public ImageIcon getSelectedIcon() {
         return selectedIcon;
     }

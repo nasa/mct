@@ -24,6 +24,7 @@ package gov.nasa.arc.mct.gui.housing;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.housing.registry.UserEnvironmentRegistry;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
+import gov.nasa.arc.mct.services.component.ViewInfo;
 
 import java.awt.GraphicsConfiguration;
 import java.awt.Window;
@@ -104,4 +105,10 @@ public abstract class MCTAbstractHousing extends JFrame implements MCTHousing {
     public void closeHousing() {
         processWindowEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
     }
+    
+    @Override
+    public boolean setHousedViewManifestation(ViewInfo viewInfo) {
+        return false;
+    }
+    
 }
