@@ -66,6 +66,7 @@ public class TestRefresh {
     @Mock private ActionEvent mockEvent;
     @Mock private WindowManager mockWindowManager;
     @Mock private PersistenceProvider mockPersistence;
+    @Mock private View mockInspector;
     
     @BeforeClass
     public void setup() {
@@ -86,6 +87,7 @@ public class TestRefresh {
         Mockito.when(mockContext.getWindowManifestation()).thenReturn(mockHousing);
         Mockito.when(mockHousing.getContentArea()).thenReturn(mockContentArea);
         Mockito.when(mockContentArea.getHousedViewManifestation()).thenReturn(mockView);
+        Mockito.when(mockInspector.getHousedViewManifestation()).thenReturn(mockView);
         Mockito.when(mockHousing.getManifestedComponent()).thenReturn(mockComponent);
         Mockito.when(mockView.getManifestedComponent()).thenReturn(mockComponent);
         Mockito.when(mockView.getInfo()).thenReturn(mockViewInfo);
@@ -212,4 +214,21 @@ public class TestRefresh {
     public Object[][] truthData() {
         return new Object[][] { {true} , {false} };
     }
+    
+    // An Inspector has some differences from ContentArea - verify that it is refreshable too
+    @Test
+    public void testInspector() {
+        // Verify interactions with a mock inspector
+        Mockito.when(mockContext.getWindowManifestation()).thenReturn(mockInspector);
+        
+        // Verify that refresh can handle, is enabled for an Inspector
+        ContextAwareAction refresh = new RefreshAction();
+        Assert.assertTrue(refresh.canHandle(mockContext));
+        Assert.assertTrue(refresh.isEnabled());
+        
+        // Verify actionPerformed triggers appropriate method
+        refresh.actionPerformed(mockEvent);
+        Mockito.verify(mockInspector).setHousedViewManifestation(mockViewInfo);
+    }
 }
+
