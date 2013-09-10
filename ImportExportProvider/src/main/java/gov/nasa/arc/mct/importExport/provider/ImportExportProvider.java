@@ -33,8 +33,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import javax.swing.ImageIcon;
-
 /**
  * The <code>ImportExportProvider</code> provides menu items to import data into a
  * taxonomy node to the MCT directory and export data from a node.
@@ -54,9 +52,7 @@ public class ImportExportProvider extends AbstractComponentProvider {
 		 * EventsCollection.class, false),
 		 */
 		new ComponentTypeInfo(bundle.getString("display_name"), bundle
-				.getString("description"), ImportExportComponent.class, false,
-				new ImageIcon(ImportExportComponent.class
-						.getResource("/icons/legacyCollection.png"))));
+				.getString("description"), ImportExportComponent.class, false));
 
 		assert componentTypes != null;
 	}

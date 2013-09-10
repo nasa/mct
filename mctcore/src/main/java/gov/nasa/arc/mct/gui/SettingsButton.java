@@ -24,7 +24,6 @@ package gov.nasa.arc.mct.gui;
 import gov.nasa.arc.mct.util.MCTIcons;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 
@@ -47,34 +46,18 @@ public class SettingsButton extends JToggleButton {
     private static final Icon CONFIG_DESELECTED =
                     MCTIcons.processIcon(
                             new ImageIcon(SettingsButton.class.getResource("/icons/mct_icon_config.png")),
-                            0.9f, 0.9f, 0.9f, false);
+                            0.9f, 0.9f, 0.9f, true);
     private static final Icon CONFIG_SELECTED =
                     MCTIcons.processIcon(
                             new ImageIcon(SettingsButton.class.getResource("/icons/mct_icon_config.png")),
-                            1f, 1f, 1f, false);
-    private static final Icon CONFIG_DISABLED = new Icon() {
-                @Override
-                public void paintIcon(Component c, Graphics g, int x, int y) {
-                    // Do not paint when disabled    
-                }
-
-                @Override
-                public int getIconWidth() {
-                    return CONFIG_SELECTED.getIconWidth();
-                }
-
-                @Override
-                public int getIconHeight() {
-                    return CONFIG_SELECTED.getIconHeight();
-                }        
-            };
+                            1f, 1f, 1f, true);
             
     private static final Color SELECTED_BACKGROUND = new Color(193, 193, 193);
     private static final Color SELECTED_BORDER = new Color(138, 138, 138);
     private static final Color FOCUS_BORDER = new Color(138, 138, 200);
     
     private static final Dimension PREFERRED_SIZE = 
-                    new Dimension(19, 17);
+                    new Dimension(17, 17);
             
     /**
      * Create a new configuration button.
@@ -86,9 +69,14 @@ public class SettingsButton extends JToggleButton {
         setBorder(BorderFactory.createEmptyBorder());
         setOpaque(false);
         setIcon(CONFIG_DESELECTED);
-        setDisabledIcon(CONFIG_DISABLED);
         setSelectedIcon(CONFIG_SELECTED);
         setSelected(false);
+    }
+    
+    @Override
+    public void setEnabled(boolean enabled) {
+        setVisible(enabled);
+        super.setEnabled(enabled);
     }
     
     @Override

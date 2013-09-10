@@ -31,8 +31,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.ResourceBundle;
 
-import javax.swing.ImageIcon;
-
 
 public class LimitLineComponentProvider extends AbstractComponentProvider {
 
@@ -45,8 +43,8 @@ public class LimitLineComponentProvider extends AbstractComponentProvider {
 				bundle.getString("display_name"), 
 				bundle.getString("description"), 
 				LimitLineComponent.class, 
-				new LimitLineCreateWizardUI(),
-				new ImageIcon(LimitLineComponent.class.getResource("/icons/limit.png")));
+				new LimitLineCreateWizardUI()
+				);
 	}
 
 	@Override

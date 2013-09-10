@@ -84,7 +84,6 @@ public class SwitcherView extends View {
             comboBox.setVisible(false);
             comboBox.setEnabled(false);
             comboBox.setOpaque(false);
-            comboBox.setFont(comboBox.getFont().deriveFont(FONT_SIZE));
             add(comboBox);
         } else if (viewInfos.length == 1) {
             // Otherwise, just show the one available view as a label
@@ -96,6 +95,7 @@ public class SwitcherView extends View {
             // No views to show
         }
         
+        setBorder(BorderFactory.createEmptyBorder(1,4,1,2));
         setOpaque(false);
     }
     
@@ -200,7 +200,7 @@ public class SwitcherView extends View {
                 ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             }
             g.setColor(c.getBackground());
-            g.fillRoundRect(0, 1, c.getWidth()-2, c.getHeight()-2, 10, 10);
+            g.fillRoundRect(0, 1, c.getWidth()-1, c.getHeight()-2, 10, 10);
             super.paint(g, c);
         }
 
@@ -220,8 +220,8 @@ public class SwitcherView extends View {
     private static final Icon ARROW_ICON = new Icon() {
         @Override
         public void paintIcon(Component c, Graphics g, int x, int y) {
-            int tx[] = { 2, 10, 6 };
-            int ty[] = { 7, 7, 11 };
+            int tx[] = { 3, 11, 7 };
+            int ty[] = { 6, 6, 10 };
             if (g instanceof Graphics2D) {
                 ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             }

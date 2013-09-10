@@ -44,7 +44,6 @@ import gov.nasa.arc.mct.platform.spi.PlatformAccess;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 import gov.nasa.arc.mct.util.LafColor;
-import gov.nasa.arc.mct.util.MCTIcons;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -66,8 +65,6 @@ import java.util.ResourceBundle;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -87,14 +84,6 @@ import javax.swing.SwingUtilities;
 public class MCTContentArea extends JPanel implements CompositeViewManifestationProvider, SelectionProvider, ControlProvider {
 
     public static final String CENTER_PANE_VIEW_CHANGE = "center-pane-view-change";
-    
-    private static final Icon REFRESH_ICON = MCTIcons.processIcon(
-                    new ImageIcon(SettingsButton.class.getResource("/icons/mct_icon_refresh.png")),
-                            0.9f, 0.9f, 0.9f, false);
-    private static final Icon REFRESH_ICON_PRESSED = MCTIcons.processIcon(
-            new ImageIcon(SettingsButton.class.getResource("/icons/mct_icon_refresh.png")),
-                    1f, 1f, 1f, false);
-            
     
     private MCTHousing parentHousing;
     private final AbstractComponent ownerComponent;
@@ -147,8 +136,12 @@ public class MCTContentArea extends JPanel implements CompositeViewManifestation
         setOwnerComponentCanvasManifestation(ownerComponentCanvasManifestation);
         this.revalidate();
         this.parentHousing.setContentArea(this);
-        this.refreshButton.setContext(context);
-        configureRefreshButtonAppearance();
+                
+        refreshButton.setContentAreaFilled(false);
+        refreshButton.setText("");
+        refreshButton.setBorder(BorderFactory.createEmptyBorder());
+        refreshButton.setContext(context);
+        
         STALE_LABEL.setForeground(Color.red);
     }
 
@@ -381,14 +374,6 @@ public class MCTContentArea extends JPanel implements CompositeViewManifestation
     
     void clearHousedManifestations() {
         housedManifestations.clear();
-    }
-    
-    private void configureRefreshButtonAppearance() {
-        refreshButton.setIcon(REFRESH_ICON);
-        refreshButton.setPressedIcon(REFRESH_ICON_PRESSED);
-        refreshButton.setContentAreaFilled(false);
-        refreshButton.setText("");
-        refreshButton.setBorder(BorderFactory.createEmptyBorder());
     }
     
     private class CanvasTitleArea extends JPanel {

@@ -36,6 +36,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+
 /**
  * The "Refresh Now" menu option. Causes the view in the 
  * center pane to be re-created with the latest version 
@@ -50,7 +54,10 @@ public class RefreshAction extends ContextAwareAction {
             ResourceBundle.getBundle(
                     ThisSaveAllAction.class.getName().substring(0, 
                             ThisSaveAllAction.class.getName().lastIndexOf("."))+".Bundle"); //NOI18N
-
+    private static final Icon ICON = 
+            new ImageIcon(RefreshAction.class.getResource("/icons/mct_icon_refresh.png"));
+    
+    
     private boolean isHousing;
     private MCTHousingViewManifestation housing;
     private View view;
@@ -60,6 +67,7 @@ public class RefreshAction extends ContextAwareAction {
      */
     public RefreshAction() {
         super(BUNDLE.getString("RefreshAction.label")); //NOI18N
+        this.putValue(Action.LARGE_ICON_KEY, ICON);
     }
     
     @Override

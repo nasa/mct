@@ -32,8 +32,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-import javax.swing.ImageIcon;
-
 public class NonTimePlotComponentProvider extends AbstractComponentProvider {
 
 	private Collection<PolicyInfo> policies = 
@@ -41,15 +39,11 @@ public class NonTimePlotComponentProvider extends AbstractComponentProvider {
 	private Collection<ViewInfo>   views =
 		Arrays.asList(new ViewInfo(NonTimePlotView.class, "Non Time",
 						"gov.nasa.arc.mct.nontimeplot.NonTimePlotView",
-						ViewType.OBJECT, 
-						new ImageIcon(getClass().getResource("/images/nonTimeViewButton-OFF.png")),
-						new ImageIcon(getClass().getResource("/images/nonTimeViewButton-ON.png"))),
+						ViewType.OBJECT),
 				
 				new ViewInfo(NonTimePlotView.class, "Non Time",
 						"gov.nasa.arc.mct.nontimeplot.NonTimePlotView",
-						ViewType.EMBEDDED, 
-						new ImageIcon(getClass().getResource("/images/nonTimeViewButton-OFF.png")),
-						new ImageIcon(getClass().getResource("/images/nonTimeViewButton-ON.png"))));
+						ViewType.EMBEDDED));
 	
 	@Override
 	public Collection<PolicyInfo> getPolicyInfos() {

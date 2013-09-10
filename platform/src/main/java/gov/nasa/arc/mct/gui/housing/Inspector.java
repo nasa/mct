@@ -40,7 +40,6 @@ import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 import gov.nasa.arc.mct.util.LafColor;
-import gov.nasa.arc.mct.util.MCTIcons;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -64,9 +63,6 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
 
-import javax.swing.BorderFactory;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -84,12 +80,6 @@ public class Inspector extends View {
 
     private static final Color BACKGROUND_COLOR = LafColor.WINDOW_BORDER.darker();
     private static final Color FOREGROUND_COLOR = LafColor.WINDOW.brighter();
-    private static final Icon REFRESH_ICON = MCTIcons.processIcon(
-            new ImageIcon(SettingsButton.class.getResource("/icons/mct_icon_refresh.png")),
-                    0.9f, 0.9f, 0.9f, false);
-    private static final Icon REFRESH_ICON_PRESSED = MCTIcons.processIcon(
-            new ImageIcon(SettingsButton.class.getResource("/icons/mct_icon_refresh.png")),
-                    1f, 1f, 1f, false);
 
     private static final ResourceBundle BUNDLE = 
             ResourceBundle.getBundle(
@@ -199,7 +189,9 @@ public class Inspector extends View {
         content = emptyPanel;
         setMinimumSize(new Dimension(0, 0));
         
-        configureRefreshButtonAppearance();
+        refreshButton.setContentAreaFilled(false);
+        refreshButton.setText("");
+        refreshButton.setBorder(null);
         refreshButton.setContext(context);
     }
     
@@ -451,14 +443,6 @@ public class Inspector extends View {
         super.exitLockedState();
         if (view != null) 
             view.exitLockedState();
-    }
-    
-    private void configureRefreshButtonAppearance() {
-        refreshButton.setIcon(REFRESH_ICON);
-        refreshButton.setPressedIcon(REFRESH_ICON_PRESSED);
-        refreshButton.setContentAreaFilled(false);
-        refreshButton.setText("");
-        refreshButton.setBorder(BorderFactory.createEmptyBorder());
     }
     
     @Override

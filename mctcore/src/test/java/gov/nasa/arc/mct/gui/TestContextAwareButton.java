@@ -1,6 +1,10 @@
 package gov.nasa.arc.mct.gui;
 
+import java.awt.image.BufferedImage;
+
 import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -86,6 +90,25 @@ public class TestContextAwareButton {
         // Setting text to some other name should change tool tip
         button.setText("Something else");
         Assert.assertEquals(button.getToolTipText(), ACTION_NAME);        
+    }
+    
+    @Test
+    public void testSetIcon() {
+        // Should not have an icon by default
+        Assert.assertNull(new ContextAwareButton(action).getIcon());
+               
+        // Should customize (change) icon if it can (only for ImageIcons)
+        Icon icon = new ImageIcon(new BufferedImage(12,12,BufferedImage.TYPE_INT_ARGB));
+        Mockito.when(action.getValue(Action.SMALL_ICON)).thenReturn(icon);
+        Mockito.when(action.getValue(Action.LARGE_ICON_KEY)).thenReturn(icon);
+        Assert.assertNotNull(new ContextAwareButton(action).getIcon());
+        Assert.assertNotSame(new ContextAwareButton(action).getIcon(), icon);
+        
+        // Should use (but not customize) regular icon
+        icon = Mockito.mock(Icon.class);
+        Mockito.when(action.getValue(Action.SMALL_ICON)).thenReturn(icon);
+        Mockito.when(action.getValue(Action.LARGE_ICON_KEY)).thenReturn(icon);
+        Assert.assertEquals(new ContextAwareButton(action).getIcon(), icon);
     }
     
     @DataProvider

@@ -21,7 +21,11 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.gui;
 
+import gov.nasa.arc.mct.util.MCTIcons;
+
 import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 
 /**
@@ -57,6 +61,16 @@ public class ContextAwareButton extends JButton {
         setContext(context);
     }
 
+    @Override
+    public void setIcon(Icon icon) {
+        if (icon != null && icon instanceof ImageIcon) {
+            super.setIcon(MCTIcons.processIcon((ImageIcon) icon, .9f, .9f, .9f, true));
+            super.setPressedIcon(MCTIcons.processIcon((ImageIcon) icon, 1f, 1f, 1f, true));
+        } else {
+            super.setIcon(icon);
+        }
+    }
+    
     @Override
     public void setText(String text) {
         // If text is not the action name, make a tool tip
