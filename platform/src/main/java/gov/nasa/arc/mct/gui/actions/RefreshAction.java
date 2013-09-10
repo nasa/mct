@@ -21,6 +21,7 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.gui.actions;
 
+import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.defaults.view.MCTHousingViewManifestation;
 import gov.nasa.arc.mct.gui.ActionContext;
 import gov.nasa.arc.mct.gui.ContextAwareAction;
@@ -105,11 +106,17 @@ public class RefreshAction extends ContextAwareAction {
                         hints);
                 doRefresh = input.equals(ok);
             }
-
+           
             // Perform the refresh by re-creating view
             if (doRefresh) {
+                // Update component from persistence
+                AbstractComponent comp = contentArea.getHousedViewManifestation().getManifestedComponent();
+                comp = PlatformAccess.getPlatform().getPersistenceProvider().getComponent(comp.getComponentId());
+                contentArea.getHousedViewManifestation().setManifestedComponent(comp);                
+                
+                // Re-create view
                 ViewInfo vi = contentArea.getHousedViewManifestation().getInfo();
-                View newView = vi.createView(housing.getManifestedComponent());
+                View newView = vi.createView(comp);
                 contentArea.setOwnerComponentCanvasManifestation(newView);
             }
         }

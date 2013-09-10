@@ -27,6 +27,7 @@ import gov.nasa.arc.mct.gui.ActionContext;
 import gov.nasa.arc.mct.gui.ContextAwareAction;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.housing.MCTContentArea;
+import gov.nasa.arc.mct.platform.spi.PersistenceProvider;
 import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
 import gov.nasa.arc.mct.platform.spi.WindowManager;
@@ -64,6 +65,7 @@ public class TestRefresh {
     @Mock private ViewInfo mockViewInfo;
     @Mock private ActionEvent mockEvent;
     @Mock private WindowManager mockWindowManager;
+    @Mock private PersistenceProvider mockPersistence;
     
     @BeforeClass
     public void setup() {
@@ -88,6 +90,9 @@ public class TestRefresh {
         Mockito.when(mockView.getManifestedComponent()).thenReturn(mockComponent);
         Mockito.when(mockView.getInfo()).thenReturn(mockViewInfo);
         Mockito.when(mockPlatform.getWindowManager()).thenReturn(mockWindowManager);
+        Mockito.when(mockPlatform.getPersistenceProvider()).thenReturn(mockPersistence);
+        Mockito.when(mockPersistence.getComponent(Mockito.anyString())).thenReturn(mockComponent);
+        Mockito.when(mockComponent.getComponentId()).thenReturn("mock");
     }
     
     // Test various 'canHandle' responses
@@ -128,7 +133,7 @@ public class TestRefresh {
         
         // The newer version of the component, for which a view should be created
         AbstractComponent newerComponent = Mockito.mock(AbstractComponent.class);
-        Mockito.when(mockHousing.getManifestedComponent()).thenReturn(newerComponent);
+        Mockito.when(mockPersistence.getComponent("mock")).thenReturn(newerComponent);
         
         // Similarly, newer version of the view
         View newerView = Mockito.mock(View.class);
@@ -160,7 +165,7 @@ public class TestRefresh {
         
         // The newer version of the component, for which a view should be created
         AbstractComponent newerComponent = Mockito.mock(AbstractComponent.class);
-        Mockito.when(mockHousing.getManifestedComponent()).thenReturn(newerComponent);
+        Mockito.when(mockPersistence.getComponent("mock")).thenReturn(newerComponent);
         
         // Similarly, newer version of the view
         View newerView = Mockito.mock(View.class);
