@@ -131,9 +131,21 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 	}
 
 	public void activate(ComponentContext context) throws IOException {
-		setEntityManagerProperties(getPersistenceProperties());
+		Properties persistenceProperties = getPersistenceProperties();
+		setEntityManagerProperties(persistenceProperties);
 		new InternalDBPersistenceAccess().setPersistenceService(this);
 		checkDatabaseVersion();
+		
+		// Check for configuration of the polling interval (default is 3s)
+		long pollingInterval = 3000;
+		try {
+			String intervalString = persistenceProperties.getProperty("mct.database_pollInterval");
+			if (intervalString != null) {
+				pollingInterval = Long.parseLong(intervalString);
+			}
+		} catch (NumberFormatException nfe) {
+			// Stick with the default
+		}
 		
         Timer databasePollingTimer = new Timer();
         databasePollingTimer.schedule(new TimerTask() {
@@ -143,7 +155,7 @@ public class PersistenceServiceImpl implements PersistenceProvider {
             	InternalDBPersistenceAccess.getService().updateComponentsFromDatabase();
             }
             
-        }, Calendar.getInstance().getTime(), 3000);
+        }, Calendar.getInstance().getTime(), pollingInterval);
 
 	}
 	
