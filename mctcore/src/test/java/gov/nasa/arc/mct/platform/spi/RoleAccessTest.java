@@ -25,44 +25,66 @@ import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.services.internal.component.ComponentInitializer;
 import gov.nasa.arc.mct.services.internal.component.User;
 
+import java.util.Arrays;
+
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public class RoleAccessTest {
     
     @Mock private User testUser;
+    @Mock private Platform mockPlatform;
+    @Mock private AbstractComponent mockBootstrap;
     private AbstractComponent component;
     
-    @BeforeTest
+    private Platform oldPlatform;
+    
+    @BeforeMethod
     void setup() {
         MockitoAnnotations.initMocks(this);
         component = new AbstractComponent() {
         };
+        oldPlatform = PlatformAccess.getPlatform();
+        new PlatformAccess().setPlatform(mockPlatform);
+        Mockito.when(mockBootstrap.getComponentId()).thenReturn("boot");
+        Mockito.when(mockPlatform.getBootstrapComponents()).thenReturn(Arrays.asList(mockBootstrap));
+    }
+    
+    @AfterMethod
+    void teardown() {
+        new PlatformAccess().setPlatform(oldPlatform);
     }
     
     @DataProvider(name="userAndComponentSetup")
     Object[][] userTests() {
         return new Object[][] {
-               new Object[] {"admin", "xyz", true},
-               new Object[] {"xyz", "xyz", true},
-               new Object[] {"qqq", "xyz", false}
+               new Object[] {"admin", "xyz", "...", true},
+               new Object[] {"xyz", "xyz", "...", true},
+               new Object[] {"qqq", "xyz", "...", false},
+               // The following should be identified as bootstrap components,
+               // and ownership changed should be disallowed.
+               new Object[] {"admin", "xyz", "boot", false},
+               new Object[] {"xyz", "xyz", "boot", false},
+               new Object[] {"qqq", "xyz", "boot", false}
         };
     }
     
-    void setupUserAndComponent(String user, String originalOwner) {
+    void setupUserAndComponent(String user, String originalOwner, String id) {
         Mockito.when(testUser.getUserId()).thenReturn(user);
         ComponentInitializer ci = component.getCapability(ComponentInitializer.class);
         ci.setOwner(originalOwner);
+        ci.setId(id);
     }
     
     @Test(dataProvider="userAndComponentSetup")
-    public void testCanChangeOwner(String userName, String originalOwner, boolean expectedValue) {
-        setupUserAndComponent(userName, originalOwner);
+    public void testCanChangeOwner(String userName, String originalOwner, String id, boolean expectedValue) {
+        setupUserAndComponent(userName, originalOwner, id);
         component.setOwner(userName);
         Assert.assertEquals(RoleAccess.canChangeOwner(component, testUser), expectedValue);
     }

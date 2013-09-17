@@ -5,6 +5,8 @@ import gov.nasa.arc.mct.components.PropertyDescriptor;
 import gov.nasa.arc.mct.components.PropertyDescriptor.VisualControlDescriptor;
 import gov.nasa.arc.mct.components.PropertyEditor;
 import gov.nasa.arc.mct.context.GlobalContext;
+import gov.nasa.arc.mct.platform.spi.Platform;
+import gov.nasa.arc.mct.platform.spi.PlatformAccess;
 import gov.nasa.arc.mct.platform.spi.RoleAccess;
 import gov.nasa.arc.mct.platform.spi.RoleService;
 import gov.nasa.arc.mct.services.component.ViewInfo;
@@ -29,6 +31,7 @@ import javax.swing.JTextField;
 
 import org.mockito.Mockito;
 import org.testng.Assert;
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -38,17 +41,27 @@ public class TestInfoView {
     User mockUser = Mockito.mock(User.class);
     RoleService mockRoleService = Mockito.mock(RoleService.class);   
     AbstractComponent comp = Mockito.mock(AbstractComponent.class);
-    ViewInfo info = new ViewInfo(InfoView.class, "Info", ViewType.CENTER);
-        
+    Platform mockPlatform = Mockito.mock(Platform.class);
+    Platform oldPlatform;
+    ViewInfo info = new ViewInfo(InfoView.class, "Info", ViewType.CENTER);    
+    
     @BeforeMethod
-    public void setup() {
+    public void setup() {            
         // Setup minimum expected environment for info view
+        oldPlatform = PlatformAccess.getPlatform();
+        new PlatformAccess().setPlatform(mockPlatform);
         Mockito.when(comp.getOwner()).thenReturn("*");
         Mockito.when(comp.getComponentTypeID()).thenReturn("");   
         Mockito.when(mockUser.getUserId()).thenReturn("");
         Mockito.when(mockRoleService.getAllUsers()).thenReturn(Collections.singleton(""));
+        Mockito.when(mockPlatform.getBootstrapComponents()).thenReturn(Collections.<AbstractComponent>emptyList());
         GlobalContext.getGlobalContext().switchUser(mockUser, Mockito.mock(Runnable.class));
         new RoleAccess().addRoleService(mockRoleService);
+    }
+    
+    @AfterMethod
+    public void teardown() {
+        new PlatformAccess().setPlatform(oldPlatform);
     }
     
     @Test
