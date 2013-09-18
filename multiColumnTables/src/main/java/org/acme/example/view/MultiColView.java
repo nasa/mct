@@ -72,6 +72,9 @@ public class MultiColView extends FeedView implements RenderingCallback {
 	public static final String HIDDEN_COLUMNS_PROP = "HIDDEN_COLUMNS_PROP";
 	private static final Logger logger = LoggerFactory.getLogger(MultiColView.class);
     
+	//used in a depth-first-search to retrieve all nodes of a graph
+	private HashSet<Integer> visited = new HashSet<Integer>();
+	
 	static {
 		formats = new DecimalFormat[11];
 		formats[0] = new DecimalFormat("#");
@@ -82,6 +85,28 @@ public class MultiColView extends FeedView implements RenderingCallback {
 			formats[i] = format;
 		}
 	}
+	
+	/**
+	 * Given a root-node, perform a depth-first-search and return a list containing that root-node
+	 * as well as all components connected to the root node.  This method can handle arbitrary connected
+	 * graphs, that is, connected graphs that may or may not contain a cycle.
+	 * 
+	 *     Note: We expect this function will not be called on very large graphs (no more than a few
+	 *           hundred--even I have not made than many tidbits in MCT) so we chose a recursive
+	 *           solution.  
+	 * 
+	 * @param root the start of the depth-first-search
+	 * @param list at the end of the function, this list will contain root as well as
+	 *        all components connected to root
+	 */
+	private void getNodes(AbstractComponent root, List<AbstractComponent> list ) {
+		list.add(root);
+		visited.add(root.hashCode());
+		for(AbstractComponent child : root.getComponents() ) {
+			if( !visited.contains(child.hashCode() ) )
+				getNodes(child, list);				
+		}
+	}
 
 	public MultiColView(AbstractComponent ac, ViewInfo vi) {
 		super(ac,vi);
@@ -90,7 +115,11 @@ public class MultiColView extends FeedView implements RenderingCallback {
 		ViewSettings settings = new ViewSettings();
 		
 		AbstractComponent component = getManifestedComponent();
-		List<AbstractComponent> childrenList = component.getComponents();
+		List<AbstractComponent> childrenList = new ArrayList<AbstractComponent>();
+
+		getNodes(component, childrenList);
+		
+		
 		//If no children, we display the selectedComponent. 
 		if(childrenList.size()==0) {
 			childrenList = new ArrayList<AbstractComponent>();
