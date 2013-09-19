@@ -21,13 +21,17 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.fastplot;
 
+import gov.nasa.arc.mct.fastplot.view.PlotViewManifestation;
 import gov.nasa.arc.mct.policy.PolicyInfo;
+import gov.nasa.arc.mct.services.component.TypeInfo;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
-import gov.nasa.arc.mct.fastplot.view.PlotViewManifestation;
 
 import java.util.Collection;
 import java.util.Collections;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -58,4 +62,26 @@ public class TestPlotViewProvider {
         Collection<PolicyInfo> infos = provider.getPolicyInfos();
         Assert.assertEquals(infos.size(), 2);
     }
+    
+    @Test
+    public void testGetAsset() {       
+        @SuppressWarnings("serial")
+		class UnknownType extends ImageIcon {};
+        
+    	for (ViewInfo viewInfo : provider.getViews("")) {
+            // Should have an icon
+    		Assert.assertNotNull(provider.getAsset(viewInfo, ImageIcon.class));
+    		// Should obey assignable rules for icon
+    		Assert.assertNotNull(provider.getAsset(viewInfo, Icon.class));
+    		Assert.assertNull(provider.getAsset(viewInfo, UnknownType.class));
+    	}
+
+    	// Should not have assets for unknown types
+    	TypeInfo<?> unknownInfo = new TypeInfo<UnknownType>(UnknownType.class){};
+    	for (Class<?> type : new Class<?>[] {ImageIcon.class,Icon.class,UnknownType.class}) {
+    		Assert.assertNull(provider.getAsset(unknownInfo, type));
+    	}
+    	
+    }
+
 }

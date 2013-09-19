@@ -36,9 +36,12 @@ import gov.nasa.arc.mct.policymgr.PolicyManagerImpl;
 import gov.nasa.arc.mct.registry.ExternalComponentRegistryImpl;
 import gov.nasa.arc.mct.registry.ExternalComponentRegistryImpl.ExtendedComponentTypeInfo;
 import gov.nasa.arc.mct.roles.events.PropertyChangeEvent;
+import gov.nasa.arc.mct.services.component.ComponentTypeInfo;
 import gov.nasa.arc.mct.services.component.CreateWizardUI;
+import gov.nasa.arc.mct.util.MCTIcons;
 import gov.nasa.arc.mct.util.logging.MCTLogger;
 
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -82,7 +85,7 @@ public class NewObjectAction extends CompositeAction {
                 AbstractComponent tempComponent =  extCompRegistry.newInstance(info);
                 policyContext.setProperty(PolicyContext.PropertyName.SOURCE_COMPONENTS.getName(), Collections.singleton(tempComponent));
                 if (PolicyManagerImpl.getInstance().execute(compositionKey, policyContext).getStatus()) {
-                    subActions.add(new NewTypeAction(info.getDisplayName(), info.getComponentClass(), targetComponent, info.getWizardUI(), info.getIcon()));
+                    subActions.add(new NewTypeAction(info, targetComponent));
                 } 
             }
         }
@@ -100,13 +103,12 @@ public class NewObjectAction extends CompositeAction {
         private AbstractComponent targetComponent;
         private CreateWizardUI wizardUI;
 
-        public NewTypeAction(String componentDisplayName, Class<? extends AbstractComponent> componentClass,
-                AbstractComponent targetComponent, CreateWizardUI wizard, ImageIcon icon) {
-            putValue(Action.NAME, componentDisplayName);
-            putValue(Action.SMALL_ICON, icon);
-            this.componentClass = componentClass;
+        public NewTypeAction(ComponentTypeInfo info, AbstractComponent targetComponent) {
+            putValue(Action.NAME, info.getDisplayName());
+            putValue(Action.SMALL_ICON, MCTIcons.processIcon(info.getAsset(ImageIcon.class), new Color(80,80,80), new Color(40,40,40), false));
+            this.componentClass = info.getTypeClass();
             this.targetComponent = targetComponent;       
-            this.wizardUI = wizard;
+            this.wizardUI = info.getAsset(CreateWizardUI.class);
             if (wizardUI == null){
                 wizardUI = new DefaultWizardUI(this.componentClass);
             }

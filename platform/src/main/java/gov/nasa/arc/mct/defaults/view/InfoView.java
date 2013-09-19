@@ -101,6 +101,7 @@ public class InfoView extends View {
     private JLabel displayNameTag;
     private JLabel componentType;
     private JLabel componentTypeTag;
+    @SuppressWarnings("rawtypes") // Java 7 compatibility
     private JComboBox owner;
     private JLabel ownerTag;
     private JLabel mctId;
@@ -257,11 +258,12 @@ public class InfoView extends View {
         return tf;
     }
     
-    private JComboBox createOwnerField() {
-        
+    @SuppressWarnings("rawtypes") // Java 7 compatibility
+    private JComboBox createOwnerField() {        
         List<String> usersAndRoles = new ArrayList<String>();
         usersAndRoles.addAll(Arrays.asList(RoleAccess.getAllRoles()));
         usersAndRoles.addAll(Arrays.asList(RoleAccess.getAllUsers()));
+        @SuppressWarnings("unchecked")
         final JComboBox comboBox = new JComboBox(usersAndRoles.toArray());
         comboBox.setSelectedItem(getManifestedComponent().getOwner());
         return comboBox;
@@ -319,6 +321,7 @@ public class InfoView extends View {
      * When a component changes locked state, control whether the display name is edit able.
      */
 
+    @SuppressWarnings("unchecked") // Java 7 compatibility
     @Override
     public void enterLockedState() {        
         boolean allowEdit = checkAllowComponentRenamePolicy();
@@ -352,6 +355,7 @@ public class InfoView extends View {
         }
     }
 
+    @SuppressWarnings("unchecked") // Java 7 compatibility
     @Override
     public void exitLockedState() {
         boolean allowEdit = checkAllowComponentRenamePolicy();
@@ -526,6 +530,7 @@ public class InfoView extends View {
         }
     }
     
+    @SuppressWarnings("rawtypes") // Java 7 compatibility
     private void populateVisualComponent(JComponent component, PropertyDescriptor p) {
         Object newValue = null;
         // Set the visual component (specific method calls vary by component type)
@@ -726,6 +731,7 @@ public class InfoView extends View {
         });  
     }
 
+    @SuppressWarnings("rawtypes") // Java 7 compatibility
     private void hookupComponentListeners(final JComboBox jComponent, final PropertyEditor<?> ed) {
         
         jComponent.addActionListener(new ActionListener() {

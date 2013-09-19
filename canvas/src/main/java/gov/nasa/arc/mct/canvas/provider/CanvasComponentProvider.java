@@ -59,6 +59,7 @@ import gov.nasa.arc.mct.menu.SendToBackAction;
 import gov.nasa.arc.mct.menu.WindowGridMenu;
 import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.services.component.AbstractComponentProvider;
+import gov.nasa.arc.mct.services.component.TypeInfo;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 
@@ -70,16 +71,18 @@ import javax.swing.ImageIcon;
 
 public class CanvasComponentProvider extends AbstractComponentProvider {
     private static ResourceBundle bundle = ResourceBundle.getBundle("CanvasResourceBundle");
+    
+    private static final ImageIcon ICON = 
+                    new ImageIcon(CanvasComponentProvider.class.getResource("/icons/mct_icon_menu_canvas.png"));
+    
     private static final Collection<ViewInfo> VIEW_INFOS =
                     Arrays.asList(
                                     new ViewInfo(CanvasManifestation.class, bundle.getString("Canvas"), "gov.nasa.arc.mct.canvas.view.CanvasView", 
-                                          ViewType.OBJECT,
-                                          new ImageIcon(CanvasComponentProvider.class.getResource("/icons/mct_icon_menu_canvas.png"))),
+                                          ViewType.OBJECT),
                                     new ViewInfo(CanvasManifestation.class, bundle.getString("Canvas"), "gov.nasa.arc.mct.canvas.view.CanvasView", 
                                           ViewType.CENTER),
                                     new ViewInfo(CanvasManifestation.class, bundle.getString("Canvas"), "gov.nasa.arc.mct.canvas.view.CanvasView", 
-                                                          ViewType.EMBEDDED,
-                                                          new ImageIcon(CanvasComponentProvider.class.getResource("/icons/mct_icon_menu_canvas.png"))), 
+                                          ViewType.EMBEDDED), 
                                     new ViewInfo(PanelInspector.class, "Panel Inspector", ViewType.CENTER_OWNED_INSPECTOR));
     @Override
     public Collection<MenuItemInfo> getMenuItemInfos() {
@@ -201,5 +204,14 @@ public class CanvasComponentProvider extends AbstractComponentProvider {
     @Override
     public Collection<ViewInfo> getViews(String componentTypeId) {
         return VIEW_INFOS;
+    }
+    
+    @Override
+    public <T> T getAsset(TypeInfo<?> typeInfo, Class<T> assetClass) {
+        if (assetClass.isAssignableFrom(ImageIcon.class) && 
+            typeInfo.getTypeClass().equals(CanvasManifestation.class)) {
+            return assetClass.cast(ICON);
+        }
+        return super.getAsset(typeInfo, assetClass);
     }
 }

@@ -24,6 +24,7 @@ package gov.nasa.arc.mct.table;
 
 import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.services.component.AbstractComponentProvider;
+import gov.nasa.arc.mct.services.component.TypeInfo;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 import gov.nasa.arc.mct.table.policy.TableViewPolicy;
@@ -42,7 +43,8 @@ public class TableViewProvider extends AbstractComponentProvider {
 
 	final Collection<PolicyInfo> policyInfos;
 	private final Collection<ViewInfo> viewInfos;
-	
+	private static final ImageIcon ICON =
+			new ImageIcon(TableViewProvider.class.getResource("/icons/mct_icon_menu_alpha.png"));
 	/**
 	 * Creates a new view provider service object. Initializes the set
 	 * of objects that will be provided to the core.
@@ -50,10 +52,8 @@ public class TableViewProvider extends AbstractComponentProvider {
 	public TableViewProvider() {
 		policyInfos = Collections.singleton(new PolicyInfo(PolicyInfo.CategoryType.FILTER_VIEW_ROLE.getKey(), TableViewPolicy.class));
 		viewInfos = Arrays.asList(
-				new ViewInfo(TableViewManifestation.class, TableViewManifestation.VIEW_ROLE_NAME, "gov.nasa.arc.mct.table.view.TableViewRole", ViewType.OBJECT,
-						new ImageIcon(getClass().getResource("/icons/mct_icon_menu_alpha.png"))),
-				new ViewInfo(TableViewManifestation.class, TableViewManifestation.VIEW_ROLE_NAME, "gov.nasa.arc.mct.table.view.TableViewRole", ViewType.EMBEDDED,
-						new ImageIcon(getClass().getResource("/icons/mct_icon_menu_alpha.png"))));
+				new ViewInfo(TableViewManifestation.class, TableViewManifestation.VIEW_ROLE_NAME, "gov.nasa.arc.mct.table.view.TableViewRole", ViewType.OBJECT),
+				new ViewInfo(TableViewManifestation.class, TableViewManifestation.VIEW_ROLE_NAME, "gov.nasa.arc.mct.table.view.TableViewRole", ViewType.EMBEDDED));
 	}
 	
 	@Override
@@ -66,4 +66,13 @@ public class TableViewProvider extends AbstractComponentProvider {
 		return policyInfos;
 	}
 	
+	
+    @Override
+    public <T> T getAsset(TypeInfo<?> typeInfo, Class<T> assetClass) {
+        if (assetClass.isAssignableFrom(ImageIcon.class) && 
+            typeInfo.getTypeClass().equals(TableViewManifestation.class)) {
+            return assetClass.cast(ICON);
+        }
+        return super.getAsset(typeInfo, assetClass);
+    }
 }

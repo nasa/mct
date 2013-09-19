@@ -37,8 +37,10 @@ import gov.nasa.arc.mct.roles.events.RemoveChildEvent;
 import gov.nasa.arc.mct.services.component.PolicyManager;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
+import gov.nasa.arc.mct.util.MCTIcons;
 import gov.nasa.arc.mct.util.internal.ElapsedTimer;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.beans.PropertyChangeListener;
@@ -48,6 +50,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JTree;
 import javax.swing.event.TreeExpansionEvent;
@@ -92,7 +95,7 @@ public class NodeViewManifestation extends View {
         label = new JLabel(component.getExtendedDisplayName());
         label.putClientProperty("TITLE", true);
         setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-        add(new JLabel(component.getIcon()));
+        add(new JLabel(getIcon(component)));
         add(spacebar);
         add(label);
         doLockRendering(label,component);
@@ -100,10 +103,15 @@ public class NodeViewManifestation extends View {
         addPropertyChangeListener(VIEW_STALE_PROPERTY, objectStaleListener);
     }
     
+    private ImageIcon getIcon(AbstractComponent ac) {
+        ImageIcon baseIcon = ac.getAsset(ImageIcon.class);        
+        return MCTIcons.processIcon(baseIcon, new Color(129, 154, 204), new Color(101, 131, 192), false);
+    }
+    
     private void doLockRendering(JLabel widget, AbstractComponent comp) {
-        Font myFont = widget.getFont();
+        widget.getFont();
         if (comp != null) {
-            String id = comp.getId();
+            comp.getId();
         }
     }
 

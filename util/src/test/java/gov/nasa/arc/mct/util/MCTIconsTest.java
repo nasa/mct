@@ -88,6 +88,38 @@ public class MCTIconsTest {
 	    
 	}
 	
+	@Test
+	public void testProcessIconCaching() {
+	    // Generate a base image (for convenience)
+	    ImageIcon original = MCTIcons.generateIcon(0x1982, 16, Color.WHITE);
+	    
+	    // Processing it twice should give the same (pointer-identical) image
+	    ImageIcon processed = MCTIcons.processIcon(original);
+	    Assert.assertSame(MCTIcons.processIcon(original), processed);
+	    
+	    // Should also avoid re-processing icons
+	    Assert.assertSame(MCTIcons.processIcon(processed), processed);  
+	    
+	    // A processed null should just be a null
+	    Assert.assertNull(MCTIcons.processIcon(null));
+	    
+	    // Should not use default cache with processing instructions
+	    ImageIcon colorized = MCTIcons.processIcon(original, Color.MAGENTA, true);
+	    Assert.assertNotSame(colorized, processed);
+	    
+	    // Should cache for specific processing instructions
+	    Assert.assertSame(MCTIcons.processIcon(original, Color.MAGENTA, true), colorized);
+	    
+	    // Should not use cache if processing instructions change
+        Assert.assertNotSame(MCTIcons.processIcon(original, Color.MAGENTA, false), colorized);
+        Assert.assertNotSame(MCTIcons.processIcon(original, Color.ORANGE, true), colorized);
+        
+        // Should also distinguish different gradient choices (and recognize same ones)
+        ImageIcon gradient = MCTIcons.processIcon(original, Color.MAGENTA, Color.YELLOW, true);
+        Assert.assertNotSame(gradient, colorized);
+        Assert.assertSame(MCTIcons.processIcon(original, Color.MAGENTA, Color.YELLOW, true), gradient);
+	}
+	
 	private static class IconTester {
 	    private int hash;
 	    private BufferedImage image;

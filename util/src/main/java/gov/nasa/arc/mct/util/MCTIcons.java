@@ -52,6 +52,7 @@ public class MCTIcons {
 
     // Cache processed icons for later retrieval
     private static Map<ImageIcon, ImageIcon> processedIcons = new HashMap<ImageIcon, ImageIcon>();
+    private static Map<ProcessDescription, ImageIcon> processedIconCache = new HashMap<ProcessDescription, ImageIcon>();
     
     private static enum Icons { 
         WARNING_ICON,
@@ -150,7 +151,7 @@ public class MCTIcons {
         for (int radius = 1; radius < sz/2; radius += sz/7) {
             if (((hash>>>=1) & 1) != 0) {
                 if (radius < 3) {
-                    g.fillOval(sz/2-radius, sz/2-radius, radius*2, radius*2);
+                    g.fillOval(sz/2-1, sz/2-1, 3, 3);
                 } else {
                     g.drawOval(sz/2-radius, sz/2-radius, radius*2, radius*2);
                 }
@@ -160,14 +161,9 @@ public class MCTIcons {
         // Draw concentric Squares
         for (int radius = 3; radius < sz/2; radius += sz/7) {
             if (((hash>>>=1) & 1) != 0) {
-                if (radius < 3) {
-                    g.fillRect(sz/2-radius, sz/2-radius, radius*2, radius*2);
-                } else {
-                    g.drawRect(sz/2-radius, sz/2-radius, radius*2, radius*2);
-                }
+                g.drawRect(sz/2-radius, sz/2-radius, radius*2, radius*2);
             }
         }        
-        
         
         // Draw top/bottom dots        
         if (((hash>>>=1) & 1) != 0) {   
@@ -216,33 +212,193 @@ public class MCTIcons {
      * @param dropShadow whether or not to add drop shadow
      * @return a processed icon
      */
-    public static ImageIcon processIcon(ImageIcon icon, float r, float g, float b, boolean dropShadow) {
-        float coloration[] = {r,g,b,1f};
-        float preshadow[] = {0f,0f,0.25f,0.125f};
-        float shadow[] = {0.1f,0.1f,0.1f,0.65f};
-        float offset[] = {0f,0f,0f,0f};
+    public static ImageIcon processIcon(ImageIcon icon, float r, float g, float b, boolean dropShadow) {              
+        return processIcon(icon, new Color((int)(r * 255f),(int)(g*255f),(int)(b*255f)), dropShadow);
+    }
+
+    /**
+     * Process the given icon to be consistent with MCT 
+     * icon look and feel. Desired color can be specified 
+     * and drop shadow can be enabled / disabled. 
+     *  
+     * @param icon the icon to process
+     * @param c desired color
+     * @param dropShadow whether or not to add drop shadow
+     * @return a processed icon
+     */
+    public static ImageIcon processIcon(ImageIcon icon, Color c, boolean dropShadow) {
+        return processIcon(new ProcessDescription(icon, c, c, dropShadow));
+    }
+    
+    /**
+     * Process the given icon to be consistent with MCT 
+     * icon look and feel. Desired color is specified for 
+     * a gradient fill from top to bottom, and 
+     * drop shadow can be enabled / disabled. 
+     *  
+     * @param icon the icon to process
+     * @param top color for top of icon
+     * @param bottom color for bottom of icon
+     * @param dropShadow whether or not to add drop shadow
+     * @return a processed icon
+     */
+    public static ImageIcon processIcon(ImageIcon icon, Color top, Color bottom, boolean dropShadow) {
+        return processIcon(new ProcessDescription(icon, top, bottom, dropShadow));
+    }
+    
+    private static ImageIcon processIcon(ProcessDescription pd) {
+        ImageIcon icon = processedIconCache.get(pd);
+        
+        if (icon == null) { // Need to process and cache
+            icon = doProcessing(pd);            
+            processedIconCache.put(pd, icon);
+        }
+        
+        return icon;
+    }
+    
+    private static ImageIcon doProcessing(ProcessDescription pd) {
+        // A processed null is still a null
+        if (pd.icon == null) {
+            return null;
+        }        
 
         // Create a copy of the image with some extra padding for drop shadow
         BufferedImage bufferedImage = new BufferedImage(
-                icon.getIconWidth() + 2, 
-                icon.getIconHeight() + 2,
-                BufferedImage.TYPE_4BYTE_ABGR);
+                pd.icon.getIconWidth() + 2, 
+                pd.icon.getIconHeight() + 2,
+                BufferedImage.TYPE_INT_ARGB);
 
-        if (dropShadow) {
+        if (pd.dropShadow) {
+            // Color rescale for shadowing
+            float preshadow[] = {0f,0f,0.25f,0.125f};
+            float shadow[] = {0.1f,0.1f,0.1f,0.65f};
+            float offset[] = {0f,0f,0f,0f};
+            
             // Draw the icon upper-left "shadow" (subtle outline)
-            icon.paintIcon(null, bufferedImage.getGraphics(), 0, 0);           
+            pd.icon.paintIcon(null, bufferedImage.getGraphics(), 0, 0);           
             bufferedImage = new RescaleOp(preshadow, offset, null).filter(bufferedImage, null);
             
             // Draw the lower-right shadow
-            icon.paintIcon(null, bufferedImage.getGraphics(), 2, 2);
+            pd.icon.paintIcon(null, bufferedImage.getGraphics(), 2, 2);
             bufferedImage =  new RescaleOp(shadow, offset, null).filter(bufferedImage, null);
         }
         
-        // Repaint original icon & colorize
-        icon.paintIcon(null, bufferedImage.getGraphics(), 1, 1);
-        bufferedImage =  new RescaleOp(coloration, offset, null).filter(bufferedImage, null);
+        // Repaint original icon 
+        pd.icon.paintIcon(null, bufferedImage.getGraphics(), 1, 1);
         
+        // Colorize 
+        if (pd.firstColor != null) {
+            // Gradient fill
+            if (pd.secondColor != null && pd.secondColor.getRGB() != pd.firstColor.getRGB()) {
+                // Repaint original icon & colorize
+                pd.icon.paintIcon(null, bufferedImage.getGraphics(), 1, 1);
+                bufferedImage = colorize(bufferedImage, pd.firstColor);
+                BufferedImage secondBufferedImage = colorize(bufferedImage, pd.secondColor);
+                fade(secondBufferedImage);
+                bufferedImage.getGraphics().drawImage(secondBufferedImage, 0, 0, null);
+            } else {
+                // Repaint original icon & colorize
+                pd.icon.paintIcon(null, bufferedImage.getGraphics(), 1, 1);
+                bufferedImage = colorize(bufferedImage, pd.firstColor);
+            }
+        }
+               
         return new ImageIcon(bufferedImage);
+    }
+    
+    private static void fade(BufferedImage b) {
+        // Reduce alpha in image, such that top is transparent 
+        // and bottom is as opaque as original, with a smooth 
+        // fade in between. This supports color gradients.
+        float step = 1f / (float) (b.getHeight());
+        float fade = 0f; // Will increase to 1f by bottom of image
+        for (int y = 0; y < b.getHeight(); y++) {
+            for (int x = 0; x < b.getWidth(); x++) {
+                // Get pixel as integer
+                int argb = b.getRGB(x, y);
+                // Separate out alpha from RGB
+                int a    = (argb >>> 24) & 0xFF;
+                int rgb  = argb - (a << 24);
+                // Compute new alpha
+                a = (int) (((float) a) * fade);                
+                b.setRGB(x, y, rgb | (a << 24));
+            }
+            // Linearly interpolate
+            fade += step;
+        }
+    }
+    
+    private static BufferedImage colorize(BufferedImage b, Color c) {
+        // Convert color to scaling factor
+        int rgb = c.getRGB();
+        float coloration[] = new float[4];
+        for (int i = 0; i < 3; i++) {
+            coloration[2-i] = (float) (rgb & 0xFF) / 255f;
+            rgb >>>= 8;
+        }
+        coloration[3] = 1f; // Always full alpha
+
+        float offset[] = {0f,0f,0f,0f};
+        
+        // Repaint original icon & colorize
+        return new RescaleOp(coloration, offset, null).filter(b, null);       
+    }
+    
+    /**
+     * Describes a set of processing arguments used upon an icon.
+     * Used to support a HashMap cache of already-processed icons.
+     *
+     */
+    private static class ProcessDescription {
+        private ImageIcon icon;
+        private Color firstColor;
+        private Color secondColor;
+        private boolean dropShadow;
+        private int hash;        
+       
+        public ProcessDescription(ImageIcon icon, Color firstColor, Color secondColor, boolean dropShadow) {
+            super();
+            this.icon = icon;
+            this.firstColor = firstColor;
+            this.secondColor = secondColor;
+            this.dropShadow = dropShadow;
+            
+            hash = 0;
+            Object[] objects = {icon, firstColor, secondColor, dropShadow};
+            for (Object o : objects) {
+                if (o != null) {
+                    hash ^= o.hashCode();
+                }
+            }
+        }
+
+        @Override
+        public int hashCode() {
+            return hash;
+        }
+        
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof ProcessDescription) {
+                ProcessDescription p = (ProcessDescription) o;
+                return icon == p.icon &&
+                       colorsEqual(firstColor, p.firstColor) &&
+                       colorsEqual(secondColor, p.secondColor) &&
+                       dropShadow == p.dropShadow;                       
+            }
+            return false;
+        }
+        
+        private boolean colorsEqual(Color a, Color b) {
+            if (a == null) {
+                return b == null;
+            } else if (b == null) {
+                return false;
+            } else {
+                return a.getRGB() == b.getRGB();
+            }
+        }
     }
 
 }

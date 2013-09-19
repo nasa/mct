@@ -38,14 +38,16 @@ import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.ViewProvider;
 import gov.nasa.arc.mct.gui.housing.registry.UserEnvironmentRegistry;
 import gov.nasa.arc.mct.gui.impl.WindowManagerImpl;
-import gov.nasa.arc.mct.osgi.platform.OSGIRuntimeImpl;
 import gov.nasa.arc.mct.osgi.platform.OSGIRuntime;
+import gov.nasa.arc.mct.osgi.platform.OSGIRuntimeImpl;
 import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
 import gov.nasa.arc.mct.policy.PolicyContext;
 import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
+import gov.nasa.arc.mct.util.MCTIcons;
 
+import java.awt.Color;
 import java.awt.GraphicsConfiguration;
 import java.awt.GridLayout;
 import java.awt.event.WindowAdapter;
@@ -61,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
 import org.slf4j.LoggerFactory;
@@ -108,7 +111,7 @@ public class MCTStandardHousing extends MCTAbstractHousing implements TwiddleVie
         setSize(this.width, this.height);
         displayPanel.setSize(this.width, this.height);
         setTitle(title);
-        setIconImage(housingView.getManifestedComponent().getIcon().getImage());
+        setIcon(housingView.getManifestedComponent().getAsset(ImageIcon.class));
         setDefaultCloseOperation(closeAction);
         MCTHousingViewManifestation housingManifestation = (MCTHousingViewManifestation) housingView;
         setHousingViewManifesation(housingManifestation);
@@ -126,12 +129,19 @@ public class MCTStandardHousing extends MCTAbstractHousing implements TwiddleVie
         setSize(this.width, this.height);
         displayPanel.setSize(this.width, this.height);
         setTitle(title);
-        setIconImage(housingView.getManifestedComponent().getIcon().getImage());
+        setIcon(housingView.getManifestedComponent().getAsset(ImageIcon.class));
         setDefaultCloseOperation(closeAction);
         MCTHousingViewManifestation housingManifestation = (MCTHousingViewManifestation) housingView;
         setHousingViewManifesation(housingManifestation);
         addWindowListenerToHousing();
         getContentPane().add(displayPanel);
+    }
+    
+    private void setIcon(ImageIcon icon) {
+        icon = MCTIcons.processIcon(icon, new Color(230,230,230), true);
+        if (icon != null) {
+            setIconImage(icon.getImage());
+        }
     }
 
     @Override

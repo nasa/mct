@@ -25,6 +25,8 @@ import gov.nasa.arc.mct.gui.MenuItemInfo;
 import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.services.component.AbstractComponentProvider;
 import gov.nasa.arc.mct.services.component.ComponentTypeInfo;
+import gov.nasa.arc.mct.services.component.CreateWizardUI;
+import gov.nasa.arc.mct.services.component.TypeInfo;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 
 import java.util.Collection;
@@ -36,15 +38,13 @@ public class LimitLineComponentProvider extends AbstractComponentProvider {
 
 	private static final ResourceBundle bundle = ResourceBundle.getBundle("Limits"); 
 	private final ComponentTypeInfo componentTypeInfo;
-
+	
 	public LimitLineComponentProvider() {
 
 		componentTypeInfo = new ComponentTypeInfo(
 				bundle.getString("display_name"), 
 				bundle.getString("description"), 
-				LimitLineComponent.class, 
-				new LimitLineCreateWizardUI()
-				);
+				LimitLineComponent.class);
 	}
 
 	@Override
@@ -67,4 +67,14 @@ public class LimitLineComponentProvider extends AbstractComponentProvider {
 		return Collections.emptyList();
 	}
 
+    @Override
+    public <T> T getAsset(TypeInfo<?> typeInfo, Class<T> assetClass) {
+        if (assetClass.isAssignableFrom(CreateWizardUI.class)) {
+        	if (typeInfo.getTypeClass().equals(LimitLineComponent.class)) {
+        		return assetClass.cast(new LimitLineCreateWizardUI());
+        	}
+        }
+        return super.getAsset(typeInfo, assetClass);
+    }
+	
 }

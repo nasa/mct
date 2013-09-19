@@ -128,6 +128,10 @@ public interface Platform {
      */
     public DefaultComponentProvider getDefaultComponentProvider();
     
+    /**
+     * Provides an instance of the provider delegate service
+     * @return the provider delegate service
+     */
     public ProviderDelegateService getProviderDelegateService();
 
     /**

@@ -26,6 +26,7 @@ import gov.nasa.arc.mct.fastplot.policy.PlotViewPolicy;
 import gov.nasa.arc.mct.fastplot.view.PlotViewManifestation;
 import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.services.component.AbstractComponentProvider;
+import gov.nasa.arc.mct.services.component.TypeInfo;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 
@@ -43,17 +44,18 @@ public class PlotViewProvider extends AbstractComponentProvider {
 	final Collection<PolicyInfo> policyInfos;
 	private final List<ViewInfo> viewInfos;
 	
+	private static final ImageIcon ICON =
+			new ImageIcon(PlotViewProvider.class.getResource("/icons/mct_icon_menu_plot.png"));
+	
 	public PlotViewProvider() {
 		policyInfos = Arrays.asList(new PolicyInfo(PolicyInfo.CategoryType.FILTER_VIEW_ROLE.getKey(), PlotViewPolicy.class),
 								    new PolicyInfo(PolicyInfo.CategoryType.FILTER_VIEW_ROLE.getKey(), PlotStringPolicy.class)
 									);
 		
 		viewInfos = Arrays.asList(
-				new ViewInfo(PlotViewManifestation.class, PlotViewManifestation.VIEW_ROLE_NAME, "gov.nasa.arc.mct.fastplot.view.PlotViewRole", ViewType.OBJECT, 
-						new ImageIcon(getClass().getResource("/icons/mct_icon_menu_plot.png"))),
+				new ViewInfo(PlotViewManifestation.class, PlotViewManifestation.VIEW_ROLE_NAME, "gov.nasa.arc.mct.fastplot.view.PlotViewRole", ViewType.OBJECT),
 				new ViewInfo(PlotViewManifestation.class, PlotViewManifestation.VIEW_ROLE_NAME, "gov.nasa.arc.mct.fastplot.view.PlotViewRole", ViewType.CENTER),
-				new ViewInfo(PlotViewManifestation.class, PlotViewManifestation.VIEW_ROLE_NAME, "gov.nasa.arc.mct.fastplot.view.PlotViewRole", ViewType.EMBEDDED, 
-						new ImageIcon(getClass().getResource("/icons/mct_icon_menu_plot.png"))));
+				new ViewInfo(PlotViewManifestation.class, PlotViewManifestation.VIEW_ROLE_NAME, "gov.nasa.arc.mct.fastplot.view.PlotViewRole", ViewType.EMBEDDED));
 	}
 	
 	@Override
@@ -65,4 +67,13 @@ public class PlotViewProvider extends AbstractComponentProvider {
 	public Collection<PolicyInfo> getPolicyInfos() {
 		return policyInfos;
 	}
+	
+    @Override
+    public <T> T getAsset(TypeInfo<?> typeInfo, Class<T> assetClass) {
+        if (assetClass.isAssignableFrom(ImageIcon.class) && 
+            typeInfo.getTypeClass().equals(PlotViewManifestation.class)) {
+            return assetClass.cast(ICON);
+        }
+        return super.getAsset(typeInfo, assetClass);
+    }
 }

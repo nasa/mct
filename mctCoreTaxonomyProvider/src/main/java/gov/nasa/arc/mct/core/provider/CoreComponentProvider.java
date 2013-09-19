@@ -52,6 +52,7 @@ import gov.nasa.arc.mct.policy.PolicyInfo.CategoryType;
 import gov.nasa.arc.mct.services.component.AbstractComponentProvider;
 import gov.nasa.arc.mct.services.component.ComponentTypeInfo;
 import gov.nasa.arc.mct.services.component.ProviderDelegate;
+import gov.nasa.arc.mct.services.component.TypeInfo;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 import gov.nasa.arc.mct.services.internal.component.ComponentInitializer;
@@ -69,16 +70,17 @@ import javax.swing.ImageIcon;
 public class CoreComponentProvider extends AbstractComponentProvider implements DefaultComponentProvider {
     private static final ResourceBundle resource = ResourceBundle.getBundle("CoreTaxonomyResourceBundle"); // NO18N
 
+    private ImageIcon GROUPS_ICON = new ImageIcon(getClass().getResource("/icons/mct_icon_groups.png"));
+    private ImageIcon DROPBOX_ICON = new ImageIcon(getClass().getResource("/icons/mct_icon_dropbox.png"));
+    
     @Override
     public Collection<ComponentTypeInfo> getComponentTypes() {
         List<ComponentTypeInfo> compInfos = new ArrayList<ComponentTypeInfo>();
         ComponentTypeInfo typeInfo = new ComponentTypeInfo(resource.getString("discipline_component_display_name"), resource
-                .getString("discipline_component_description"), TelemetryDisciplineComponent.class, false,
-                new ImageIcon(getClass().getResource("/icons/mct_icon_groups.png")));
+                .getString("discipline_component_description"), TelemetryDisciplineComponent.class, false);
         compInfos.add(typeInfo);
         typeInfo = new ComponentTypeInfo(resource.getString("user_dropbox_component_display_name"), resource
-                .getString("user_dropbox_component_description"), TelemetryUserDropBoxComponent.class, false, 
-                new ImageIcon(getClass().getResource("/icons/mct_icon_dropbox.png")));
+                .getString("user_dropbox_component_description"), TelemetryUserDropBoxComponent.class, false);
         compInfos.add(typeInfo);
         typeInfo = new ComponentTypeInfo(resource.getString("mine_component_display_name"), resource
                 .getString("mine_component_description"), MineTaxonomyComponent.class, false);
@@ -196,4 +198,17 @@ public class CoreComponentProvider extends AbstractComponentProvider implements 
         return new CoreComponentProviderDelegate();
     }
 
+    @Override
+    public <T> T getAsset(TypeInfo<?> typeInfo, Class<T> assetClass) {
+        if (assetClass.isAssignableFrom(ImageIcon.class)) {
+            if (typeInfo.getTypeClass().equals(TelemetryDisciplineComponent.class)) {
+                return assetClass.cast(GROUPS_ICON);
+            }
+            if (typeInfo.getTypeClass().equals(TelemetryUserDropBoxComponent.class)) {
+                return assetClass.cast(DROPBOX_ICON);
+            }
+        }
+        return super.getAsset(typeInfo, assetClass);
+    }
+    
 }

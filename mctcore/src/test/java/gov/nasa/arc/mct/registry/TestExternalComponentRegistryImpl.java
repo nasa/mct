@@ -33,9 +33,11 @@ import gov.nasa.arc.mct.services.component.AbstractComponentProvider;
 import gov.nasa.arc.mct.services.component.ComponentProvider;
 import gov.nasa.arc.mct.services.component.ComponentTypeInfo;
 import gov.nasa.arc.mct.services.component.PolicyManager;
+import gov.nasa.arc.mct.services.component.TypeInfo;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -44,6 +46,7 @@ import java.util.List;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public class TestExternalComponentRegistryImpl {
@@ -202,11 +205,14 @@ public class TestExternalComponentRegistryImpl {
         Assert.assertTrue(newComponent2.getClass().equals(TestBaseComponent.class));
     }
     
-    @Test(enabled=false)
+    @Test
     public void testNewCollection() {
         // Environment setup: platform, collection provider, lock manager, and component registry.
         Platform mockPlatform = Mockito.mock(Platform.class);        
 
+        // Also need a sandbox
+        AbstractComponent mockSandbox = Mockito.mock(AbstractComponent.class);
+        Mockito.when(mockPlatform.getMySandbox()).thenReturn(mockSandbox);
         
         MockComponentRegistry registry = new MockComponentRegistry();
         
@@ -231,7 +237,7 @@ public class TestExternalComponentRegistryImpl {
         // Setup
         registry.clearRegistry();
         registry.setDefaultCollection(collection);
-        registry.setExpectedResultForAddComponents(false);
+        registry.setExpectedResultForAddComponents(true);
         
         // The test
         newCollection = registry.newCollection(selectedComponents);
@@ -289,4 +295,69 @@ public class TestExternalComponentRegistryImpl {
         Assert.assertEquals(Collections.singleton(info), registry.getComponentInfos(),"component infos must be the same");
     
     }    
+    
+    @Test
+    public void testGetInstance() {
+        Assert.assertNotNull(ExternalComponentRegistryImpl.getInstance());
+    }
+    
+    @Test (dataProvider="assetTestCases")
+    public <T> void testGetAsset(int count, int found, T asset, Class<T> clazz) {
+        // Setup some mock providers to look at for assets
+        ComponentProvider mockDefaultProvider = Mockito.mock(ComponentProvider.class);
+        ExtendedComponentProvider mockProviders[] = new ExtendedComponentProvider[count];
+        TypeInfo<?> mockTypeInfo = Mockito.mock(TypeInfo.class);
+        for (int i = 0; i < count; i++) {
+            mockProviders[i] = Mockito.mock(ExtendedComponentProvider.class, "provider" + i);
+        }        
+        // Find the expected item in provider "found" (with default provider at end)
+        if (found < count) {
+            Mockito.when(mockProviders[found].getAsset(mockTypeInfo, clazz)).thenReturn(asset);
+        } else if (found == count) {
+            Mockito.when(mockDefaultProvider.getAsset(mockTypeInfo, clazz)).thenReturn(asset);
+        }
+        registry.setDefaultViewProvider(mockDefaultProvider);
+        registry.refreshComponents(Arrays.asList(mockProviders));
+        
+        // Should find the object, unless found > count
+        // (in that case, none of the providers was configured to give it,
+        //  so should have returned null)        
+        Object actual = registry.getAsset(mockTypeInfo, asset.getClass());
+        if (found <= count) { // up to / including default provider
+            Assert.assertEquals(actual, asset);
+        } else {
+            Assert.assertNull(actual);
+        }
+        
+        // Should have invoked getAsset on all providers until found 
+        for (int i = 0; i <= found && i < count; i++) {
+            Mockito.verify(mockProviders[i]).getAsset(mockTypeInfo, clazz);
+        }
+        // Should not have invoked getAsset on subsequent providers
+        for (int i = found + 1; i < count; i++) {
+            Mockito.verify(mockProviders[i], Mockito.never()).getAsset(mockTypeInfo, clazz);
+        }
+        
+        // Should have invoked getAsset on defaultProvider iff not found earlier
+        if (found >= count) {
+            Mockito.verify(mockDefaultProvider).getAsset(mockTypeInfo, clazz);
+        } else {
+            Mockito.verify(mockDefaultProvider, Mockito.never()).getAsset(mockTypeInfo, clazz);
+        }
+    }
+    
+    @DataProvider
+    public Object[][] assetTestCases() {
+        class TestClass {}
+        List<Object[]> caseList = new ArrayList<Object[]>();
+        Object[] testAssets = { "a string", new javax.swing.ImageIcon(), new TestClass() };
+        for (int count = 0; count < 5; count++) {
+            for (int found = 0; found <= count + 1; found++) {
+                for (Object asset : testAssets) {
+                    caseList.add(new Object[]{count,found,asset,asset.getClass()});
+                }
+            }
+        }
+        return caseList.toArray(new Object[caseList.size()][]);        
+    }
 }

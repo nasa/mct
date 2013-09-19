@@ -21,14 +21,21 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.graphics;
 
+import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.graphics.component.GraphicalComponent;
-import gov.nasa.arc.mct.graphics.component.GraphicalComponentWizardUI;
 import gov.nasa.arc.mct.graphics.view.GraphicalManifestation;
 import gov.nasa.arc.mct.graphics.view.StaticGraphicalView;
+import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.services.component.AbstractComponentProvider;
 import gov.nasa.arc.mct.services.component.ComponentTypeInfo;
+import gov.nasa.arc.mct.services.component.CreateWizardUI;
+import gov.nasa.arc.mct.services.component.TypeInfo;
 import gov.nasa.arc.mct.services.component.ViewInfo;
+import gov.nasa.arc.mct.services.component.ViewType;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
@@ -62,7 +69,7 @@ public class GraphicalComponentProviderTest {
 		boolean foundPolicy = false;
 		
 		for (PolicyInfo info : provider.getPolicyInfos()) {
-			for (Class c : info.getPolicyClasses()) {
+			for (Class<?> c : info.getPolicyClasses()) {
 				if (c.equals(GraphicalViewPolicy.class)) {
 					foundPolicy = true;
 					Assert.assertEquals(info.getCategoryKey(), PolicyInfo.CategoryType.FILTER_VIEW_ROLE.getKey());
@@ -82,11 +89,51 @@ public class GraphicalComponentProviderTest {
 			if (info.getComponentClass().equals(GraphicalComponent.class)){
 				foundGraphicalComponent = true;
 				Assert.assertTrue(info.isCreatable());
-				Assert.assertTrue(info.getWizardUI() instanceof GraphicalComponentWizardUI);
 			}
 		}
 		
 		Assert.assertTrue(foundGraphicalComponent);
 	}
 	
+	
+	@Test
+	public void testAssets() {
+		for (ViewInfo viewInfo : provider.getViews("")) {
+			// Verify that there's an icon
+			Assert.assertNotNull(provider.getAsset(viewInfo, ImageIcon.class));
+			// Verify that assignability is correctly assessed
+			Assert.assertNotNull(provider.getAsset(viewInfo, Icon.class));
+			// Verify that unknown types are not reported by getAsset
+			Assert.assertNull(provider.getAsset(viewInfo, UnknownType.class));
+		}
+		for (ComponentTypeInfo compInfo : provider.getComponentTypes()) {
+			// Verify that there's a wizard
+			Assert.assertNotNull(provider.getAsset(compInfo, CreateWizardUI.class));
+			// Verify that unknown types are not reported by getAsset
+			Assert.assertNull(provider.getAsset(compInfo, UnknownType.class));
+		}
+		// Verify that unknown types consistently return null
+		TypeInfo<?>[] unknowns = { 
+				new TypeInfo<Object>(UnknownType.class){},
+				new ComponentTypeInfo("","",UnknownComponent.class),
+				new ViewInfo(UnknownView.class, "", "", ViewType.OBJECT)
+		};
+		for (TypeInfo<?> unknown : unknowns) {
+			Assert.assertNull(provider.getAsset(unknown, ImageIcon.class));
+			Assert.assertNull(provider.getAsset(unknown, CreateWizardUI.class));
+			Assert.assertNull(provider.getAsset(unknown, UnknownType.class));
+		}
+	}
+	
+	private static class UnknownType {}
+	private static class UnknownComponent extends AbstractComponent {
+		@SuppressWarnings("unused") // Verified when ComponentTypeInfo is instantiated
+		public UnknownComponent() {}
+	}
+	private static class UnknownView extends View {
+		private static final long serialVersionUID = 1L;
+
+		@SuppressWarnings("unused") // Verified when ViewInfo is instantiated
+		public UnknownView (AbstractComponent ac, ViewInfo vi) {}
+	}
 }

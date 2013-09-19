@@ -28,6 +28,8 @@ import gov.nasa.arc.mct.graphics.view.StaticGraphicalView;
 import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.services.component.AbstractComponentProvider;
 import gov.nasa.arc.mct.services.component.ComponentTypeInfo;
+import gov.nasa.arc.mct.services.component.CreateWizardUI;
+import gov.nasa.arc.mct.services.component.TypeInfo;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 
@@ -45,11 +47,12 @@ public class GraphicalComponentProvider extends AbstractComponentProvider {
     private static ResourceBundle bundle = ResourceBundle.getBundle("GraphicsResourceBundle");
     final Collection<PolicyInfo> policyInfos;
     
+    private static final ImageIcon VIEW_ICON =
+    		new ImageIcon(GraphicalManifestation.class.getResource("/icons/mct_icon_menu_graphical.png"));
+    
     private static final List<ViewInfo> VIEW_INFOS = Arrays.asList(
-    		new ViewInfo(GraphicalManifestation.class, GraphicalManifestation.VIEW_ROLE_NAME, GraphicalManifestation.class.getName(), ViewType.OBJECT, 
-					new ImageIcon(GraphicalManifestation.class.getResource("/icons/mct_icon_menu_graphical.png"))),
-    		new ViewInfo(GraphicalManifestation.class, GraphicalManifestation.VIEW_ROLE_NAME, GraphicalManifestation.class.getName(), ViewType.EMBEDDED,
-					new ImageIcon(GraphicalManifestation.class.getResource("/icons/mct_icon_menu_graphical.png"))),
+    		new ViewInfo(GraphicalManifestation.class, GraphicalManifestation.VIEW_ROLE_NAME, GraphicalManifestation.class.getName(), ViewType.OBJECT),
+    		new ViewInfo(GraphicalManifestation.class, GraphicalManifestation.VIEW_ROLE_NAME, GraphicalManifestation.class.getName(), ViewType.EMBEDDED),
     		new ViewInfo(StaticGraphicalView.class, GraphicalManifestation.VIEW_ROLE_NAME, ViewType.OBJECT),
     		new ViewInfo(StaticGraphicalView.class, GraphicalManifestation.VIEW_ROLE_NAME, ViewType.EMBEDDED)
     		);     
@@ -74,10 +77,23 @@ public class GraphicalComponentProvider extends AbstractComponentProvider {
 		return Collections.singleton(
 				new ComponentTypeInfo(bundle.getString("Component_Name"),
 						bundle.getString("Component_Description"), 
-						GraphicalComponent.class, 
-						new GraphicalComponentWizardUI(),
-						null));//new ImageIcon(GraphicalComponentProvider.class.getResource("/icons/importSVG.png"))));
+						GraphicalComponent.class));
 	}
 	
 	
+    @Override
+    public <T> T getAsset(TypeInfo<?> typeInfo, Class<T> assetClass) {
+        if (assetClass.isAssignableFrom(ImageIcon.class)) {
+            if (typeInfo.getTypeClass().equals(GraphicalManifestation.class) || 
+            	typeInfo.getTypeClass().equals(StaticGraphicalView.class)) {            	
+                return assetClass.cast(VIEW_ICON);
+            }
+        }
+        if (assetClass.isAssignableFrom(CreateWizardUI.class)) {
+        	if (typeInfo.getTypeClass().equals(GraphicalComponent.class)) {
+        		return assetClass.cast(new GraphicalComponentWizardUI());
+        	}
+        }
+        return super.getAsset(typeInfo, assetClass);
+    }
 }

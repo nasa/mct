@@ -49,6 +49,7 @@ public class TestComponentIcon {
         component = new MockComponent();
     }
 
+    @SuppressWarnings("deprecation") // getIcon deprecated but may still be used, so test
     @Test
     public void testCreateManifestation() {
         ImageIcon icon = new ImageIcon();

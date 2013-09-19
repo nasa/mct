@@ -24,29 +24,20 @@ package gov.nasa.arc.mct.services.component;
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.util.LookAndFeelSettings;
-import gov.nasa.arc.mct.util.MCTIcons;
 
-import java.awt.Color;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Callable;
-
-import javax.swing.ImageIcon;
 
 /**
  * The ViewInfo class describes metadata about a view. This class is used to create new view instances. 
  *
  */
-public class ViewInfo {
-    private static final int ICON_SIZE = 9;
-    private static final Color BASE_ICON_COLOR = Color.WHITE;
-    
+public class ViewInfo extends TypeInfo<View> {
     private final Constructor<? extends View> viewConstructor;
     private final String type;
     private final String viewName;
     private final ViewType viewType;
-    private final ImageIcon icon;
-    private final ImageIcon selectedIcon;
     private final boolean shouldExpandCenterPaneInWindow;
     private final Class<? extends AbstractComponent> preferredComponentType;
 
@@ -90,8 +81,10 @@ public class ViewInfo {
      * @param viewType for this view
      * @param icon to be placed in a button for this view. This icon is typically used for drop-down showing in the inspector.
      * @throws IllegalArgumentException if the view type is null or the class doesn't have the right type of constructor
+     * @deprecated icons are now exposed using ComponentProvider.getAsset
      */
-    public ViewInfo(Class<? extends View> aViewClass, String name, ViewType viewType, ImageIcon icon) throws IllegalArgumentException {
+    @Deprecated
+    public ViewInfo(Class<? extends View> aViewClass, String name, ViewType viewType, javax.swing.ImageIcon icon) throws IllegalArgumentException {
         this(aViewClass, name, aViewClass.getName(), viewType, icon, icon, false, null);
     }
     
@@ -104,8 +97,10 @@ public class ViewInfo {
      * @param viewType for this view
      * @param icon to be placed in a button for this view. This icon is typically used for drop-down showing in the inspector.
      * @throws IllegalArgumentException if the view type is null or the class doesn't have the right type of constructor
+     * @deprecated icons are now exposed using ComponentProvider.getAsset
      */
-    public ViewInfo(Class<? extends View> aViewClass, String name, String aType, ViewType viewType, ImageIcon icon) throws IllegalArgumentException {
+    @Deprecated
+    public ViewInfo(Class<? extends View> aViewClass, String name, String aType, ViewType viewType, javax.swing.ImageIcon icon) throws IllegalArgumentException {
         this(aViewClass, name, aType, viewType, icon, icon, false, null);
     }
     
@@ -121,11 +116,45 @@ public class ViewInfo {
      * @param icon to be placed in a button for this view. This icon is typically used for button showing in the inspector.
      * @param selectedIcon icon to be placed in a button for this view. This icon is typically used for button showing in the inspector when the button is selected.
      * @throws IllegalArgumentException if the view type is null or the class doesn't have the right type of constructor
+     * @deprecated icons are now exposed using ComponentProvider.getAsset
      */
-    public ViewInfo(Class<? extends View> aViewClass, String name, String aType, ViewType viewType, ImageIcon icon, ImageIcon selectedIcon) throws IllegalArgumentException {
+    @Deprecated
+    public ViewInfo(Class<? extends View> aViewClass, String name, String aType, ViewType viewType, javax.swing.ImageIcon icon, javax.swing.ImageIcon selectedIcon) throws IllegalArgumentException {
         this(aViewClass, name, aType, viewType, icon, selectedIcon, false, null);
     }
 
+    /**
+     * Creates a new instance of ViewInfo. This constructor should only be used when
+     * attempting to provide backward compatibility for views which have already been serialized. The
+     * serialized mapping uses the type to determine how to map the state to a view type. 
+     * @param aViewClass representing a view.
+     * @param name human readable name of the view
+     * @param aType representing the type used when serializing the view state. The type must be unique across all serialized view
+     * states so the default type used is the fully qualified class name. 
+     * @param viewType for this view
+     * @param shouldExpandCenterPaneInWindow indicates whether this view requires expanding the center pane (i.g., hiding both the list and inspector panes) when viewed in a window.
+     * @param preferredComponentType specifies the component type where this view is the preferred view; null means this view can be attached to any component type in the registry.
+     * @throws IllegalArgumentException if the view type is null or the class doesn't have the right type of constructor
+     */
+    public ViewInfo(Class<? extends View> aViewClass, String name, String aType, ViewType viewType, boolean shouldExpandCenterPaneInWindow, Class<? extends AbstractComponent> preferredComponentType) throws IllegalArgumentException {
+        super(aViewClass);
+        type = aType;
+        viewName = name;
+        if (name == null) {
+            throw new IllegalArgumentException("name must be specified for " + aViewClass);
+        }
+        if (viewType == null) {
+            throw new IllegalArgumentException("view type must be specified for " + name);
+        }
+        this.viewType = viewType;
+        viewConstructor = getConstructor(aViewClass);
+        if (viewConstructor == null) {
+            throw new IllegalArgumentException("a constructor must be defined that has AbstractComponent and ViewInfo as the parameters for " + aViewClass);
+        }
+        this.shouldExpandCenterPaneInWindow = shouldExpandCenterPaneInWindow;
+        this.preferredComponentType = preferredComponentType;
+    }
+    
     /**
      * Creates a new instance of ViewInfo. This constructor should only be used when
      * attempting to provide backward compatibility for views which have already been serialized. The
@@ -140,29 +169,11 @@ public class ViewInfo {
      * @param shouldExpandCenterPaneInWindow indicates whether this view requires expanding the center pane (i.g., hiding both the list and inspector panes) when viewed in a window.
      * @param preferredComponentType specifies the component type where this view is the preferred view; null means this view can be attached to any component type in the registry.
      * @throws IllegalArgumentException if the view type is null or the class doesn't have the right type of constructor
+     * @deprecated icons are now exposed using ComponentProvider.getAsset
      */
-    public ViewInfo(Class<? extends View> aViewClass, String name, String aType, ViewType viewType, ImageIcon icon, ImageIcon selectedIcon, boolean shouldExpandCenterPaneInWindow, Class<? extends AbstractComponent> preferredComponentType) throws IllegalArgumentException {
-        type = aType;
-        viewName = name;
-        this.icon = MCTIcons.processIcon(
-                        icon != null ? icon : 
-                            MCTIcons.generateIcon(
-                                            aViewClass.getName().hashCode(),
-                                            ICON_SIZE, BASE_ICON_COLOR));
-        this.selectedIcon = icon;
-        if (name == null) {
-            throw new IllegalArgumentException("name must be specified for " + aViewClass);
-        }
-        if (viewType == null) {
-            throw new IllegalArgumentException("view type must be specified for " + name);
-        }
-        this.viewType = viewType;
-        viewConstructor = getConstructor(aViewClass);
-        if (viewConstructor == null) {
-            throw new IllegalArgumentException("a constructor must be defined that has AbstractComponent and ViewInfo as the parameters for " + aViewClass);
-        }
-        this.shouldExpandCenterPaneInWindow = shouldExpandCenterPaneInWindow;
-        this.preferredComponentType = preferredComponentType;
+    @Deprecated
+    public ViewInfo(Class<? extends View> aViewClass, String name, String aType, ViewType viewType, javax.swing.ImageIcon icon, javax.swing.ImageIcon selectedIcon, boolean shouldExpandCenterPaneInWindow, Class<? extends AbstractComponent> preferredComponentType) throws IllegalArgumentException {
+        this(aViewClass, name, aType, viewType, shouldExpandCenterPaneInWindow, preferredComponentType);
     }
 
     /**
@@ -199,12 +210,17 @@ public class ViewInfo {
     
     @Override
     public int hashCode() {
-        return getType().hashCode() + (preferredComponentType == null ? 0 : preferredComponentType.hashCode());
+        return getType().hashCode() ^
+               getViewType().hashCode() ^
+               (preferredComponentType == null ? 0 : preferredComponentType.hashCode());
     }
     
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof ViewInfo && ((ViewInfo)obj).getType().equals(type) && ((ViewInfo)obj).getPreferredComponentType() == preferredComponentType;
+        return obj instanceof ViewInfo && 
+               ((ViewInfo)obj).getType().equals(getType()) && 
+               ((ViewInfo)obj).getViewType().equals(getViewType()) &&
+               ((ViewInfo)obj).getPreferredComponentType() == preferredComponentType;
     }
     
     @Override
@@ -244,8 +260,9 @@ public class ViewInfo {
      * Returns the icon to be placed in a button for this view.
      * @return icon; null if no provided
      */
-    public ImageIcon getIcon() {
-        return icon;
+    @Deprecated
+    public javax.swing.ImageIcon getIcon() {
+        return getAsset(javax.swing.ImageIcon.class);
     }
     
     /**
@@ -254,8 +271,8 @@ public class ViewInfo {
      * @return an icon; null if not provided
      */
     @Deprecated
-    public ImageIcon getSelectedIcon() {
-        return selectedIcon;
+    public javax.swing.ImageIcon getSelectedIcon() {
+        return getAsset(javax.swing.ImageIcon.class);
     }
     
     /**

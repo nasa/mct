@@ -21,14 +21,8 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.services.component;
 
-
-
 import gov.nasa.arc.mct.components.AbstractComponent;
-import gov.nasa.arc.mct.util.MCTIcons;
 
-import java.awt.Color;
-
-import javax.swing.ImageIcon;
 
 /**
  * This class describes an component type. This description is used in the platform to create new component type
@@ -36,26 +30,23 @@ import javax.swing.ImageIcon;
  * @author chris.webster@nasa.gov
  *
  */
-public class ComponentTypeInfo {
-    private static final int ICON_SIZE = 14;
-    private static final Color BASE_ICON_COLOR = Color.WHITE;
-    
+public class ComponentTypeInfo extends TypeInfo<AbstractComponent> {
+   
     private final String displayName;
     private final String description;
-    private final Class<? extends AbstractComponent> componentClass;
     private final String componentTypeId;
     private final boolean isCreatable;
-    private final CreateWizardUI wizard;
-    private final ImageIcon icon;
     
     /**
      * Creates new ComponentTypeInfo representing a unique component type. 
      * @param displayName non null human readable name for the component type
      * @param description human readable string describing the component type
      * @param componentClass non null component class, this class must provide the required no-argument constructor
+     * @throws IllegalArgumentException if componentClass, id, or displayName is null or if component class does not meet the requirements of 
+     * <code>AbstractComponent</code>
      */
-    public ComponentTypeInfo(String displayName, String description, Class<? extends AbstractComponent> componentClass) {
-        this(displayName,description,componentClass, componentClass.getName(), true, null, null);
+    public ComponentTypeInfo(String displayName, String description, Class<? extends AbstractComponent> componentClass) throws IllegalArgumentException {
+        this(displayName,description,componentClass, componentClass.getName(), true);
     }
     
     /**
@@ -64,9 +55,11 @@ public class ComponentTypeInfo {
      * @param description human readable string describing the component type
      * @param componentClass non null component class, this class must have a no argument constructor
      * @param isCreatable indicates if this component type is creatable under the Create menu.
+     * @throws IllegalArgumentException if componentClass, id, or displayName is null or if component class does not meet the requirements of 
+     * <code>AbstractComponent</code>
      */
-    public ComponentTypeInfo(String displayName, String description, Class<? extends AbstractComponent> componentClass, boolean isCreatable) {
-        this(displayName,description,componentClass, componentClass.getName(), isCreatable, null, null);
+    public ComponentTypeInfo(String displayName, String description, Class<? extends AbstractComponent> componentClass, boolean isCreatable) throws IllegalArgumentException {
+        this(displayName,description,componentClass, componentClass.getName(), isCreatable);
     }
     
     /**
@@ -76,9 +69,13 @@ public class ComponentTypeInfo {
      * @param componentClass non null component class, this class must have a no argument constructor
      * @param isCreatable indicates if this component type is creatable under the Create menu.
      * @param icon the icon that represents this component type
+     * @throws IllegalArgumentException if componentClass, id, or displayName is null or if component class does not meet the requirements of 
+     * <code>AbstractComponent</code>
+     * @deprecated icon and wizard now specified using ComponentProvider.getAsset
      */
-    public ComponentTypeInfo(String displayName, String description, Class<? extends AbstractComponent> componentClass, boolean isCreatable, ImageIcon icon) {
-        this(displayName,description,componentClass, componentClass.getName(), isCreatable, null, icon);
+    @Deprecated
+    public ComponentTypeInfo(String displayName, String description, Class<? extends AbstractComponent> componentClass, boolean isCreatable, javax.swing.ImageIcon icon) throws IllegalArgumentException {
+        this(displayName,description,componentClass, componentClass.getName(), isCreatable);
     }
 
     
@@ -88,9 +85,13 @@ public class ComponentTypeInfo {
      * @param description human readable string describing the component type
      * @param componentClass non null component class
      * @param wizard creates the panel to be displayed for the dialog box
+     * @throws IllegalArgumentException if componentClass, id, or displayName is null or if component class does not meet the requirements of 
+     * <code>AbstractComponent</code>
+     * @deprecated icon and wizard now specified using ComponentProvider.getAsset
      */
-    public ComponentTypeInfo(String displayName, String description, Class<? extends AbstractComponent> componentClass, CreateWizardUI wizard){
-        this(displayName,description,componentClass,componentClass.getName(), true, wizard, null);
+    @Deprecated
+    public ComponentTypeInfo(String displayName, String description, Class<? extends AbstractComponent> componentClass, CreateWizardUI wizard) throws IllegalArgumentException {
+        this(displayName,description,componentClass,componentClass.getName(), true);
     }
     
     /**
@@ -100,11 +101,15 @@ public class ComponentTypeInfo {
      * @param componentClass non null component class
      * @param wizard creates the panel to be displayed for the dialog box
      * @param icon the icon that represents this component type
+     * @throws IllegalArgumentException if componentClass, id, or displayName is null or if component class does not meet the requirements of 
+     * <code>AbstractComponent</code>
+     * @deprecated icon and wizard now specified using ComponentProvider.getAsset
      */
-    public ComponentTypeInfo(String displayName, String description, Class<? extends AbstractComponent> componentClass, CreateWizardUI wizard, ImageIcon icon){
-        this(displayName,description,componentClass,componentClass.getName(), true, wizard, icon);
+    @Deprecated
+    public ComponentTypeInfo(String displayName, String description, Class<? extends AbstractComponent> componentClass, CreateWizardUI wizard, javax.swing.ImageIcon icon) throws IllegalArgumentException {
+        this(displayName,description,componentClass,componentClass.getName(), true);
     }    
-    
+  
     /**
      * Creates a new ComponentTypeInfo representing a unique component type.
      * @param displayName non null human readable name for the component type
@@ -112,12 +117,11 @@ public class ComponentTypeInfo {
      * @param componentClass non null component class, this class must have a no argument constructor
      * @param id globally unique identifier (across all modules) identifying this component.
      * @param isCreatable indicates if this component type can be created from the Create menu.
-     * @param wizard creates the panel to be displayed for the dialog box
-     * @param icon the icon that represents this component type
      * @throws IllegalArgumentException if componentClass, id, or displayName is null or if component class does not meet the requirements of 
      * <code>AbstractComponent</code>
      */
-    protected ComponentTypeInfo(String displayName, String description, Class<? extends AbstractComponent> componentClass, String id, boolean isCreatable, CreateWizardUI wizard, ImageIcon icon) throws IllegalArgumentException {
+    protected ComponentTypeInfo(String displayName, String description, Class<? extends AbstractComponent> componentClass, String id, boolean isCreatable) throws IllegalArgumentException {
+        super(componentClass);
         if (componentClass == null) {
             throw new IllegalArgumentException("componentClass must not be null");
         }
@@ -131,15 +135,26 @@ public class ComponentTypeInfo {
         }
         this.displayName = displayName;
         this.description = description;
-        this.componentClass = componentClass;
         this.componentTypeId = id;
-        this.isCreatable = isCreatable;
-        this.wizard = wizard;
-        this.icon = MCTIcons.processIcon(
-                        icon != null ? icon : 
-                            MCTIcons.generateIcon(
-                                            componentClass.getName().hashCode(),
-                                            ICON_SIZE, BASE_ICON_COLOR));
+        this.isCreatable = isCreatable;    
+    }
+    
+    /**
+     * Creates a new ComponentTypeInfo representing a unique component type.
+     * @param displayName non null human readable name for the component type
+     * @param description human readable string describing the component type
+     * @param componentClass non null component class, this class must have a no argument constructor
+     * @param id globally unique identifier (across all modules) identifying this component.
+     * @param isCreatable indicates if this component type can be created from the Create menu.
+     * @param wizard creates the panel to be displayed for the dialog box
+     * @param icon the icon that represents this component type
+     * @throws IllegalArgumentException if componentClass, id, or displayName is null or if component class does not meet the requirements of 
+     * <code>AbstractComponent</code>
+     * @deprecated icon and wizard now specified using ComponentProvider.getAsset
+     */
+    @Deprecated
+    protected ComponentTypeInfo(String displayName, String description, Class<? extends AbstractComponent> componentClass, String id, boolean isCreatable, CreateWizardUI wizard, javax.swing.ImageIcon icon) throws IllegalArgumentException {
+        this(displayName, description, componentClass, id, isCreatable);
     }
     
     
@@ -148,7 +163,7 @@ public class ComponentTypeInfo {
      * @return component class of this component type
      */
     public final Class<? extends AbstractComponent> getComponentClass() {
-        return componentClass;
+        return getTypeClass();
     }
 
     /**
@@ -191,17 +206,21 @@ public class ComponentTypeInfo {
     /**
      * Returns wizard providing UI and action performed after creating. If null, a default wizard is used.
      * @return wizard for UI
+     * @deprecated use getAsset(CreateWizardUI.class) instead
      */
+    @Deprecated
     public final CreateWizardUI getWizardUI() {
-        return wizard;
+        return getAsset(CreateWizardUI.class);
     }
 
     /**
      * Returns the image icon that represents this component type.
      * @return icon for component type
+     * @deprecated use getAsset(ImageIcon.class) instead
      */
-    public final ImageIcon getIcon() {
-        return icon;
+    @Deprecated
+    public final javax.swing.ImageIcon getIcon() {
+        return getAsset(javax.swing.ImageIcon.class);
     }
     
     @Override

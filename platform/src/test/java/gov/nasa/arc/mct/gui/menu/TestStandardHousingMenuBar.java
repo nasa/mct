@@ -237,7 +237,7 @@ public class TestStandardHousingMenuBar {
 
     }
 
-    private class MockComposite extends MockComponent {
+    private static class MockComposite extends MockComponent {
 
         public MockComposite() {
             super();

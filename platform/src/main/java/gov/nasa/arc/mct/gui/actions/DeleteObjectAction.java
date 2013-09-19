@@ -168,6 +168,7 @@ public class DeleteObjectAction extends ContextAwareAction {
         }
         JPanel warning = new JPanel(new FlowLayout());
         warning.setPreferredSize(new Dimension(400,400));
+        @SuppressWarnings({ "rawtypes", "unchecked" })
         JList deleteList = new JList(deleteComps.toArray());
         JScrollPane scrollPane2 = new JScrollPane(deleteList);
         scrollPane2.setPreferredSize(new Dimension(300,200));

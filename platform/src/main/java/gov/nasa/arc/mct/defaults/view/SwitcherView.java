@@ -26,6 +26,7 @@ import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.ViewProvider;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
+import gov.nasa.arc.mct.util.MCTIcons;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -40,6 +41,7 @@ import java.util.Set;
 
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -62,6 +64,7 @@ public class SwitcherView extends View {
     private JComboBox comboBox;
     private JLabel    label; 
     private static final float FONT_SIZE = 10f; 
+    private static final Color ICON_COLOR = new Color(144,144,144);
     
     /**
      * The view info used to instantiate this view.
@@ -88,7 +91,7 @@ public class SwitcherView extends View {
         } else if (viewInfos.length == 1) {
             // Otherwise, just show the one available view as a label
             label = new JLabel();
-            label.setIcon(vi.getIcon());
+            label.setIcon(getIcon(vi));
             label.setText(vi.getViewName());
             add(label);
         } else {
@@ -133,11 +136,15 @@ public class SwitcherView extends View {
                     comboBox.addItemListener(itemListener);
                 }
                 if (label != null) {
-                    label.setIcon(vi.getIcon());
+                    label.setIcon(getIcon(vi));
                     label.setText(vi.getViewName());
                 }
             }
         }
+    }
+    
+    private static ImageIcon getIcon(ViewInfo vi) {
+        return MCTIcons.processIcon(vi.getAsset(ImageIcon.class), ICON_COLOR, false);
     }
     
     private final ItemListener itemListener = new ItemListener() {
@@ -167,7 +174,7 @@ public class SwitcherView extends View {
             label.setFont(label.getFont().deriveFont(FONT_SIZE));
             if (value instanceof ViewInfo) {
                 ViewInfo vi = (ViewInfo) value;
-                label.setIcon(vi.getIcon());
+                label.setIcon(getIcon(vi));
                 label.setText(vi.getViewName());
             } else {
                 label.setIcon(null);

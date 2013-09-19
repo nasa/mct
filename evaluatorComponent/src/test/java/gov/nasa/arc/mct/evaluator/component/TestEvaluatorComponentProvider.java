@@ -29,14 +29,24 @@ import gov.nasa.arc.mct.evaluator.view.InfoViewManifestation;
 import gov.nasa.arc.mct.evaluator.view.MultiChildRemovalPolicy;
 import gov.nasa.arc.mct.evaluator.view.MultiCompositionPolicy;
 import gov.nasa.arc.mct.policy.PolicyInfo;
+import gov.nasa.arc.mct.services.component.ComponentProvider;
+import gov.nasa.arc.mct.services.component.ComponentTypeInfo;
+import gov.nasa.arc.mct.services.component.CreateWizardUI;
+import gov.nasa.arc.mct.services.component.TypeInfo;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public class TestEvaluatorComponentProvider {
@@ -81,22 +91,66 @@ public class TestEvaluatorComponentProvider {
 	
 	@Test
 	public void testViews() {
-			Collection<ViewInfo> views = evaluatorProvider.getViews(EvaluatorComponent.class.getName());
-			Assert.assertEquals(views.size(), 3);
-			Assert.assertTrue(views.contains(new ViewInfo(ExpressionsViewManifestation.class,"", ViewType.CENTER)));	
-			
-			Iterator<ViewInfo> it = evaluatorProvider.getViews(EvaluatorComponent.class.getName()).iterator();
-			Assert.assertEquals(it.next(), new ViewInfo(InfoViewManifestation.class,"", ViewType.CENTER));
-			Assert.assertEquals(it.next(), new ViewInfo(ExpressionsViewManifestation.class,"", ViewType.CENTER));
-	
-			views = multiProvider.getViews(MultiComponent.class.getName());
-			Assert.assertEquals(views.size(), 3);
-			Assert.assertTrue(views.contains(new ViewInfo(MultiViewManifestation.class,"", ViewType.CENTER)));	
-			
-			it = multiProvider.getViews(MultiComponent.class.getName()).iterator();
-			Assert.assertEquals(it.next(), new ViewInfo(InfoViewManifestation.class, InfoViewManifestation.VIEW_NAME, InfoViewManifestation.class.getName(), ViewType.OBJECT, null, null, false, MultiComponent.class));
-			Assert.assertEquals(it.next(), new ViewInfo(MultiViewManifestation.class, MultiViewManifestation.VIEW_NAME, ViewType.OBJECT));
-			Assert.assertEquals(it.next(), new ViewInfo(MultiViewManifestation.class, MultiViewManifestation.VIEW_NAME, InfoViewManifestation.class.getName(), ViewType.CENTER, null, null, true, MultiComponent.class));
+		Collection<ViewInfo> views = evaluatorProvider.getViews(EvaluatorComponent.class.getName());
+		Assert.assertEquals(views.size(), 3);
+		Assert.assertTrue(views.contains(new ViewInfo(ExpressionsViewManifestation.class,"", ViewType.OBJECT)));
+		Assert.assertTrue(views.contains(new ViewInfo(ExpressionsViewManifestation.class,"", ExpressionsViewManifestation.class.getName(), ViewType.CENTER, true, EvaluatorComponent.class)));
+
+		// Should return only one view (info) when component is unknown
+		Assert.assertEquals(evaluatorProvider.getViews("unknowncomponent").size(), 1);
+
+		Iterator<ViewInfo> it = evaluatorProvider.getViews(EvaluatorComponent.class.getName()).iterator();
+		Assert.assertEquals(it.next(), new ViewInfo(InfoViewManifestation.class, InfoViewManifestation.VIEW_NAME, ViewType.OBJECT));
+		Assert.assertEquals(it.next(), new ViewInfo(ExpressionsViewManifestation.class, ExpressionsViewManifestation.VIEW_NAME, ViewType.OBJECT));
+
+		views = multiProvider.getViews(MultiComponent.class.getName());
+		Assert.assertEquals(views.size(), 3);
+		Assert.assertTrue(views.contains(new ViewInfo(MultiViewManifestation.class, MultiViewManifestation.VIEW_NAME, InfoViewManifestation.class.getName(), ViewType.CENTER, true, MultiComponent.class)));	
+
+		it = multiProvider.getViews(MultiComponent.class.getName()).iterator();
+		Assert.assertEquals(it.next(), new ViewInfo(InfoViewManifestation.class, InfoViewManifestation.VIEW_NAME, InfoViewManifestation.class.getName(), ViewType.OBJECT, false, MultiComponent.class));
+		Assert.assertEquals(it.next(), new ViewInfo(MultiViewManifestation.class, MultiViewManifestation.VIEW_NAME, ViewType.OBJECT));
+		Assert.assertEquals(it.next(), new ViewInfo(MultiViewManifestation.class, MultiViewManifestation.VIEW_NAME, InfoViewManifestation.class.getName(), ViewType.CENTER, true, MultiComponent.class));
+	}
+
+	@Test (dataProvider="assetTestCases")
+	public void testAssets(ComponentProvider provider, TypeInfo<?> info, Class<?> assetType, boolean expected) {
+		// Used to verify whether provider offers certain assets
+		if (expected) {
+			Assert.assertNotNull(provider.getAsset(info, assetType));
+		} else {
+			Assert.assertNull(provider.getAsset(info, assetType));
+		}
 	}
 	
+	@DataProvider
+	public Object[][] assetTestCases() {
+		List<Object[]> cases = new ArrayList<Object[]>();
+		// Consider all view types
+		for (ViewType type : ViewType.values()) {
+			ViewInfo info = new ViewInfo(InfoViewManifestation.class, InfoViewManifestation.VIEW_NAME, InfoViewManifestation.class.getName(), type);
+			ViewInfo expr = new ViewInfo(ExpressionsViewManifestation.class, ExpressionsViewManifestation.VIEW_NAME, InfoViewManifestation.class.getName(), type);
+			TypeInfo<?> eval = new ComponentTypeInfo("","",EvaluatorComponent.class);
+			TypeInfo<?> mult = new ComponentTypeInfo("","",MultiComponent.class);
+			for (TypeInfo<?> vi : new TypeInfo<?>[]{info,expr,eval,mult}) {
+				// Expressions view should have an image icon
+				cases.add(new Object[] { new EvaluatorComponentProvider(), vi, ImageIcon.class, vi.getTypeClass().equals(ExpressionsViewManifestation.class)});
+				// Verify assignable check also recognizes icon 
+				cases.add(new Object[] { new EvaluatorComponentProvider(), vi, Icon.class, vi.getTypeClass().equals(ExpressionsViewManifestation.class)});
+				// Evaluator should have a wizard
+				cases.add(new Object[] { new EvaluatorComponentProvider(), vi, CreateWizardUI.class, vi.getTypeClass().equals(EvaluatorComponent.class)});
+				// Multi component providers have no icons
+				cases.add(new Object[] { new MultiComponentProvider(), vi, ImageIcon.class, false});
+				// As above
+				cases.add(new Object[] { new MultiComponentProvider(), vi, Icon.class, false});
+				// MultiComponent should have a wizard
+				cases.add(new Object[] { new MultiComponentProvider(), vi, CreateWizardUI.class, vi.getTypeClass().equals(MultiComponent.class)});
+			}
+		}
+		Object[][] returnValue = new Object[cases.size()][];
+		for (int i = 0; i < cases.size(); i++) {
+			returnValue[i] = cases.get(i);
+		}
+		return returnValue;
+	}
 }

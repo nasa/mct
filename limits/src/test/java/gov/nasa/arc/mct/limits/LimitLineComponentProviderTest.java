@@ -24,9 +24,15 @@ package gov.nasa.arc.mct.limits;
 import gov.nasa.arc.mct.gui.MenuItemInfo;
 import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
+import gov.nasa.arc.mct.services.component.ComponentTypeInfo;
+import gov.nasa.arc.mct.services.component.CreateWizardUI;
+import gov.nasa.arc.mct.services.component.TypeInfo;
 import gov.nasa.arc.mct.services.internal.component.User;
 
 import java.util.Collection;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -71,4 +77,23 @@ public class LimitLineComponentProviderTest {
 	public void testPolicyInfos() {
 		Assert.assertEquals(provider.getPolicyInfos().size(), 0);
 	}
+	
+    @Test
+    public void testAssets() {       
+		class UnknownType {};
+        
+    	for (ComponentTypeInfo info : provider.getComponentTypes()) {
+            // No icon
+    		Assert.assertNull(provider.getAsset(info, Icon.class));
+    		// Should have a wizard
+    		Assert.assertNotNull(provider.getAsset(info, CreateWizardUI.class));
+    	}
+
+    	// Should not have assets for unknown types
+    	TypeInfo<?> unknownInfo = new TypeInfo<UnknownType>(UnknownType.class){};
+    	for (Class<?> type : new Class<?>[] {ImageIcon.class,Icon.class,UnknownType.class}) {
+    		Assert.assertNull(provider.getAsset(unknownInfo, type));
+    	}    	
+    }
+
 }

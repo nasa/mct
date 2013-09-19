@@ -21,11 +21,17 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.defaults.view;
 
+import gov.nasa.arc.mct.components.AbstractComponent;
+import gov.nasa.arc.mct.gui.View;
+import gov.nasa.arc.mct.services.component.ComponentTypeInfo;
+import gov.nasa.arc.mct.services.component.TypeInfo;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.swing.Icon;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
@@ -64,4 +70,23 @@ public class TestDefaultViewProvider {
         Assert.assertTrue(viewTypes.contains(ViewType.RIGHT));        
     }
     
+    @Test
+    public void testGetAsset() {
+        // Verify provider is giving default icons
+        DefaultViewProvider provider = new DefaultViewProvider();
+        TypeInfo<?> info;
+        
+        // Should give icons for any kind of type info (esp components and views)
+        info = new ComponentTypeInfo("","",AbstractComponent.class);
+        Assert.assertNotNull(provider.getAsset(info, Icon.class));        
+
+        info = new ViewInfo(View.class,"",ViewType.OBJECT);
+        Assert.assertNotNull(provider.getAsset(info, Icon.class));        
+        
+        info = new TypeInfo<TestDefaultViewProvider>(TestDefaultViewProvider.class){};
+        Assert.assertNotNull(provider.getAsset(info, Icon.class));        
+        
+        // Should not give anything other than icons
+        Assert.assertNull(provider.getAsset(info, getClass()));
+    }
 }

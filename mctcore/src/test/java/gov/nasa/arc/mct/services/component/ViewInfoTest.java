@@ -66,20 +66,20 @@ public class ViewInfoTest {
     @Test
     public void testHashCode() {
         ViewInfo vi = new ViewInfo(TestView.class, "tv", ViewType.INSPECTOR);
-        Assert.assertEquals(vi.hashCode(), TestView.class.getName().hashCode());
+        Assert.assertEquals(vi.hashCode(), TestView.class.getName().hashCode() ^ ViewType.INSPECTOR.hashCode());
     }
     
     @Test
     public void testEquals() {
         ViewInfo vi = new ViewInfo(TestView.class, "tv", ViewType.INSPECTOR);
-        ViewInfo vi2 = new ViewInfo(TestView.class, "tv", ViewType.CENTER);
+        ViewInfo vi2 = new ViewInfo(TestView.class, "tv", ViewType.INSPECTOR);
         View v = Mockito.mock(View.class);
         ViewInfo vi3 = new ViewInfo(v.getClass(), "tv", TestView.class.getName(),ViewType.LAYOUT);
 
         
         Assert.assertFalse(vi.equals(null));
-        Assert.assertEquals(vi, vi2);
-        Assert.assertEquals(vi, vi3);
+        Assert.assertTrue (vi.equals(vi2));
+        Assert.assertFalse(vi.equals(vi3));
         Assert.assertFalse(vi.equals(Integer.valueOf(7)));
     }
     

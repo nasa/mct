@@ -30,7 +30,9 @@ import gov.nasa.arc.mct.policy.ExecutionResult;
 import gov.nasa.arc.mct.policy.PolicyContext;
 import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.services.component.PolicyManager;
+import gov.nasa.arc.mct.util.MCTIcons;
 
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.MouseAdapter;
@@ -40,6 +42,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.TransferHandler;
@@ -52,7 +55,9 @@ import javax.swing.TransferHandler;
  */
 public class TransferableIcon extends JLabel {
     private static final long serialVersionUID = -7380332900682920418L;
-
+    private static final Color ICON_COLOR = new Color(130,130,130);
+    
+    
     /**
      * This method creates a new Transferable Icon. 
      * @param referencedComponent component that is currently active in the view.
@@ -61,7 +66,7 @@ public class TransferableIcon extends JLabel {
      */
     @SuppressWarnings("serial")
     public TransferableIcon(final AbstractComponent referencedComponent, final ViewTransferCallback viewTransferCallback) {
-        super(referencedComponent.getIcon());
+        super(MCTIcons.processIcon(referencedComponent.getAsset(ImageIcon.class), ICON_COLOR, false));
         final AtomicBoolean clicked = new AtomicBoolean(false);
         setTransferHandler(new TransferHandler() {
             @Override
