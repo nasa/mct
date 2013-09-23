@@ -28,6 +28,13 @@ import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.LimitAlarmState;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.TimeAxisSubsequentBoundsSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.XAxisMaximumLocationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSetting;
+import gov.nasa.arc.mct.fastplot.bridge.controls.BoundaryArrow;
+import gov.nasa.arc.mct.fastplot.bridge.controls.ControllableAxis;
+import gov.nasa.arc.mct.fastplot.bridge.controls.CornerResetButton;
+import gov.nasa.arc.mct.fastplot.bridge.controls.LocalControlKeyEventDispatcher;
+import gov.nasa.arc.mct.fastplot.bridge.controls.PanControls;
+import gov.nasa.arc.mct.fastplot.bridge.controls.ZoomControls;
+import gov.nasa.arc.mct.fastplot.scatter.NonTimeFixedBoundManager;
 import gov.nasa.arc.mct.fastplot.settings.LineSettings;
 import gov.nasa.arc.mct.fastplot.settings.PlotConfiguration;
 import gov.nasa.arc.mct.fastplot.settings.PlotConfigurationDelegator;
@@ -43,14 +50,9 @@ import gov.nasa.arc.mct.gui.FeedView.SynchronizationControl;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.event.ContainerEvent;
-import java.awt.event.ContainerListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.GregorianCalendar;
@@ -177,69 +179,8 @@ public class PlotView extends PlotConfigurationDelegator implements PlotAbstract
 
 	private Axis timeAxis = new Axis();
 
-	/** This listens to key events for the plot view and all sub-components so it can forward modifier key presses and releases to the local controls managers. */
-	private KeyListener keyListener = new KeyListener() {
-		@Override
-		public void keyTyped(KeyEvent e) {
-		}
-
-
-		@Override
-		public void keyReleased(KeyEvent e) {
-			if(e.getKeyCode() == KeyEvent.VK_CONTROL) {
-				for(AbstractPlottingPackage p : subPlots) {
-					(p).getLocalControlsManager().informCtlKeyState(false);
-				}
-			} else if(e.getKeyCode() == KeyEvent.VK_ALT) {
-				for(AbstractPlottingPackage p : subPlots) {
-					(p).getLocalControlsManager().informAltKeyState(false);
-				}
-			} else if(e.getKeyCode() == KeyEvent.VK_SHIFT) {
-				for(AbstractPlottingPackage p : subPlots) {
-					(p).getLocalControlsManager().informShiftKeyState(false);
-				}
-			}
-		}
-
-
-		@Override
-		public void keyPressed(KeyEvent e) {
-			if(e.getKeyCode() == KeyEvent.VK_CONTROL) {
-				for(AbstractPlottingPackage p : subPlots) {
-					if (!p.getPlotActionListener().isMouseOutsideOfPlotArea()) {
-					p.getLocalControlsManager().informCtlKeyState(true);
-					}
-				}
-			} else if(e.getKeyCode() == KeyEvent.VK_ALT) {
-				for(AbstractPlottingPackage p : subPlots) {
-					if (!((PlotterPlot) p).getPlotActionListener().isMouseOutsideOfPlotArea()) {
-					p.getLocalControlsManager().informAltKeyState(true);
-					}
-				}
-			} else if(e.getKeyCode() == KeyEvent.VK_SHIFT) {
-				for(AbstractPlottingPackage p : subPlots) {
-					if (!p.getPlotActionListener().isMouseOutsideOfPlotArea()) {
-					p.getLocalControlsManager().informShiftKeyState(true);
-					}
-				}
-			}
-		}
-	};
 
 	private Pinnable timeAxisUserPin = timeAxis.createPin();
-
-	private ContainerListener containerListener = new ContainerListener() {
-		@Override
-		public void componentAdded(ContainerEvent e) {
-			addRecursiveListeners(e.getChild());
-		}
-
-
-		@Override
-		public void componentRemoved(ContainerEvent e) {
-			removeRecursiveListeners(e.getChild());
-		}
-	};
 
 	private TimerTask updateTimeBoundsTask;
 
@@ -833,6 +774,8 @@ public class PlotView extends PlotConfigurationDelegator implements PlotAbstract
 				timer.schedule(updateTimeBoundsTask, 0, 1000);
 			}
 		});
+		/* Make sure key events get dispatched to local controls (which enable for Alt/Ctrl/etc...) */
+		plotPanel.addAncestorListener(new LocalControlKeyEventDispatcher(this));
 		GridBagLayout layout = new StackPlotLayout(this);
 		plotPanel.setLayout(layout);
 		
@@ -862,6 +805,9 @@ public class PlotView extends PlotConfigurationDelegator implements PlotAbstract
 						localControlsEnabled,
 						this, plotLabelingAlgorithm);
 				
+				// TODO: Move control attachment to its own class?
+				attachLocalControls(newPlot);
+				
 				newPlot.setPlotLabelingAlgorithm(plotLabelingAlgorithm);
 				subPlots.add(newPlot);
 				newPlot.registerObservor(this);
@@ -884,7 +830,7 @@ public class PlotView extends PlotConfigurationDelegator implements PlotAbstract
 		}
 		
 		for (AbstractPlottingPackage subPlot: subPlots) {
-			JComponent subPanel = subPlot.getPlotPanel();
+			JComponent subPanel = subPlot.getPlotComponent();
 			plotPanel.add(subPanel);
 			GridBagConstraints c = new GridBagConstraints();
 			c.fill = GridBagConstraints.BOTH;
@@ -896,9 +842,6 @@ public class PlotView extends PlotConfigurationDelegator implements PlotAbstract
 			layout.setConstraints(subPanel, c);
 	    }
 
-		// Note that using InputMap does not work for our situation.
-		// See http://stackoverflow.com/questions/4880704/listening-to-key-events-for-a-component-hierarchy
-		addRecursiveListeners(plotPanel);
 		
 		if (builder.settings.getPinTimeAxis()) {
 			timeAxisUserPin.setPinned(true);
@@ -914,35 +857,30 @@ public class PlotView extends PlotConfigurationDelegator implements PlotAbstract
 		
 	}
 	
+	private void attachLocalControls(AbstractPlottingPackage newPlot) {
+		List<ControllableAxis> observableAxes = new ArrayList<ControllableAxis>();
+		for (AbstractAxis axis : newPlot.getAxes()) {
+			if (axis != null && axis.getVisibleOrientation() != null) {
+				ControllableAxis a = new ControllableAxis(newPlot, axis);
+				observableAxes.add(a);
+				newPlot.attachLocalControl(new PanControls(a));
+				newPlot.attachLocalControl(new ZoomControls(a));
+				newPlot.attachLocalControl(new CornerResetButton(a));
+				for (AbstractAxisBoundManager mgr : newPlot.getBoundManagers(a.getVisibleOrientation())) {
+					newPlot.attachLocalControl(new BoundaryArrow(mgr));
+				}
+			}
+		}
+		newPlot.attachLocalControl(new CornerResetButton(observableAxes.toArray(new ControllableAxis[observableAxes.size()])));
+	}
+
+
 	/**
 	 * Gets the pinnable time axis by user.
 	 * @return pinnable time axis. 
 	 */
 	public Pinnable getTimeAxisUserPin() {
 		return timeAxisUserPin;
-	}
-
-	private void addRecursiveListeners(Component c) {
-		c.addKeyListener(keyListener);
-		if(c instanceof Container) {
-			Container cont = (Container) c;
-			cont.addContainerListener(containerListener);
-			for(Component child : cont.getComponents()) {
-				addRecursiveListeners(child);
-			}
-		}
-	}
-
-
-	private void removeRecursiveListeners(Component c) {
-		c.removeKeyListener(keyListener);
-		if(c instanceof Container) {
-			Container cont = (Container) c;
-			cont.removeContainerListener(containerListener);
-			for(Component child : cont.getComponents()) {
-				removeRecursiveListeners(child);
-			}
-		}
 	}
 
 	/**
@@ -1301,6 +1239,16 @@ public class PlotView extends PlotConfigurationDelegator implements PlotAbstract
 				requestPredictivePlotData(start, end);
 			}
 		}
+	}
+
+
+	@Override
+	public void plotAxisChanged(PlotSubject subject, AbstractAxis axis) {
+	}
+
+
+	@Override
+	public void dataPlotted() {
 	}
 
 }

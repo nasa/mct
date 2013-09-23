@@ -172,7 +172,7 @@ public class PlotConstants {
 
     // Panning and zooming controls
     public static final double PANNING_NON_TIME_AXIS_PERCENTAGE = 25;
-    public static final double PANNING_TIME_AXIS_PERCENTAGE = 25;
+    public static final double PANNING_PERCENTAGE = 25;
     public static final double ZOOMING_NON_TIME_AXIS_PERCENTAGE = 10;
     public static final double ZOOMING_TIME_AXIS_PERCENTAGE = 10;
     

@@ -34,4 +34,17 @@ public interface PlotObserver {
     * @param endTime
     */
    public void updateTimeAxis(PlotSubject subject, long startTime, long endTime);
+   
+   /**
+    * Observer is informed about any axis changes
+    * @param subject
+    * @param axis
+    */
+   public void plotAxisChanged(PlotSubject subject, AbstractAxis axis);
+   
+   /**
+    * Observer is informed whenever data is plotted (typically at the end of the feed 
+    * cycle)
+    */
+   public void dataPlotted();
 }

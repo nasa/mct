@@ -1,18 +1,21 @@
 package gov.nasa.arc.mct.fastplot.scatter;
 
+import gov.nasa.arc.mct.fastplot.bridge.AbstractAxis.AxisVisibleOrientation;
+import gov.nasa.arc.mct.fastplot.bridge.AbstractAxisBoundManager;
 import gov.nasa.arc.mct.fastplot.bridge.AbstractPlotDataSeries;
 import gov.nasa.arc.mct.fastplot.bridge.AbstractPlotLine;
 import gov.nasa.arc.mct.fastplot.bridge.AbstractPlottingPackage;
 import gov.nasa.arc.mct.fastplot.bridge.LegendEntry;
 import gov.nasa.arc.mct.fastplot.view.legend.AbstractLegendEntry;
 
+import java.util.Collection;
 import java.util.Collections;
-import java.util.Map.Entry;
 import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 public class ScatterPlotDataSeries implements AbstractPlotDataSeries {
+	private AbstractPlottingPackage plot;
 	private AbstractPlotLine plotLine;
 	private SortedMap<Long, Double> dependent;
 	private SortedMap<Long, Double> independent;
@@ -26,6 +29,7 @@ public class ScatterPlotDataSeries implements AbstractPlotDataSeries {
 		this.independent = independent;		
 		this.legend = legend;
 		this.plotLine = plot.createPlotLine();
+		this.plot = plot;
 		// TODO: Setup plot line, etc!
 	}
 
@@ -64,6 +68,7 @@ public class ScatterPlotDataSeries implements AbstractPlotDataSeries {
 				} else {
 					plotLine.prependData(pairs[0], pairs[1]);
 				}
+				informBoundManagers(ts, pairs[0], pairs[1]);
 			}
 			Collections.addAll(timestamps, ts);
 		}
@@ -80,6 +85,19 @@ public class ScatterPlotDataSeries implements AbstractPlotDataSeries {
 		}
 		
 		return values;
+	}
+	
+	private void informBoundManagers(Long[] timestamps, double[] independent, double[] dependent) {
+		Collection<AbstractAxisBoundManager> indMgr = plot.getBoundManagers(AxisVisibleOrientation.HORIZONTAL);
+		Collection<AbstractAxisBoundManager> depMgr = plot.getBoundManagers(AxisVisibleOrientation.VERTICAL);
+		for (int i = 0; i < timestamps.length; i++) {
+			for (AbstractAxisBoundManager mgr : indMgr) {
+				mgr.informPointPlottedAtTime(timestamps[i], independent[i]);
+			}
+			for (AbstractAxisBoundManager mgr : depMgr) {
+				mgr.informPointPlottedAtTime(timestamps[i],   dependent[i]);	
+			}			
+		}
 	}
 	
 	private Long[] getMatchingTimestamps(SortedMap<Long, Double> a, SortedMap<Long, Double> b) {

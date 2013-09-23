@@ -27,14 +27,13 @@ public class ScatterPlotObjects extends JPanel {
 	
 	private XYPlot         plot     = new XYPlot();
 	private XYPlotContents contents = new XYPlotContents();
-	private LinearXYAxis   xAxis = new LinearXYAxis(XYDimension.X);
-	private LinearXYAxis   yAxis = new LinearXYAxis(XYDimension.Y);
-	private XYGrid         grid  = new XYGrid(xAxis, yAxis);
+	private LinearXYAxis   xAxis    = new LinearXYAxisWrapper(XYDimension.X);
+	private LinearXYAxis   yAxis    = new LinearXYAxisWrapper(XYDimension.Y);
+	private XYGrid         grid     = new XYGrid(xAxis, yAxis);
 	
 	public ScatterPlotObjects (ScatterPlot scatterPlot) {
 		this.plotPackage = scatterPlot;
 		
-		XYGrid grid = new XYGrid(xAxis, yAxis);
 		grid.setForeground(Color.WHITE); //TODO: Get this from somewhere reasonable
 		
 		contents.setBackground(Color.BLACK);

@@ -81,9 +81,6 @@ public class PlotLimitManager implements ActionListener {
 	LimitAlarmState untranslatedNonTimeMinAlarm = LimitAlarmState.NO_ALARM;
 	
 	
-	LimitAlarmState cachedNonTimeMinAlarm = LimitAlarmState.NO_ALARM;
-	LimitAlarmState cachedNonTimeMaxAlarm = LimitAlarmState.NO_ALARM;
-
 	// Icons
 	ImageIcon nonTimeMaxLimitAlarmRaisedIcon;
 	ImageIcon nonTimeMaxLimitAlarmOpenedByUserIcon;

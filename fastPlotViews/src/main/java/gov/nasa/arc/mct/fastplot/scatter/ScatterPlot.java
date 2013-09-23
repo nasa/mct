@@ -1,6 +1,9 @@
 package gov.nasa.arc.mct.fastplot.scatter;
 
 import gov.nasa.arc.mct.components.FeedProvider.RenderingInfo;
+import gov.nasa.arc.mct.fastplot.bridge.AbstractAxis;
+import gov.nasa.arc.mct.fastplot.bridge.AbstractAxis.AxisVisibleOrientation;
+import gov.nasa.arc.mct.fastplot.bridge.AbstractAxisBoundManager;
 import gov.nasa.arc.mct.fastplot.bridge.AbstractPlotDataManager;
 import gov.nasa.arc.mct.fastplot.bridge.AbstractPlotDataSeries;
 import gov.nasa.arc.mct.fastplot.bridge.AbstractPlotLine;
@@ -13,9 +16,12 @@ import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.NonTimeAxisSubsequentBound
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.XAxisMaximumLocationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotLimitManager;
-import gov.nasa.arc.mct.fastplot.bridge.PlotLocalControlsManager;
 import gov.nasa.arc.mct.fastplot.bridge.PlotObserver;
 import gov.nasa.arc.mct.fastplot.bridge.PlotViewActionListener;
+import gov.nasa.arc.mct.fastplot.bridge.controls.AbstractPlotLocalControl;
+import gov.nasa.arc.mct.fastplot.bridge.controls.AbstractPlotLocalControl.AttachmentLocation;
+import gov.nasa.arc.mct.fastplot.bridge.controls.AbstractPlotLocalControlsManager;
+import gov.nasa.arc.mct.fastplot.bridge.controls.PlotLocalControlsManagerImpl;
 import gov.nasa.arc.mct.fastplot.settings.PlotConfiguration;
 import gov.nasa.arc.mct.fastplot.settings.PlotConfigurationDelegator;
 import gov.nasa.arc.mct.fastplot.settings.PlotSettings;
@@ -26,21 +32,27 @@ import gov.nasa.arc.mct.fastplot.view.legend.AbstractLegendEntry;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.SpringLayout;
 
 import plotter.xy.ScatterXYPlotLine;
 import plotter.xy.SimpleXYDataset;
 import plotter.xy.XYPlot;
 
 public class ScatterPlot extends PlotConfigurationDelegator implements AbstractPlottingPackage {
-	private ScatterPlotDataManager plotDataManager = new ScatterPlotDataManager(this);
+	private ScatterPlotDataManager dataManager = new ScatterPlotDataManager(this);
 	private ArrayList<PlotObserver> observers = new ArrayList<PlotObserver>();
 	private Set<String> knownDataSeries = new HashSet<String>();
 	private PlotAbstraction abstraction;	
@@ -50,6 +62,12 @@ public class ScatterPlot extends PlotConfigurationDelegator implements AbstractP
 	private ImplicitTimeAxis timeAxis = new ImplicitTimeAxis();
 	private AbbreviatingPlotLabelingAlgorithm plotLabelingAlgorithm = new AbbreviatingPlotLabelingAlgorithm();
 	private LegendManager legendManager = new LegendManager(plotLabelingAlgorithm);
+	
+	private PlotLocalControlsManagerImpl localControls = new PlotLocalControlsManagerImpl();
+	private PlotViewActionListener actionListener;
+	
+	private Map<AxisVisibleOrientation, Collection<AbstractAxisBoundManager>> boundManagers = 
+		new HashMap<AxisVisibleOrientation, Collection<AbstractAxisBoundManager>>();
 	
 	public ScatterPlot() {
 		this (new PlotSettings());
@@ -62,7 +80,6 @@ public class ScatterPlot extends PlotConfigurationDelegator implements AbstractP
 		}
 		timeAxis.setStart(delegate.getMinTime());
 		timeAxis.setEnd(delegate.getMaxTime());
-
 	}
 	
 	@Override
@@ -105,8 +122,38 @@ public class ScatterPlot extends PlotConfigurationDelegator implements AbstractP
 		timeAxis.setEnd(thePlotAbstraction.getMaxTime());
 		
 		legendManager.setOpaque(false);		
+		
+		actionListener = new PlotViewActionListener(this);
+		
+		setupAxisBoundsManagers();
 	}
 	
+	private void setupAxisBoundsManagers() {
+		for (AbstractAxis axis : getAxes()) {
+			AxisVisibleOrientation o = axis.getVisibleOrientation();
+			if (o != null) {
+				List<AbstractAxisBoundManager> bounds = new ArrayList<AbstractAxisBoundManager>(2);
+				for (boolean maximal : new boolean[] { false, true } ) {
+					NonTimeAxisSubsequentBoundsSetting setting = maximal ?
+							getNonTimeAxisSubsequentMaxSetting() :
+							getNonTimeAxisSubsequentMinSetting();
+					switch (setting) {
+					case AUTO:
+						bounds.add(new NonTimeAutoExpandBoundManager(this, axis, maximal));
+						break;
+					case FIXED:
+						bounds.add(new NonTimeFixedBoundManager(this, axis, maximal));
+						break;
+					case SEMI_FIXED:
+						bounds.add(new NonTimeSemiFixedBoundManager(this, axis, maximal));
+						break;
+					}
+				}
+				boundManagers.put(o, bounds);
+			}
+		}
+	}
+
 	private void setupAxisBounds() {
 		// Swap depending on MAXIMUM_AT_RIGHT etc
 		double independentBounds[] = { getMinNonTime(), getMaxNonTime() };
@@ -122,14 +169,14 @@ public class ScatterPlot extends PlotConfigurationDelegator implements AbstractP
 	
 
 	@Override
-	public JComponent getPlotPanel() {
+	public JComponent getPlotComponent() {
 		return plotPanel;
 	}
 	
 	@Override
 	public void addDataSet(String dataSetName, Color plottingColor) {
-		plotDataManager.addDataSet(dataSetName, plottingColor);		
-		AbstractPlotDataSeries series = plotDataManager.getNamedDataSeries(dataSetName);
+		dataManager.addDataSet(dataSetName, plottingColor);		
+		AbstractPlotDataSeries series = dataManager.getNamedDataSeries(dataSetName);
 		if (series != null && series instanceof ScatterPlotDataSeries) {
 			((ScatterPlotDataSeries) series).getPlotLine().setColor(plottingColor);
 			//series.getLegendEntry().setDataSetName(dataSetName);
@@ -145,7 +192,7 @@ public class ScatterPlot extends PlotConfigurationDelegator implements AbstractP
 	public void addDataSet(String lowerCase, Color plottingColor,
 			String displayName) {
 		addDataSet(lowerCase, plottingColor);
-		AbstractPlotDataSeries series = plotDataManager.getNamedDataSeries(lowerCase);
+		AbstractPlotDataSeries series = dataManager.getNamedDataSeries(lowerCase);
 		if (series != null) {
 			series.getLegendEntry().setBaseDisplayName(displayName);
 		}	
@@ -169,7 +216,7 @@ public class ScatterPlot extends PlotConfigurationDelegator implements AbstractP
 
 	@Override
 	public int getDataSetSize() {
-		return plotDataManager.size();
+		return dataManager.size();
 	}
 
 	@Override
@@ -290,7 +337,9 @@ public class ScatterPlot extends PlotConfigurationDelegator implements AbstractP
 
 	@Override
 	public void informUpdateFromLiveDataStreamCompleted() {
-		
+		for (PlotObserver o : this.observers) {
+			o.dataPlotted();
+		}
 	}
 
 	@Override
@@ -343,28 +392,28 @@ public class ScatterPlot extends PlotConfigurationDelegator implements AbstractP
 	@Override
 	public void addData(String feedID, SortedMap<Long, Double> points) {
 		legendManager.setVisible(true);
-		plotDataManager.addData(feedID, points);
+		dataManager.addData(feedID, points);
 		
 		// TODO: This will also need to work separately for dependent/independent bounds
-		boolean changed = false ;
-		for (boolean maximal : new boolean[]{true, false}) {
-			if ((maximal ? getNonTimeAxisSubsequentMaxSetting() : getNonTimeAxisSubsequentMinSetting()) 
-					== NonTimeAxisSubsequentBoundsSetting.AUTO) {
-				changed |= autoExpand(true, maximal);
-				changed |= autoExpand(false, maximal);
-			}
-		}
-		if (changed) {
-			setupAxisBounds();
-		}
+//		boolean changed = false ;
+//		for (boolean maximal : new boolean[]{true, false}) {
+//			if ((maximal ? getNonTimeAxisSubsequentMaxSetting() : getNonTimeAxisSubsequentMinSetting()) 
+//					== NonTimeAxisSubsequentBoundsSetting.AUTO) {
+//				changed |= autoExpand(true, maximal);
+//				changed |= autoExpand(false, maximal);
+//			}
+//		}
+//		if (changed) {
+//			setupAxisBounds();
+//		}
 	}
 	
 	private boolean autoExpand(boolean dependent, boolean maximal) {
 		double current  = dependent ? (maximal ? getMaxDependent() : getMinDependent()) : 
 			                         (maximal ? getMaxNonTime()   : getMinNonTime());
-		double minimum  = plotDataManager.getExtremum(
+		double minimum  = dataManager.getExtremum(
 				timeAxis.getStartAsLong(), timeAxis.getEndAsLong(), false, dependent);
-		double maximum  = plotDataManager.getExtremum(
+		double maximum  = dataManager.getExtremum(
 				timeAxis.getStartAsLong(), timeAxis.getEndAsLong(), true,  dependent);
 		double extremum = maximal ? maximum : minimum;
 		double padding  = (maximal ? getNonTimeMaxPadding() : getNonTimeMinPadding()) * 
@@ -412,19 +461,17 @@ public class ScatterPlot extends PlotConfigurationDelegator implements AbstractP
 
 	@Override
 	public AbstractPlotDataManager getPlotDataManager() {
-		return plotDataManager;
+		return dataManager;
 	}
 
 	@Override
-	public PlotLocalControlsManager getLocalControlsManager() {
-		// TODO Auto-generated method stub
-		return null;
+	public AbstractPlotLocalControlsManager getLocalControlsManager() {
+		return localControls;
 	}
 
 	@Override
 	public PlotViewActionListener getPlotActionListener() {
-		// TODO Auto-generated method stub
-		return null;
+		return actionListener;
 	}
 
 	@Override
@@ -505,10 +552,44 @@ public class ScatterPlot extends PlotConfigurationDelegator implements AbstractP
 	public void addDataSet(String dataSetName, Color plottingColor,
 			AbstractLegendEntry legend) {
 		addDataSet(dataSetName, plottingColor);
-		AbstractPlotDataSeries series = plotDataManager.getNamedDataSeries(dataSetName);
+		AbstractPlotDataSeries series = dataManager.getNamedDataSeries(dataSetName);
 		if (series != null) {
 			series.setLegendEntry(legend);
 		}
 	}
 
+	@Override
+	public void attachLocalControl(AbstractPlotLocalControl control) {
+		plotPanel.add(control, 0);
+		SpringLayout layout = (SpringLayout) plotPanel.getLayout();
+		for (AttachmentLocation location : control.getDesiredAttachmentLocations()) {
+			if (location != null) {
+				layout.putConstraint(location.getControlPlacement(), control,
+						location.getDistance(), location.getContentPlacement(), plotPanel.getContents());
+			}
+		}
+		PlotObserver o = control.getPlotObserver();
+		if (o != null) {
+			this.registerObservor(o);
+		}
+		localControls.addControl(control);
+	}
+
+	@Override
+	public Collection<AbstractAxis> getAxes() {
+		return Arrays.asList( (AbstractAxis) plotPanel.getXAxis(), (AbstractAxis) plotPanel.getYAxis(), timeAxis) ;
+	}
+
+	@Override
+	public void notifyObserversAxisChanged(AbstractAxis axis) {
+		for (PlotObserver o : this.observers) {
+			o.plotAxisChanged(this, axis);
+		}
+	}
+	
+	@Override
+	public Collection<AbstractAxisBoundManager> getBoundManagers(AxisVisibleOrientation axis) {
+		return boundManagers.get(axis);
+	}
+	
 }

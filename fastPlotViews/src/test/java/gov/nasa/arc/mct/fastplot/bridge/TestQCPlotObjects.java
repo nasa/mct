@@ -67,7 +67,7 @@ public class TestQCPlotObjects {
 //		mockPlot.nonTimeAxisMaxSubsequentSetting = NonTimeAxisSubsequentBoundsSetting.AUTO;
 
 		Mockito.when(mockPlotAbstraction.getTimeAxis()).thenReturn(new Axis());
-		Mockito.when(mockPlot.getPlotPanel()).thenReturn(new JPanel());
+		Mockito.when(mockPlot.getPlotComponent()).thenReturn(new JPanel());
 		final TimeXYAxis[] axis=new TimeXYAxis[1];
 		Mockito.doAnswer(new Answer<Object>() {
 			@Override

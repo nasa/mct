@@ -34,19 +34,19 @@ import java.awt.event.MouseListener;
 public class PlotViewActionListener implements MouseListener, ComponentListener {
 
 	// The plot for which we're managing action events. 
-	PlotterPlot plot;
+	AbstractPlottingPackage plot;
 	
 	// Used to prevent mouse entered events being fired while the mouse is still inside 
 	// the plot area. 
 	boolean mouseOutsideOfPlotArea = false;
 
    
-	public PlotViewActionListener (PlotterPlot thePlot) {
+	public PlotViewActionListener (AbstractPlottingPackage thePlot) {
 		plot = thePlot;	
 		// register this class as a listener for key, component, and mouse events
-		plot.getPlotView().addComponentListener(this);
-		plot.getPlotView().addMouseListener(this);
-		if(!plot.getPlotView().contains(MouseInfo.getPointerInfo().getLocation().x, MouseInfo.getPointerInfo().getLocation().y)) {
+		plot.getPlotComponent().addComponentListener(this);
+		plot.getPlotComponent().addMouseListener(this);
+		if(!plot.getPlotComponent().contains(MouseInfo.getPointerInfo().getLocation().x, MouseInfo.getPointerInfo().getLocation().y)) {
 			mouseOutsideOfPlotArea = true; 
 		} else {
 			mouseOutsideOfPlotArea = false; 
@@ -66,13 +66,18 @@ public class PlotViewActionListener implements MouseListener, ComponentListener 
 	@Override
 	public void componentResized(ComponentEvent e) {
 		// Size has changed so the plot needs to be laid out again. 
-		plot.calculatePlotAreaLayout();
-		plot.getPlotDataManager().informResizeEvent();
+		if (plot instanceof PlotterPlot) {
+			((PlotterPlot) plot).calculatePlotAreaLayout();
+			plot.getPlotDataManager().informResizeEvent();		
+		}
 	}
 	
 	@Override
 	public void componentShown(ComponentEvent e) {
-		plot.calculatePlotAreaLayout();	
+		if (plot instanceof PlotterPlot) {
+			((PlotterPlot) plot).calculatePlotAreaLayout();
+			plot.getPlotDataManager().informResizeEvent();		
+		}	
 	}
 
 	@Override
@@ -83,7 +88,7 @@ public class PlotViewActionListener implements MouseListener, ComponentListener 
 	@Override
 	public void mouseEntered(MouseEvent e) {
 		if (mouseOutsideOfPlotArea) {
-		  plot.localControlsManager.informMouseEntered();
+		  plot.getLocalControlsManager().informMouseHover(true);
 		  mouseOutsideOfPlotArea = false;
 		}
 	}
@@ -93,8 +98,8 @@ public class PlotViewActionListener implements MouseListener, ComponentListener 
 		// Suppress if mouse has not exited plotview window but rather just
 		// entered another JComponent on the window. 
 		
-		if(!plot.getPlotView().contains(e.getX(), e.getY())) {
-		  plot.localControlsManager.informMouseExited();
+		if(!plot.getPlotComponent().contains(e.getX(), e.getY())) {
+		  plot.getLocalControlsManager().informMouseHover(false);
 		  mouseOutsideOfPlotArea = true; 
 		}
 		

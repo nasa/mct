@@ -87,8 +87,8 @@ public class PanAndZoomManager {
 			double nonTimeScalePanAmount = yAxis.getEnd() - yAxis.getStart();
 			double timeScalePanAmount = xAxis.getEnd() - xAxis.getStart();
 			
-			timeScalePanAmount = (timeScalePanAmount/100) * PlotConstants.PANNING_TIME_AXIS_PERCENTAGE;
-			nonTimeScalePanAmount= (nonTimeScalePanAmount/100) * PlotConstants.PANNING_TIME_AXIS_PERCENTAGE;
+			timeScalePanAmount = (timeScalePanAmount/100) * PlotConstants.PANNING_PERCENTAGE;
+			nonTimeScalePanAmount= (nonTimeScalePanAmount/100) * PlotConstants.PANNING_PERCENTAGE;
 
 			if (panningAction == PanDirection.PAN_HIGHER_Y_AXIS) {
 				yAxis.shift(nonTimeScalePanAmount);
@@ -110,8 +110,8 @@ public class PanAndZoomManager {
 			double nonTimeScalePanAmount = xAxis.getEnd() - xAxis.getStart();
 			double timeScalePanAmount = yAxis.getEnd() - yAxis.getStart();
 			
-			timeScalePanAmount = (timeScalePanAmount/100) * PlotConstants.PANNING_TIME_AXIS_PERCENTAGE;
-			nonTimeScalePanAmount= (nonTimeScalePanAmount/100) * PlotConstants.PANNING_TIME_AXIS_PERCENTAGE;
+			timeScalePanAmount = (timeScalePanAmount/100) * PlotConstants.PANNING_PERCENTAGE;
+			nonTimeScalePanAmount= (nonTimeScalePanAmount/100) * PlotConstants.PANNING_PERCENTAGE;
 			
 			if (panningAction == PanDirection.PAN_HIGHER_Y_AXIS) {
 				yAxis.shift(timeScalePanAmount);

@@ -71,7 +71,11 @@ public enum IconLoader {
         PLOT_CORNER_RESET_BUTTON_TOP_RIGHT_ORANGE,
         PLOT_CORNER_RESET_BUTTON_TOP_LEFT_GREY,
         PLOT_CORNER_RESET_BUTTON_BOTTOM_RIGHT_GREY,
-        PLOT_CORNER_RESET_BUTTON_BOTTOM_LEFT_GREY
+        PLOT_CORNER_RESET_BUTTON_BOTTOM_LEFT_GREY ;
+		
+		public ImageIcon getIcon() {
+			return IconLoader.INSTANCE.getIcon(this);
+		}
 	}
 	
 	private static ImageIcon plotTimeOnXNormalImage;
