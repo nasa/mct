@@ -27,6 +27,7 @@ import gov.nasa.arc.mct.components.FeedProvider;
 import gov.nasa.arc.mct.components.FeedProvider.RenderingInfo;
 import gov.nasa.arc.mct.graphics.brush.Brush;
 import gov.nasa.arc.mct.graphics.state.StateSensitive;
+import gov.nasa.arc.mct.gui.NamingContext;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 
 import java.awt.Color;
@@ -47,7 +48,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 
@@ -69,11 +70,12 @@ public class GraphicalManifestationTest {
 	@Mock private ExtendedProperties mockViewProperties;
 	
 	@SuppressWarnings("unchecked")
-	@BeforeTest
+	@BeforeMethod
 	public void setupTest() {
 		MockitoAnnotations.initMocks(this);
 				
 		Mockito.when(mockComponent.getCapability(FeedProvider.class)).thenReturn(mockProvider);
+		Mockito.when(mockComponent.getDisplayName()).thenReturn("test");
 		
 		
 		Mockito.when(mockProvider.getSubscriptionId()).thenReturn(SUBSCRIPTION_ID);
@@ -132,6 +134,55 @@ public class GraphicalManifestationTest {
 		
 	}
 	 
+	@Test 
+	public void testManifestationNamingContext() {
+		Shape shape = (Shape) view.getSettings().getSetting(GraphicalSettings.GRAPHICAL_SHAPE);
+		List<Brush> brushList = view.getSettings().getLayers();
+		
+		view.setSize(SIZE, SIZE);				
+		view.setBackground(BACKGROUND);
+		view.setNamingContext(new NamingContext() {
+			@Override
+			public NamingContext getParentContext() {
+				return null;
+			}
+			@Override
+			public String getContextualName() {
+				return null;
+			}			
+		});
+		
+		final BufferedImage viewImage = new BufferedImage(SIZE, SIZE, BufferedImage.TYPE_INT_RGB);
+		final BufferedImage manualImage = new BufferedImage(SIZE, SIZE, BufferedImage.TYPE_INT_RGB);
+		
+		
+		view.updateFromFeed(feedData);
+		view.paint(viewImage.getGraphics());		
+		
+		Graphics g = manualImage.getGraphics();
+		g.setColor(BACKGROUND);
+		g.fillRect(0,0,300,300);
+		for (Brush brush : brushList) {
+			if (brush instanceof StateSensitive) {
+				((StateSensitive) brush).setInterval(0, 100);
+				((StateSensitive) brush).setState("50");
+			}			
+			// Bounds shrunken by 5%
+			brush.draw(shape, g, new Rectangle(15,15,270,270));
+		}
+
+		// Check to see if something has been drawn differently now that a naming context is set
+		// (separate test ensures that drawing is same when no naming context set).
+		boolean differenceFound = false;
+		for (int x = 0; x < 300; x++) {
+			for (int y = 0; y < 300; y++) {				
+				differenceFound |= viewImage.getRGB(x, y) != manualImage.getRGB(x, y);
+			}
+		}
+		Assert.assertTrue(differenceFound);
+		
+	}
+	
 	@Test 
 	public void testControlManifestation() {
 		JComponent c = view.initializeControlManifestation();
@@ -193,7 +244,6 @@ public class GraphicalManifestationTest {
 				}
 			}
 		}	
-		
 	}
 	
 	@Test

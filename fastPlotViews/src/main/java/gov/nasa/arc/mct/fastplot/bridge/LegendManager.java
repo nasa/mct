@@ -93,10 +93,7 @@ public class LegendManager extends JPanel implements MouseListener {
 			innerPanel.add((Component) entry);
 		}
 	}
-	
-	public LegendEntry getLegendEntry() {
-		return legendEntry;
-	}
+
 	
 	public List<LegendEntry> getLegendEntryList() {
 		return legendEntryList;
@@ -133,6 +130,7 @@ public class LegendManager extends JPanel implements MouseListener {
 		//do nothing
 	}
 	
+	@Override
 	public String getToolTipText() {
 		return legendEntry.getToolTipText();
 	}

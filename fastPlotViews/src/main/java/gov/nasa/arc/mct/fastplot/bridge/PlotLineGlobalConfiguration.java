@@ -72,7 +72,9 @@ public class PlotLineGlobalConfiguration {
 
 			String style = UIManager.getString("PlotLine.fontStyle");
 			if (style != null) {
-				if (style.toUpperCase().equals("BOLD")) {
+				if (style.toUpperCase().equals("PLAIN")) {
+					fontStyle = Font.PLAIN;
+				} else if (style.toUpperCase().equals("BOLD")) {
 					fontStyle = Font.BOLD;
 				} else if (style.toUpperCase().equals("ITALIC")) {
 					fontStyle = Font.ITALIC;

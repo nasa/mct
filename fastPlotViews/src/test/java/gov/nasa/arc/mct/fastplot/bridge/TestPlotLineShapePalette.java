@@ -23,7 +23,14 @@ public class TestPlotLineShapePalette {
 	@Test
 	public void testShapeCount() {
 		Assert.assertTrue(PlotLineShapePalette.getShapeCount() >= PlotConstants.MAX_NUMBER_OF_DATA_ITEMS_ON_A_PLOT);
+		try {
+			PlotLineShapePalette.getShape(PlotLineShapePalette.getShapeCount() + 1);
+			Assert.fail("Expected to hit IllegalArgumentException for excess shapes");
+		} catch (IllegalArgumentException e) {
+			// Expected!
+		}
 	}
+		
 	
 	/*
 	 * To ensure that shapes are visually unique, shapes are compared using a similarity metric.

@@ -23,6 +23,7 @@ package gov.nasa.arc.mct.fastplot.bridge;
 
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PlotLineConnectionType;
+import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PlotLineDrawingFlags;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.TimeAxisSubsequentBoundsSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.XAxisMaximumLocationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSetting;
@@ -32,14 +33,17 @@ import gov.nasa.arc.mct.fastplot.view.PlotViewManifestation;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import plotter.xy.LinearXYPlotLine;
@@ -68,6 +72,8 @@ public class TestPlotDataSeries {
 
 	private PlotAbstraction plotAbstraction;
 	private AbbreviatingPlotLabelingAlgorithm plotLabelingAlgorithm = new AbbreviatingPlotLabelingAlgorithm();
+	
+	private static final double EPSILON = 0.1;
 	
 	@BeforeMethod
 	public void setup() {
@@ -307,9 +313,8 @@ public class TestPlotDataSeries {
 		data.toString();
 	}
 	
-	@Test
-	public void TestSetupDataNonScrunchPlot() {
-		PlotSettings settings = new PlotSettings();
+	@Test (dataProvider = "settingsProvider")
+	public void TestSetupDataNonScrunchPlot(PlotSettings settings) {
 		settings.setTimeAxisSubsequentSetting(TimeAxisSubsequentBoundsSetting.JUMP);
 		PlotAbstraction plot = new PlotView.Builder(PlotterPlot.class).
 		                       plotSettings(settings).
@@ -322,10 +327,10 @@ public class TestPlotDataSeries {
 		Assert.assertNotNull(dataSeries);
 	}
 	
-	@Test
-	public void TestSetupDataScrunchPlotWithCompression() {
+	@Test (dataProvider = "settingsProvider")
+	public void TestSetupDataScrunchPlotWithCompression(PlotSettings settings) {
 		// Switch to a scrunch plot
-		PlotSettings settings = new PlotSettings();
+		//PlotSettings settings = new PlotSettings();
 		settings.setTimeAxisSubsequentSetting(TimeAxisSubsequentBoundsSetting.SCRUNCH);
 		PlotAbstraction plot = new PlotView.Builder(PlotterPlot.class).
         			plotSettings(settings).
@@ -360,14 +365,19 @@ public class TestPlotDataSeries {
 		LinearXYPlotLine regressionLine = new LinearXYPlotLine(plotView.getXAxis(), plotView.getYAxis(), XYDimension.X);
 		data.setRegressionLine(regressionLine);
 		Assert.assertEquals(data.regressionLine, regressionLine);
-	}
+		data.resetData(); // Reset should also remove regression line
+		Assert.assertNull(data.getRegressionLine());
+	}	
 	
-	@Test (enabled = false)
+	@Test
 	public void TestUpdateRegressionLine() {
 		GregorianCalendar timeOne = new GregorianCalendar();
 		GregorianCalendar timeTwo = new GregorianCalendar();
+		timeTwo.setTimeInMillis(timeOne.getTimeInMillis());
 		timeTwo.add(Calendar.MINUTE, 30);
 		PlotterPlot testPlot = new PlotterPlot();
+		plotAbstraction.setMinTime(timeOne.getTimeInMillis());
+		plotAbstraction.setMaxTime(timeTwo.getTimeInMillis());
 		testPlot.createChart( 
 				new Font("Arial", Font.PLAIN, 1), 
 				1, 
@@ -420,11 +430,53 @@ public class TestPlotDataSeries {
 		xData[3] = Long.valueOf(insertTime.getTimeInMillis()).doubleValue();
 		data.updateRegressionLine();
 		HighPrecisionLinearRegression lr = new HighPrecisionLinearRegression( xData, new double[]{0.0, 10.0, 20.0, 30.0});
-		Assert.assertEquals(data.getRegressionLine().getXData().get(0), Long.valueOf(insertTime.getTimeInMillis()).doubleValue());
-		Assert.assertEquals(data.getRegressionLine().getYData().get(0), 30.0);
-		Assert.assertEquals(data.getRegressionLine().getXData().get(1), Long.valueOf(timeTwo.getTimeInMillis()).doubleValue());
+		Assert.assertEquals(data.getRegressionLine().getXData().get(0), Long.valueOf(insertTime.getTimeInMillis()).doubleValue(), EPSILON);
+		Assert.assertEquals(data.getRegressionLine().getYData().get(0), 30.0, EPSILON);
+		Assert.assertEquals(data.getRegressionLine().getXData().get(1), Long.valueOf(timeTwo.getTimeInMillis()).doubleValue(), EPSILON);
 		Assert.assertEquals(data.getRegressionLine().getYData().get(1), lr.calculateY(
 				Long.valueOf(timeTwo.getTimeInMillis()).doubleValue()) +
-		(30 - lr.calculateY(xData[3])));
+		(30 - lr.calculateY(xData[3])), EPSILON);
 	}
+	
+	
+	private static final boolean[] BOOLEANS = { false, true };
+	
+	
+	// Ensure that PloteDataSeries functions under a variety of settings
+	@DataProvider (name = "settingsProvider")
+	public Object[][] createSettings() {
+		List<Object[]> l = new ArrayList<Object[]>();
+		
+		for (boolean ordinal : BOOLEANS) {
+			for (boolean pin : BOOLEANS) {
+				for (boolean drawMarkers : BOOLEANS) {
+					for (AxisOrientationSetting orientation : AxisOrientationSetting.values()) {
+						for (PlotLineConnectionType connection : PlotLineConnectionType.values()) {
+							for (XAxisMaximumLocationSetting xMax : XAxisMaximumLocationSetting.values()) {
+								for (YAxisMaximumLocationSetting yMax : YAxisMaximumLocationSetting.values()) {
+									if (orientation != AxisOrientationSetting.Z_AXIS_AS_TIME) { // Not compatible with PlotterPlot
+										PlotSettings p = new PlotSettings();
+										p.setOrdinalPositionForStackedPlots(ordinal);
+										p.setPinTimeAxis(pin);
+										p.setPlotLineDraw(new PlotLineDrawingFlags(true, drawMarkers));
+										p.setAxisOrientationSetting(orientation);
+										p.setPlotLineConnectionType(connection);
+										p.setXAxisMaximumLocation(xMax);
+										p.setYAxisMaximumLocation(yMax);
+										l.add(new Object[]{p});
+									}
+								}								
+							}
+						}
+					}
+				}
+			}
+			
+		}
+		Object[][] params = new Object[l.size()][];
+		for (int i = 0 ; i < l.size(); i++) {
+			params[i] = l.get(i);
+		}
+		return params;
+	};
 }

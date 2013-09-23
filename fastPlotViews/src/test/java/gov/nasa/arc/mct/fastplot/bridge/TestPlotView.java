@@ -196,6 +196,7 @@ public class TestPlotView {
 	public void testPlotMatchSettings(){		
 		
 		PlotConfiguration plotSettings = new PlotSettings();
+
 		// Create a second set of settings with defaults...
 		PlotConfiguration otherPlotSettings = new PlotSettings();
 		// ...but explicitly make sure min/max times match 
@@ -203,6 +204,7 @@ public class TestPlotView {
 		otherPlotSettings.setMinTime(plotSettings.getMinTime());
 		otherPlotSettings.setMaxTime(plotSettings.getMaxTime());
 		PlotView basePlot = new PlotView.Builder(PlotterPlot.class).plotSettings(otherPlotSettings).build();
+
 		
 		Assert.assertTrue(basePlot.plotMatchesSetting(plotSettings));
 		

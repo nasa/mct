@@ -225,12 +225,5 @@ public class MenuItemSpinner extends JSpinner {
 			}
 		}
 
-		StringBuilder getInsertBuilder() {
-			return insertBuilder;
-		}
-
-		StringBuilder getReplaceBuilder() {
-			return replaceBuilder;
-		}
 	}
 }

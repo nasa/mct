@@ -25,7 +25,9 @@ import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.components.FeedProvider;
 import gov.nasa.arc.mct.fastplot.access.PolicyManagerAccess;
 import gov.nasa.arc.mct.fastplot.view.PlotViewManifestation;
+import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.policy.ExecutionResult;
+import gov.nasa.arc.mct.policy.Policy;
 import gov.nasa.arc.mct.policy.PolicyContext;
 import gov.nasa.arc.mct.services.component.PolicyManager;
 import gov.nasa.arc.mct.services.component.ViewInfo;
@@ -255,4 +257,49 @@ public class TestPlotViewPolicy {
 		}
 	}
 	
+	@Test
+	public void testExecute() {
+		Policy policy = new PlotViewPolicy();
+		PolicyContext context; 
+		
+		ViewInfo plotViewInfo = new ViewInfo(PlotViewManifestation.class, "Plot", ViewType.OBJECT);
+		
+		// Plot views should be allowed for leaf component with a feed
+		context = new PolicyContext();
+		context.setProperty(PolicyContext.PropertyName.TARGET_VIEW_INFO.getName(),
+				plotViewInfo);
+		context.setProperty(PolicyContext.PropertyName.TARGET_COMPONENT.getName(),
+				leafWithAFeedComponent);		
+		Assert.assertTrue(policy.execute(context).getStatus());
+
+		// ...but not without a feed
+		context = new PolicyContext();
+		context.setProperty(PolicyContext.PropertyName.TARGET_VIEW_INFO.getName(),
+				plotViewInfo);
+		context.setProperty(PolicyContext.PropertyName.TARGET_COMPONENT.getName(),
+				leafWithOutAFeedComponent);		
+		Assert.assertFalse(policy.execute(context).getStatus());
+		
+		// Plot view policy should not reject non-plot, ever
+		for (AbstractComponent ac : new AbstractComponent[] { leafWithAFeedComponent, leafWithOutAFeedComponent, nonLeafComponent} ) {
+			for (ViewType vt : ViewType.values()) {
+				ViewInfo someViewInfo = new ViewInfo(NonPlotView.class, "NonPlot", vt); 
+				context = new PolicyContext();
+				context.setProperty(PolicyContext.PropertyName.TARGET_VIEW_INFO.getName(),
+						someViewInfo);
+				context.setProperty(PolicyContext.PropertyName.TARGET_COMPONENT.getName(),
+						ac);		
+				Assert.assertTrue(policy.execute(context).getStatus());
+			}
+		}
+	}
+	
+	private static class NonPlotView extends View {	
+		private static final long serialVersionUID = 3389103274105732666L;
+
+		@SuppressWarnings("unused") // Constructor needed to satisfy Viewinfo
+		public NonPlotView(AbstractComponent ac, ViewInfo vi) {
+			super(ac,vi);
+		}
+	}
 }

@@ -21,6 +21,8 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.graphics.component;
 
+import gov.nasa.arc.mct.components.ModelStatePersistence;
+
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -39,5 +41,35 @@ public class GraphicalComponentTest {
 		Assert.assertEquals(model.getGraphicURI(), uriOne);
 		model.setGraphicURI(uriTwo);
 		Assert.assertEquals(model.getGraphicURI(), uriTwo);
+	}
+	
+	@Test
+	public void testGraphicalComponent() {
+		// Ensure that graphical component is a leaf
+		GraphicalComponent comp = new GraphicalComponent();
+		Assert.assertTrue(comp.isLeaf());
+	}
+	
+	@Test
+	public void testGraphicalComponentModelPersistence() {
+		GraphicalComponent a = new GraphicalComponent();
+		GraphicalComponent b = new GraphicalComponent();
+		a.getModelRole().setGraphicURI(uriOne);
+		b.getModelRole().setGraphicURI(uriTwo);
+		
+		ModelStatePersistence persisterA = a.getCapability(ModelStatePersistence.class);
+		ModelStatePersistence persisterB = b.getCapability(ModelStatePersistence.class);
+		Assert.assertNotNull(persisterA);
+		Assert.assertNotNull(persisterB);
+		
+		// Swap models
+		String stateA = persisterA.getModelState();
+		String stateB = persisterB.getModelState();
+		persisterA.setModelState(stateB);
+		persisterB.setModelState(stateA);
+
+		// Ensure they have switched
+		Assert.assertEquals(b.getModelRole().getGraphicURI(), uriOne);
+		Assert.assertEquals(a.getModelRole().getGraphicURI(), uriTwo);
 	}
 }
