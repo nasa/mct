@@ -20,34 +20,52 @@ import java.util.ResourceBundle;
  */
 public class DefaultIdentityManager extends IdentityManager {
     private static final ResourceBundle bundle = ResourceBundle.getBundle("DefaultIdentityManager"); //NOI18N
+    private boolean initialized = false;    
     
     /**
      * Create a default identity manager
      * @param properties input properties
      */
     public DefaultIdentityManager(Properties properties) {
-        String username = properties.getProperty("mct.user"); //NOI18N
-                
-        // If PersistenceProvider & WindowManager are available, we can create a dialog with available users
-        Platform platform = PlatformAccess.getPlatform();
-        PersistenceProvider persistence = platform != null ? platform.getPersistenceProvider() : null;
-        WindowManager windowing = platform != null ? platform.getWindowManager() : null;
-        
-        if (username == null && persistence != null && windowing != null) {
-            Object[] users = persistence.getAllUsers().toArray();
-            if (users.length > 0) {
-                Arrays.sort(users);
-                username = (String) windowing.showInputDialog(bundle.getString("TITLE"), bundle.getString("QUESTION"), users, users[0], null); //NOI18N
-            }
-        }        
-        
-        this.currentUser = username;
-        
-        // If a user was selected, initialize with group info as well from Persistence
-        if (persistence != null && username != null) {
-            User user = persistence.getUser(username);
-            if (user != null) {        
-                this.currentGroup = user.getDisciplineId();
+        this.currentUser = properties.getProperty("mct.user"); //NOI18N
+    }
+    
+    @Override
+    public String getCurrentUser() {
+        ensureInitialized();
+        return super.getCurrentUser();
+    }
+
+    @Override
+    public String getCurrentGroup() {
+        ensureInitialized();
+        return super.getCurrentGroup();
+    }
+
+    private void ensureInitialized() {
+        if (!initialized) {
+            String username = this.currentUser;
+            // If PersistenceProvider & WindowManager are available, we can create a dialog with available users
+            Platform platform = PlatformAccess.getPlatform();
+            PersistenceProvider persistence = platform != null ? platform.getPersistenceProvider() : null;
+            WindowManager windowing = platform != null ? platform.getWindowManager() : null;
+            
+            if (username == null && persistence != null && windowing != null) {
+                Object[] users = persistence.getAllUsers().toArray();
+                if (users.length > 0) {
+                    Arrays.sort(users);
+                    username = (String) windowing.showInputDialog(bundle.getString("TITLE"), bundle.getString("QUESTION"), users, users[0], null); //NOI18N
+                }
+            }        
+            
+            this.currentUser = username;
+            
+            // If a user was selected, initialize with group info as well from Persistence
+            if (persistence != null && username != null) {
+                User user = persistence.getUser(username);
+                if (user != null) {        
+                    this.currentGroup = user.getDisciplineId();
+                }
             }
         }
     }
