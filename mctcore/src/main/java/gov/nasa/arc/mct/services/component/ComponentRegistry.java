@@ -73,8 +73,14 @@ public interface ComponentRegistry {
     /**
      * Create a new instance of the specified componentType. 
      * @param componentType to create new instance of
-     * @return uninitialized instance of the component type or null if the type doesn't 
-     * exist.
+     * @return An instance of the component type, in which: 
+     * <UL>
+     *   <LI>   If there is a current user: the instance is initialized such that the creator and owner of the 
+     *          component are set to the current user-id.
+     *   <LI>   If there is not a current user (e.g.: MCT being loaded with a user not currently in the database),
+     *          then the instance is returned uninitialized.
+     *   <LI>   If the componentType does not exist then null is returned.
+     * </UL>
      */
     public AbstractComponent newInstance(String componentType);
     
