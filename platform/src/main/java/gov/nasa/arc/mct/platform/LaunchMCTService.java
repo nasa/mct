@@ -24,9 +24,8 @@ import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.context.GlobalContext;
 import gov.nasa.arc.mct.gui.impl.MenuExtensionManager;
 import gov.nasa.arc.mct.gui.impl.StatusAreaWidgetRegistryImpl;
-import gov.nasa.arc.mct.osgi.platform.OSGIRuntimeImpl;
 import gov.nasa.arc.mct.osgi.platform.OSGIRuntime;
-import gov.nasa.arc.mct.platform.spi.PersistenceProvider;
+import gov.nasa.arc.mct.osgi.platform.OSGIRuntimeImpl;
 import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
 import gov.nasa.arc.mct.policymgr.PolicyManagerImpl;
@@ -63,11 +62,12 @@ public class LaunchMCTService {
     private boolean haveInitialized = false;
     private Timer t;
             
-    public void bind(PersistenceProvider provider) {
+    public void bind(Object provider) {
         // do nothing as this signals launch can proceed
+        // (used to declare dependencies to persistence, default component provider)
     }
     
-    public void unbind(PersistenceProvider provider) {
+    public void unbind(Object provider) {
         
     }
     
