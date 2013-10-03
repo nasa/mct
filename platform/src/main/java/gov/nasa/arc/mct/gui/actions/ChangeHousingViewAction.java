@@ -22,6 +22,7 @@
 package gov.nasa.arc.mct.gui.actions;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
+import gov.nasa.arc.mct.components.ObjectManager;
 import gov.nasa.arc.mct.defaults.view.MCTHousingViewManifestation;
 import gov.nasa.arc.mct.gui.ActionContext;
 import gov.nasa.arc.mct.gui.GroupAction;
@@ -30,6 +31,7 @@ import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.housing.MCTHousing;
 import gov.nasa.arc.mct.gui.housing.MCTStandardHousing;
 import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
+import gov.nasa.arc.mct.gui.impl.WindowManagerImpl;
 import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
 import gov.nasa.arc.mct.policy.PolicyContext;
@@ -42,6 +44,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -137,39 +140,51 @@ public class ChangeHousingViewAction extends GroupAction {
         private void commitOrAbortPendingChanges() {
             MCTHousingViewManifestation housingView = (MCTHousingViewManifestation) context.getWindowManifestation();
             View view = housingView.getContentArea().getHousedViewManifestation();
-        
-            if (!isComponentWriteableByUser(view.getManifestedComponent()))
+            AbstractComponent comp = view.getManifestedComponent();
+            
+            if (!isComponentWriteableByUser(comp))
                 return;
+   
+            // Options (save, save all, abort)
+            String save = BUNDLE.getString("view.modified.alert.save");
+            String saveAll = BUNDLE.getString("view.modified.alert.saveAll");
+            String abort = BUNDLE.getString("view.modified.alert.abort");
             
             // Show options - Save, Abort, or maybe Save All
-            Object[] options = view.getManifestedComponent().getAllModifiedObjects().isEmpty() ?
-                    new Object[]{
-                    BUNDLE.getString("view.modified.alert.save"),            
-                    BUNDLE.getString("view.modified.alert.abort"),
-                } :
-                new Object[]{
-                    BUNDLE.getString("view.modified.alert.save"),
-                    BUNDLE.getString("view.modified.alert.saveAll"),
-                    BUNDLE.getString("view.modified.alert.abort"),
-                };
+            ObjectManager om = comp.getCapability(ObjectManager.class);
+            Set<AbstractComponent> modified = om != null ? om.getAllModifiedObjects() : Collections.<AbstractComponent> emptySet();
+            String[] options = modified.isEmpty() ?
+                    new String[]{ save, abort } :
+                    new String[]{ save, saveAll, abort };
         
-            int answer = OptionBox.showOptionDialog(view, 
-                    MessageFormat.format(BUNDLE.getString("view.modified.alert.text"), view.getInfo().getViewName(), view.getManifestedComponent().getDisplayName()),                         
-                    BUNDLE.getString("view.modified.alert.title"),
-                    OptionBox.YES_NO_OPTION,
-                    OptionBox.WARNING_MESSAGE,
-                    null,
-                    options, options[0]);
+            Map<String, Object> hints = new HashMap<String, Object>();
+            hints.put(WindowManagerImpl.MESSAGE_TYPE, OptionBox.WARNING_MESSAGE);
+            hints.put(WindowManagerImpl.OPTION_TYPE, OptionBox.YES_NO_OPTION);
+            hints.put(WindowManagerImpl.PARENT_COMPONENT, view);
+
+            String answer = PlatformAccess.getPlatform().getWindowManager().showInputDialog(
+                    BUNDLE.getString("view.modified.alert.title"), 
+                    MessageFormat.format(BUNDLE.getString("view.modified.alert.text"), view.getInfo().getViewName(), view.getManifestedComponent().getDisplayName()), 
+                    options, 
+                    options[0], 
+                    hints);
             
-            if (answer == OptionBox.YES_OPTION) {
-                PlatformAccess.getPlatform().getPersistenceProvider().persist(Collections.singleton(view.getManifestedComponent()));
-            } else if (answer < options.length - 1) { // Save All
-                AbstractComponent comp = view.getManifestedComponent();
-                Set<AbstractComponent> allModifiedObjects = comp.getAllModifiedObjects();
+            if (answer.equals(save)) {
+                PlatformAccess.getPlatform().getPersistenceProvider().persist(Collections.singleton(comp));
+            } else if (answer.equals(saveAll)) { // Save All
+                Set<AbstractComponent> allModifiedObjects;
                 if (comp.isDirty()) {
+                    // Create a new set including the object if it's dirty
+                    allModifiedObjects = new HashSet<AbstractComponent>();
+                    allModifiedObjects.addAll(modified);
                     allModifiedObjects.add(comp);
+                } else {
+                    // Just use the same set returned by the comp's ObjectManager capability
+                    allModifiedObjects = modified; 
                 }
                 PlatformAccess.getPlatform().getPersistenceProvider().persist(allModifiedObjects);
+                
+                om.notifySaved(modified);
             }                
         }
 

@@ -2,6 +2,7 @@ package gov.nasa.arc.mct.gui.actions;
 
 import gov.nasa.arc.mct.api.persistence.OptimisticLockException;
 import gov.nasa.arc.mct.components.AbstractComponent;
+import gov.nasa.arc.mct.components.ObjectManager;
 import gov.nasa.arc.mct.gui.ActionContext;
 import gov.nasa.arc.mct.gui.ContextAwareAction;
 import gov.nasa.arc.mct.gui.housing.MCTContentArea;
@@ -34,7 +35,8 @@ public class ThisSaveAllAction extends ContextAwareAction{
     @Override
     public boolean canHandle(ActionContext context) {
         actionContext = (ActionContextImpl) context;
-        return getCenterPaneComponent() != null;
+        return getCenterPaneComponent() != null &&
+                getCenterPaneComponent().getCapability(ObjectManager.class) != null;
     }
 
     private boolean isComponentWriteableByUser(AbstractComponent component) {
@@ -55,7 +57,8 @@ public class ThisSaveAllAction extends ContextAwareAction{
     @Override
     public boolean isEnabled() {
         AbstractComponent ac = getCenterPaneComponent();
-        Set<AbstractComponent> modified = ac.getAllModifiedObjects();
+        Set<AbstractComponent> modified = 
+                ac.getCapability(ObjectManager.class).getAllModifiedObjects();
         
         // Ensure that policy permits saving ALL these components
         boolean hasOnlyWriteableComponents = isComponentWriteableByUser(ac);
@@ -92,7 +95,7 @@ public class ThisSaveAllAction extends ContextAwareAction{
         AbstractComponent ac = getCenterPaneComponent();
 
         Set<AbstractComponent> allModifiedObjects = new HashSet<AbstractComponent>();
-        allModifiedObjects.addAll(ac.getAllModifiedObjects());
+        allModifiedObjects.addAll(ac.getCapability(ObjectManager.class).getAllModifiedObjects());
         allModifiedObjects.add(ac);
 
         try {
@@ -100,6 +103,8 @@ public class ThisSaveAllAction extends ContextAwareAction{
         } catch (OptimisticLockException ole) {
             handleStaleObject(ac);
         }
+        
+        ac.getCapability(ObjectManager.class).notifySaved(allModifiedObjects);
     }
 
 }

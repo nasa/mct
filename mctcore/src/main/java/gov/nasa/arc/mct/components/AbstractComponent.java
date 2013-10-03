@@ -794,9 +794,10 @@ public abstract class AbstractComponent implements Cloneable {
      * Mark the component as having outstanding changes in memory.
      */
     public void save() {
-        getWorkUnitComponent().isDirty.set(true);
+        AbstractComponent workUnitComponent = getWorkUnitComponent();
+        workUnitComponent.isDirty.set(true);
         addComponentToWorkUnit();
-        if (getWorkUnitComponent() != this) {
+        if (workUnitComponent != this) {
             SwingUtilities.invokeLater(new Runnable() {
 
                 @Override
@@ -806,6 +807,12 @@ public abstract class AbstractComponent implements Cloneable {
                 }
                 
             });
+            
+            ObjectManager objectManager = 
+                            workUnitComponent.getCapability(ObjectManager.class);
+            if (objectManager != null) {
+                objectManager.addModifiedObject(this);
+            }
         }
     }
     
@@ -1216,22 +1223,5 @@ public abstract class AbstractComponent implements Cloneable {
     public List<PropertyDescriptor> getFieldDescriptors() {
         return null;
     }
-    
-    /**
-     * For Save All action. This method should return a set of modified objects 
-     * to be saved. These modified objects are not required to be related to this object.
-     * The save all action automatically includes saving changes for this object, so this 
-     * method does not need to include this object to be saved.
-     * 
-     * @return a set of <code>AbstractComponent</code> that have been modified and are ready to be saved
-     */
-    public Set<AbstractComponent> getAllModifiedObjects() {
-        return Collections.emptySet();
-    }
-    
-    /**
-     * This is a template method, which is called when the save all action was successful.
-     */
-    public void notifiedSaveAllSuccessful() {        
-    }
+
 }

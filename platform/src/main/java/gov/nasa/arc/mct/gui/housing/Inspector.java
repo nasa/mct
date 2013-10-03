@@ -22,6 +22,7 @@
 package gov.nasa.arc.mct.gui.housing;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
+import gov.nasa.arc.mct.components.ObjectManager;
 import gov.nasa.arc.mct.defaults.view.SwitcherView;
 import gov.nasa.arc.mct.gui.ActionContext;
 import gov.nasa.arc.mct.gui.ContextAwareButton;
@@ -60,6 +61,7 @@ import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -224,7 +226,8 @@ public class Inspector extends View {
         if (committedComponent == null)
             return true;
         
-        if (!isComponentWriteableByUser(view.getManifestedComponent()))
+        AbstractComponent comp = view.getManifestedComponent();
+        if (!isComponentWriteableByUser(comp))
             return true;
         
         String save = BUNDLE.getString("view.modified.alert.save");
@@ -232,16 +235,19 @@ public class Inspector extends View {
         String abort = BUNDLE.getString("view.modified.alert.abort");
         
         // Show options - Save, Abort, or maybe Save All
-        String[] options = view.getManifestedComponent().getAllModifiedObjects().isEmpty() ?
+        ObjectManager om = comp.getCapability(ObjectManager.class);
+        Set<AbstractComponent> modified = om != null ? 
+                om.getAllModifiedObjects() : Collections.<AbstractComponent>emptySet();
+        String[] options = modified.isEmpty() ?
         		    new String[]{ save, abort } :
-        		    new String[]{ save, saveAll, abort};
+        		    new String[]{ save, saveAll, abort };
     
         Map<String, Object> hints = new HashMap<String, Object>();
         hints.put(WindowManagerImpl.MESSAGE_TYPE, OptionBox.WARNING_MESSAGE);
         hints.put(WindowManagerImpl.OPTION_TYPE, OptionBox.YES_NO_OPTION);
         hints.put(WindowManagerImpl.PARENT_COMPONENT, view);
 
-        Object answer = PlatformAccess.getPlatform().getWindowManager().showInputDialog(
+        String answer = PlatformAccess.getPlatform().getWindowManager().showInputDialog(
                 BUNDLE.getString("view.modified.alert.title"), 
                 MessageFormat.format(BUNDLE.getString("view.modified.alert.text"), view.getInfo().getViewName(), view.getManifestedComponent().getDisplayName()), 
                 options, 
@@ -251,12 +257,20 @@ public class Inspector extends View {
         if (answer.equals(save)) {
             PlatformAccess.getPlatform().getPersistenceProvider().persist(Collections.singleton(view.getManifestedComponent()));
         } else if (answer.equals(saveAll)) { // Save All
-            AbstractComponent comp = view.getManifestedComponent();
-            Set<AbstractComponent> allModifiedObjects = comp.getAllModifiedObjects();
+            Set<AbstractComponent> allModifiedObjects;
             if (comp.isDirty()) {
+                // Create a new set including the object if it's dirty
+                allModifiedObjects = new HashSet<AbstractComponent>();
+                allModifiedObjects.addAll(modified);
                 allModifiedObjects.add(comp);
+            } else {
+                // Just use the same set returned by the comp's ObjectManager capability
+                allModifiedObjects = modified; 
             }
             PlatformAccess.getPlatform().getPersistenceProvider().persist(allModifiedObjects);
+            
+            // Notify the object manager so it can clear things out
+            om.notifySaved(modified);
         }
         
         return true;

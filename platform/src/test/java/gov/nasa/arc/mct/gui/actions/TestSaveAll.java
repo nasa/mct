@@ -1,6 +1,7 @@
 package gov.nasa.arc.mct.gui.actions;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
+import gov.nasa.arc.mct.components.ObjectManager;
 import gov.nasa.arc.mct.gui.ContextAwareAction;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.housing.MCTContentArea;
@@ -76,8 +77,8 @@ public class TestSaveAll {
         // This verifies that parent is saved even when parent is not dirty.
         
         // Set up parent/child component such that SaveAll should be available
-        final AbstractComponent child = generateComponent(true, true, null);
-        final AbstractComponent comp = generateComponent(true, isDirty, child);
+        final AbstractComponent child = generateComponent(true, true, true, null);
+        final AbstractComponent comp = generateComponent(true, isDirty, true, child);
 
         // Elaborate mocking to simulate context menu activation
         MCTHousing mockHousing = Mockito.mock(MCTHousing.class);
@@ -151,12 +152,14 @@ public class TestSaveAll {
         
         // Verify that enabled/disabled states match expectations
         Assert.assertEquals(action.canHandle(mockContext), shouldHandle);
-        Assert.assertEquals(action.isEnabled(), shouldBeEnabled);
+        if (shouldHandle) { // Only verify isEnabled if case should be handled
+            Assert.assertEquals(action.isEnabled(), shouldBeEnabled);
+        }
     }
     
     @DataProvider
     public Object[][] generateTestCases() {
-        Object[][] testCases = new Object[32][];
+        Object[][] testCases = new Object[64][];
         boolean truths[] = {false, true};
         int i = 0;
 
@@ -164,15 +167,18 @@ public class TestSaveAll {
         for (boolean action : truths) {
             for (boolean validParent : truths) {
                 for (boolean validChild : truths) {
-                    for (boolean isDirty : truths) {            
-                        for (boolean hasChild : truths) {
-                            Object[] testCase = {
-                                action ? new ThisSaveAllAction() : new ObjectsSaveAllAction(),
-                                generateComponent(validParent, isDirty, hasChild ? generateComponent(validChild, isDirty, null) : null),
-                                action || (validParent && hasChild && validChild) || (validParent && !hasChild && isDirty), 
-                                (validParent && hasChild && validChild) || (validParent && !hasChild && isDirty)
-                            };
-                            testCases[i++] = testCase;
+                    for (boolean isDirty : truths) {     
+                        for (boolean isObjectManager : truths) {
+                            for (boolean hasChild : truths) {                            
+                                Object[] testCase = {
+                                    action ? new ThisSaveAllAction() : new ObjectsSaveAllAction(),
+                                    generateComponent(validParent, isDirty, isObjectManager, 
+                                            hasChild ? generateComponent(validChild, isDirty, isObjectManager, null) : null),
+                                    (action || (validParent && hasChild && validChild) || (validParent && !hasChild && isDirty)) && isObjectManager, 
+                                    (validParent && hasChild && validChild) || (validParent && !hasChild && isDirty)
+                                };
+                                testCases[i++] = testCase;
+                            }
                         }
                     }
                 }
@@ -182,11 +188,17 @@ public class TestSaveAll {
         return testCases;
     }
     
-    private AbstractComponent generateComponent(boolean good, boolean dirty, AbstractComponent child) {
+    private AbstractComponent generateComponent(boolean good, boolean dirty, boolean isObjectManager, AbstractComponent child) {
         AbstractComponent mockComponent = Mockito.mock(AbstractComponent.class);
         Mockito.when(mockComponent.isDirty()).thenReturn(dirty);
+        ObjectManager mockObjectManager = Mockito.mock(ObjectManager.class);
+        if (isObjectManager) {
+            Mockito.when(mockComponent.getCapability(ObjectManager.class)).thenReturn(mockObjectManager);
+        }
         if (child != null) {
-            Mockito.when(mockComponent.getAllModifiedObjects()).thenReturn(Collections.singleton(child));
+            Mockito.when(mockObjectManager.getAllModifiedObjects()).thenReturn(Collections.singleton(child));            
+        } else {
+            Mockito.when(mockObjectManager.getAllModifiedObjects()).thenReturn(Collections.<AbstractComponent>emptySet());
         }
         if (good) {
             goodComponents.add(mockComponent);

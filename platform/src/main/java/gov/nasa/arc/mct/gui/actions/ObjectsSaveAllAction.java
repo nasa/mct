@@ -2,6 +2,7 @@ package gov.nasa.arc.mct.gui.actions;
 
 import gov.nasa.arc.mct.api.persistence.OptimisticLockException;
 import gov.nasa.arc.mct.components.AbstractComponent;
+import gov.nasa.arc.mct.components.ObjectManager;
 import gov.nasa.arc.mct.gui.ActionContext;
 import gov.nasa.arc.mct.gui.ContextAwareAction;
 import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
@@ -31,7 +32,9 @@ public class ObjectsSaveAllAction extends ContextAwareAction{
     @Override
     public boolean canHandle(ActionContext context) {
         actionContext = (ActionContextImpl) context;
-        return actionContext.getInspectorComponent() != null && isEnabled();
+        return actionContext.getInspectorComponent() != null && 
+                actionContext.getInspectorComponent().getCapability(ObjectManager.class) != null &&
+                isEnabled();
     }
 
     private boolean isComponentWriteableByUser(AbstractComponent component) {
@@ -50,7 +53,8 @@ public class ObjectsSaveAllAction extends ContextAwareAction{
     @Override
     public boolean isEnabled() {
         AbstractComponent ac = getInspectorComponent();
-        Set<AbstractComponent> modified = ac.getAllModifiedObjects();
+        Set<AbstractComponent> modified = 
+                ac.getCapability(ObjectManager.class).getAllModifiedObjects();
         
         // Ensure that policy permits saving ALL these components
         boolean hasOnlyWriteableComponents = isComponentWriteableByUser(ac);
@@ -88,7 +92,7 @@ public class ObjectsSaveAllAction extends ContextAwareAction{
         AbstractComponent ac = getInspectorComponent();        
         
         Set<AbstractComponent> allModifiedObjects = new HashSet<AbstractComponent>();
-        allModifiedObjects.addAll(ac.getAllModifiedObjects());
+        allModifiedObjects.addAll(ac.getCapability(ObjectManager.class).getAllModifiedObjects());
         allModifiedObjects.add(ac);
 
         try {
@@ -97,7 +101,7 @@ public class ObjectsSaveAllAction extends ContextAwareAction{
             handleStaleObject(ac);
         }
         
-        ac.notifiedSaveAllSuccessful();
+        ac.getCapability(ObjectManager.class).notifySaved(allModifiedObjects);
     }
 
 }
