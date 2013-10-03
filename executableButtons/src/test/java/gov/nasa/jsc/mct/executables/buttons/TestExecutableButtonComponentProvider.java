@@ -25,12 +25,24 @@ import gov.nasa.arc.mct.gui.MenuItemInfo;
 import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
 import gov.nasa.arc.mct.platform.spi.RoleService;
+import gov.nasa.arc.mct.services.component.ComponentProvider;
+import gov.nasa.arc.mct.services.component.ComponentTypeInfo;
+import gov.nasa.arc.mct.services.component.CreateWizardUI;
+import gov.nasa.arc.mct.services.component.TypeInfo;
+import gov.nasa.arc.mct.services.component.ViewInfo;
+import gov.nasa.arc.mct.services.component.ViewType;
 import gov.nasa.arc.mct.services.internal.component.User;
 import gov.nasa.jsc.mct.executable.buttons.ExecutableButtonComponent;
 import gov.nasa.jsc.mct.executable.buttons.ExecutableButtonComponentProvider;
+import gov.nasa.jsc.mct.executable.buttons.view.ExecutableButtonManifestation;
 import gov.nasa.jsc.mct.executables.buttons.actions.ExecutableButtonAction;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -38,6 +50,7 @@ import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public class TestExecutableButtonComponentProvider {
@@ -92,5 +105,38 @@ public class TestExecutableButtonComponentProvider {
 	@Test
 	public void testPolicyInfos() {
 		Assert.assertTrue(provider.getPolicyInfos().isEmpty());
+	}
+	
+	@Test (dataProvider="assetTestCases")
+	public void testAssets(ComponentProvider provider, TypeInfo<?> info, Class<?> assetType, boolean expected) {
+		// Used to verify whether provider offers certain assets
+		if (expected) {
+			Assert.assertNotNull(provider.getAsset(info, assetType));
+		} else {
+			Assert.assertNull(provider.getAsset(info, assetType));
+		}
+	}
+	
+	@DataProvider
+	public Object[][] assetTestCases() {
+		List<Object[]> cases = new ArrayList<Object[]>();
+		// Consider all view types
+		for (ViewType type : ViewType.values()) {
+			TypeInfo<?> view = new ViewInfo(ExecutableButtonManifestation.class, ExecutableButtonManifestation.VIEW_NAME, ExecutableButtonManifestation.class.getName(), type);
+			TypeInfo<?> comp = new ComponentTypeInfo("","",ExecutableButtonComponent.class);
+			for (TypeInfo<?> vi : new TypeInfo<?>[]{view, comp}) {
+				// Executable buttons have no view or component icons currently
+				cases.add(new Object[] { new ExecutableButtonComponentProvider(), vi, ImageIcon.class, false});
+				// As above
+				cases.add(new Object[] { new ExecutableButtonComponentProvider(), vi, Icon.class, false});
+				// Executable buttons should have a wizard
+				cases.add(new Object[] { new ExecutableButtonComponentProvider(), vi, CreateWizardUI.class, vi.getTypeClass().equals(ExecutableButtonComponent.class)});
+			}
+		}
+		Object[][] returnValue = new Object[cases.size()][];
+		for (int i = 0; i < cases.size(); i++) {
+			returnValue[i] = cases.get(i);
+		}
+		return returnValue;
 	}
 }

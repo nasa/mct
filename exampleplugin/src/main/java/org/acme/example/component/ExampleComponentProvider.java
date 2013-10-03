@@ -26,6 +26,7 @@ import gov.nasa.arc.mct.gui.MenuItemInfo.MenuItemType;
 import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.services.component.AbstractComponentProvider;
 import gov.nasa.arc.mct.services.component.ComponentTypeInfo;
+import gov.nasa.arc.mct.services.component.TypeInfo;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 
@@ -33,6 +34,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.ResourceBundle;
+
+import javax.swing.ImageIcon;
 
 import org.acme.example.actions.APICreationAction;
 import org.acme.example.actions.AboutExampleAction;
@@ -58,6 +61,9 @@ public class ExampleComponentProvider extends AbstractComponentProvider {
 	private final ComponentTypeInfo exampleComponentType;
 	private final ComponentTypeInfo telemetryComponentType;
 		
+	private static final ImageIcon ICON = 
+			new ImageIcon(ExampleComponentProvider.class.getResource("/icons/mct_icon_telemetry.png"));
+	
 	public ExampleComponentProvider() {
 		// this is the component type we are providing. The display name and description are used
 		// by the MCT menu system for creating new instances and thus should be human readable
@@ -69,7 +75,8 @@ public class ExampleComponentProvider extends AbstractComponentProvider {
 		telemetryComponentType = new ComponentTypeInfo(
 				bundle.getString("telemetry_display_name"),  
 				bundle.getString("telemetry_description"), 
-				TelemetryComponent.class);
+				TelemetryComponent.class,
+				true);
 	}
 
 	
@@ -174,4 +181,26 @@ public class ExampleComponentProvider extends AbstractComponentProvider {
 		 *     policyManager.execute(String categoryKey, PolicyContext context); 
 		 */
 	}
+	
+
+    @Override
+    public <T> T getAsset(TypeInfo<?> typeInfo, Class<T> assetClass) {
+    	/*
+    	 * Relevant "assets" associated with certain types should 
+    	 * be delivered here. Examples of assets include ImageIcons and 
+    	 * CreateWizardUI objects. 
+    	 * 
+    	 * Typically, it is desirable to provide any needed "assets" 
+    	 * here for the ComponentTypeInfos and ViewInfos that are 
+    	 * exposed in the same ComponentProvider. (In principle, 
+    	 * however, this could be used as a way to introduce assets 
+    	 * for types defined in a totally different plug-in.)
+    	 */
+        if (assetClass.isAssignableFrom(ImageIcon.class)) {
+            if (typeInfo.getTypeClass().equals(TelemetryComponent.class)) {
+                return assetClass.cast(ICON);
+            }
+        }
+        return super.getAsset(typeInfo, assetClass);
+    }
 }

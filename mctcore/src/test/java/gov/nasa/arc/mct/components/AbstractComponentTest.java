@@ -134,7 +134,8 @@ public class AbstractComponentTest {
         };
     }
     
-    @SuppressWarnings("rawtypes")
+    //Harleigh108: this removes the warning received when we build with respect to java 7: deprecation is for PREFERRED_VIEW
+    @SuppressWarnings({ "rawtypes", "deprecation" })
     @Test(dataProvider="viewInfoData")
     public void testGetViewInfos(Set<ViewInfo> viewInfos, final Set<ViewInfo> filterOut, ViewType type, Set<ViewInfo> expected) {
         AbstractComponent ac = new BaseComponentSub2();

@@ -243,7 +243,9 @@ public class RemoveManifestationAction extends ContextAwareAction {
         }
         JPanel warning = new JPanel(new GridLayout(3,2, 0, 0));
         warning.setPreferredSize(new Dimension(600,220));
+        @SuppressWarnings({ "rawtypes", "unchecked" }) // Java 7 compatibility
         JList okList = new JList(okComps.toArray());
+        @SuppressWarnings({ "rawtypes", "unchecked" }) // Java 7 compatibility
         JList lastManifestationList = new JList(lastComps.toArray());
         JScrollPane scrollPane1 = new JScrollPane(okList);
         scrollPane1.setPreferredSize(new Dimension(180,100));

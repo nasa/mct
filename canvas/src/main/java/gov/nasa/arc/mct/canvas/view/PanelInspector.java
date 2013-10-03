@@ -23,32 +23,29 @@ package gov.nasa.arc.mct.canvas.view;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.gui.SelectionProvider;
-import gov.nasa.arc.mct.gui.Twistie;
+import gov.nasa.arc.mct.gui.SettingsButton;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.ViewRoleSelection;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 import gov.nasa.arc.mct.util.LafColor;
+import gov.nasa.arc.mct.util.MCTIcons;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Collection;
-import java.util.Set;
 
-import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
-import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -66,11 +63,8 @@ public class PanelInspector extends View {
     
     private static final Color BACKGROUND_COLOR = LafColor.WINDOW_BORDER.darker();
     private static final Color FOREGROUND_COLOR = LafColor.WINDOW.brighter();
-    private static final ImageIcon BUTTON_ICON = new ImageIcon(PanelInspector.class.getResource("/images/infoViewButton-OFF.png"));
-    private static final ImageIcon BUTTON_PRESSED_ICON = new ImageIcon(PanelInspector.class.getResource("/images/infoViewButton-ON.png"));
     
     private static final String PANEL_SPECIFIC = " (Panel-Specific)";
-    private static final String DASH = " - ";
     
     private final PropertyChangeListener selectionChangeListener = new PropertyChangeListener() {
         @Override
@@ -90,15 +84,21 @@ public class PanelInspector extends View {
     private View view;
     private JComponent viewControls;
     private JPanel titlebar = new JPanel();
-    private JPanel viewButtonBar = new JPanel();
     private GridBagConstraints c = new GridBagConstraints();
-    private ControllerTwistie controllerTwistie;
+    private JToggleButton controlAreaToggle = new SettingsButton();
 
     public PanelInspector(AbstractComponent ac, ViewInfo vi) {    
         super(ac,vi);
         registerSelectionChange();        
         setLayout(new BorderLayout());
                 
+        controlAreaToggle.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                showOrHideController(controlAreaToggle.isSelected());
+            }            
+        });
+        
         titlebar.setLayout(new GridBagLayout());
         JLabel titleLabel = new JLabel("Panel Inspector:  ");
         
@@ -121,8 +121,6 @@ public class PanelInspector extends View {
         viewTitle.setForeground(FOREGROUND_COLOR);
         viewTitle.addMouseMotionListener(new WidgetDragger());
         titlebar.setBackground(BACKGROUND_COLOR);
-        viewButtonBar.setLayout(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        viewButtonBar.setBackground(BACKGROUND_COLOR);
         
         add(titlebar, BorderLayout.NORTH);
         add(emptyPanel, BorderLayout.CENTER);
@@ -131,19 +129,6 @@ public class PanelInspector extends View {
         setMinimumSize(new Dimension(0, 0));
     }
     
-    private ButtonGroup createViewSelectionButtons(AbstractComponent ac, ViewInfo selectedViewInfo) {
-        ButtonGroup buttonGroup = new ButtonGroup();
-        final Set<ViewInfo> viewInfos = ac.getViewInfos(ViewType.EMBEDDED);
-        for (ViewInfo vi : viewInfos) {
-            ViewChoiceButton button = new ViewChoiceButton(vi);
-            buttonGroup.add(button);
-            viewButtonBar.add(button);
-            
-            if (vi.equals(selectedViewInfo))
-                buttonGroup.setSelected(button.getModel(), true);
-        }
-        return buttonGroup;
-    }
     
     private void selectedManifestationChanged(View view) {
         remove(content);
@@ -153,22 +138,28 @@ public class PanelInspector extends View {
             viewTitle.setTransferHandler(null);
             content = emptyPanel;
         } else {
-            viewTitle.setIcon(view.getManifestedComponent().getIcon());
-            viewTitle.setText(view.getManifestedComponent().getDisplayName() + DASH + view.getInfo().getViewName() + PANEL_SPECIFIC);
+            viewTitle.setIcon(MCTIcons.processIcon(view.getManifestedComponent().getAsset(ImageIcon.class), new Color(230,230,230), false));
+            viewTitle.setText(view.getManifestedComponent().getDisplayName() + PANEL_SPECIFIC);
             viewTitle.setTransferHandler(new WidgetTransferHandler());
             content = this.view = view.getInfo().createView(view.getManifestedComponent());
-            JComponent viewControls = getViewControls();
-            if (viewControls != null) {
-                c.weightx = 0;
-                controllerTwistie = new ControllerTwistie();
-                titlebar.add(controllerTwistie, c);
+            
+            if (controlAreaToggle.isSelected()) { // Close control area if it's open
+                controlAreaToggle.doClick();
             }
-            createViewSelectionButtons(view.getManifestedComponent(), view.getInfo());
-
+            controlAreaToggle.setEnabled(getViewControls() != null);
+            
+            JPanel p = new JPanel(new BorderLayout());
+            View viewSwitcher = view.getManifestedComponent().getViewInfos(ViewType.VIEW_SWITCHER).iterator().next().createView(view.getManifestedComponent());
+            viewSwitcher.addMonitoredGUI(this);
+            viewSwitcher.setForeground(FOREGROUND_COLOR);
+            p.setOpaque(false);
+            p.add(viewSwitcher, BorderLayout.CENTER);
+            p.add(controlAreaToggle, BorderLayout.EAST);
+            
             c.anchor = GridBagConstraints.LINE_END;
             c.gridwidth = GridBagConstraints.REMAINDER;
             c.weightx = 0;       
-            titlebar.add(viewButtonBar, c);
+            titlebar.add(p, c);
         }
         Dimension preferredSize = content.getPreferredSize();
         JScrollPane jp = new JScrollPane(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -260,6 +251,30 @@ public class PanelInspector extends View {
             view.exitLockedState();
     }
     
+    @Override
+    public boolean setHousedViewManifestation(ViewInfo viewInfo) {
+        PanelInspector.this.remove(content);
+        content = view = viewInfo.createView(view.getManifestedComponent());
+        Dimension preferredSize = content.getPreferredSize();
+        JScrollPane jp = new JScrollPane(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+        preferredSize.height += jp.getHorizontalScrollBar().getPreferredSize().height;
+        JScrollPane inspectorScrollPane = new JScrollPane(content,
+                        ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+                        ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        PanelInspector.this.add(inspectorScrollPane, BorderLayout.CENTER);
+        PanelInspector.this.revalidate();
+        content = inspectorScrollPane;
+        viewTitle.setText(view.getManifestedComponent().getDisplayName() + PANEL_SPECIFIC);
+        viewControls = null;
+        if (controlAreaToggle.isSelected()) { // Close control area if it's open
+            controlAreaToggle.doClick();
+        }
+        controlAreaToggle.setEnabled(getViewControls() != null);
+    
+        return true;
+    }
+
+    
     private static final class WidgetDragger extends MouseMotionAdapter {
         @Override
         public void mouseDragged(MouseEvent e) {
@@ -283,50 +298,5 @@ public class PanelInspector extends View {
                 return null;
             }
         }
-    }
-    
-    private final class ViewChoiceButton extends JToggleButton {
-        private static final String SWITCH_TO = "Switch to ";
-
-        public ViewChoiceButton(final ViewInfo viewInfo) {
-            setBorder(BorderFactory.createEmptyBorder());
-            setAction(new AbstractAction() {
-                
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    PanelInspector.this.remove(content);
-                    content = view = viewInfo.createView(view.getManifestedComponent());
-                    Dimension preferredSize = content.getPreferredSize();
-                    JScrollPane jp = new JScrollPane(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS, ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-                    preferredSize.height += jp.getHorizontalScrollBar().getPreferredSize().height;
-                    JScrollPane inspectorScrollPane = new JScrollPane(content,
-                                    ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-                    PanelInspector.this.add(inspectorScrollPane, BorderLayout.CENTER);
-                    PanelInspector.this.revalidate();
-                    content = inspectorScrollPane;
-                    viewTitle.setText(view.getManifestedComponent().getDisplayName() + DASH + view.getInfo().getViewName() + PANEL_SPECIFIC);
-                    viewControls = null;
-                    if (controllerTwistie != null)
-                        controllerTwistie.changeState(false);
-                }
-            });
-            setIcon(viewInfo.getIcon() == null ? BUTTON_ICON : viewInfo.getIcon());
-            setPressedIcon(viewInfo.getIcon() == null ? BUTTON_ICON : viewInfo.getIcon());
-            setSelectedIcon(viewInfo.getSelectedIcon() == null ?  BUTTON_PRESSED_ICON : viewInfo.getSelectedIcon());
-            setToolTipText(SWITCH_TO + viewInfo.getViewName() + PANEL_SPECIFIC);
-        }        
-    }
-    
-    private final class ControllerTwistie extends Twistie {
-        
-        public ControllerTwistie() {
-            super();
-        }
-        
-        @Override
-        protected void changeStateAction(boolean state) {
-            showOrHideController(state);
-        }        
     }
 }

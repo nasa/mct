@@ -69,9 +69,8 @@ public class IdentityManagerFactory {
         // switch on the site
         if (idMgrProp.getProperty("site", "").equalsIgnoreCase("mcc")) {
             return new MCCIdentityManager(idMgrProp, refreshRunnable);
-        } else {
-            throw new MCTException("invalid identity manager site");
-
+        } else { // Use a general-purpose ID manager if no site is specified 
+            return new DefaultIdentityManager(idMgrProp);
         }
     }
 }

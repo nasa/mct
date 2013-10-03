@@ -22,13 +22,21 @@
 package gov.nasa.arc.mct.canvas.view;
 
 import gov.nasa.arc.mct.canvas.panel.Panel;
+import gov.nasa.arc.mct.gui.MCTViewManifestationInfoImpl;
 import gov.nasa.arc.mct.canvas.view.MarqueSelectionListener.MultipleSelectionProvider;
+import gov.nasa.arc.mct.canvas.view.PanelBorderSelectionTest.MockTitleManifestation;
+import gov.nasa.arc.mct.components.AbstractComponent;
+import gov.nasa.arc.mct.gui.View;
+import gov.nasa.arc.mct.services.component.ViewInfo;
+import gov.nasa.arc.mct.services.component.ViewType;
 
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseEvent;
 import java.util.Collection;
+import java.util.Collections;
 
 import javax.swing.JPanel;
 
@@ -44,6 +52,15 @@ public class MarqueSelectionListenerTest {
     @Mock
     MultipleSelectionProvider mockSelectionProvider;
     
+    /*
+     * Harleigh108: these two variables we need for fixing this test, so that it can be run with
+     * respect to Java7 (as well as still work in Java6)
+     */
+    private View panelManifestation = null;
+    @Mock
+    private AbstractComponent mockComponent;
+    //End new variables--Harleigh108
+    
     private JPanel rootPanel;
     
     private MarqueSelectionListener listener;
@@ -54,6 +71,13 @@ public class MarqueSelectionListenerTest {
         MockitoAnnotations.initMocks(this);
         rootPanel = new JPanel();
         listener = new MarqueSelectionListener(rootPanel, mockSelectionProvider);
+        
+        
+        ///////Harleigh108
+        Mockito.when(mockComponent.getViewInfos(ViewType.TITLE)).thenReturn(Collections.singleton(new ViewInfo(MockTitleManifestation.class,"", ViewType.TITLE)));
+        Mockito.when(mockComponent.getDisplayName()).thenReturn("test comp");
+        Mockito.when(mockComponent.getComponents()).thenReturn(Collections.<AbstractComponent> emptyList());
+        //
     }
 
 
@@ -141,19 +165,58 @@ public class MarqueSelectionListenerTest {
         Assert.assertEquals(rootPanel.getComponents()[0].getBounds(),expectedBounds);
     }
     
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "serial" })
     @Test
     public void testMouseDragIncremental() {
         JPanel panel = new JPanel();
-        Panel child = Mockito.mock(Panel.class);
-        Mockito.when(child.getBounds()).thenReturn(new Rectangle(2,2,1,1));
+        
+        /*
+         * Harleigh108: MarqueSelectionListenerTest was failing when we built with respect to Java 7, the root cause (pun intended)
+         * was that we were adding a mocked panel to the rootPanel.  As it turns out 'Container.add(mock(Container.class)) ' fails
+         * in Java 7 but works in Java 6.  Why? Well, java.awt.Container.addImpl has changed between Java 6 and 7.
+         *    The Solution: instead of adding a mock component (using Mockito), we have instead made a real View object when creating
+         *    a panel.  Also, we used to have  Mockito.when(child.getBounds()).thenReturn(new Rectangle(2,2,1,1)); but because of
+         *    the java 6-to-7 issue, we chose to make an abstract class here and override the getBounds method.
+         * The old code was beautiful:
+         *    Panel child = Mockito.mock(Panel.class);
+         *    Mockito.when(child.getBounds()).thenReturn(new Rectangle(2,2,1,1));
+         *    rootPanel.add(child);
+         * But now we have the following:
+         */
+        View v = new View(){};
+        v.putClientProperty(CanvasManifestation.MANIFEST_INFO, new MCTViewManifestationInfoImpl() );
+        
+        panelManifestation = new MockManifestation(mockComponent, new ViewInfo(CanvasManifestation.class, "", ViewType.OBJECT));
+        MCTViewManifestationInfoImpl info = new MCTViewManifestationInfoImpl();
+        panelManifestation.putClientProperty(CanvasManifestation.MANIFEST_INFO, info);
+        
+        Panel child = new Panel(panelManifestation,Mockito.mock(PanelFocusSelectionProvider.class) ) {  
+            public Rectangle getBounds() {
+                return new Rectangle(2,2,1,1);
+            }
+        };
+        
         rootPanel.add(child);
+
         MouseEvent e =
             new MouseEvent(panel,123,System.currentTimeMillis(),0,2,2,1,false);
         Mockito.when(mockSelectionProvider.pointInTopLevelPanel((Point)Mockito.anyObject())).thenReturn(true);
         listener.mouseDragged(e);
         listener.mouseReleased(e);
         Mockito.verify(mockSelectionProvider).selectPanels((Collection<Panel>)Mockito.anyObject());
+    }
+    
+    
+    /* Harleigh108:
+     * This is a little helper class so I can make a mock-view component without using Mockito (see method 'testMouseDragIncremental'
+     * above for more detail.
+     */
+    @SuppressWarnings("serial")
+    public static class MockManifestation extends View {
+        public MockManifestation(AbstractComponent component, ViewInfo vi) {
+            super(component,vi);
+            this.setBackground(Color.GREEN);
+        }
     }
     
 }

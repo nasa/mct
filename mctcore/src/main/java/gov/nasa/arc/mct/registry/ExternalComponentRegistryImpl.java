@@ -33,6 +33,7 @@ import gov.nasa.arc.mct.services.component.ComponentTypeInfo;
 import gov.nasa.arc.mct.services.component.ProviderDelegate;
 import gov.nasa.arc.mct.services.component.SearchProvider;
 import gov.nasa.arc.mct.services.component.StatusAreaWidgetInfo;
+import gov.nasa.arc.mct.services.component.TypeInfo;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 import gov.nasa.arc.mct.services.internal.component.ComponentInitializer;
@@ -97,10 +98,14 @@ public class ExternalComponentRegistryImpl implements CoreComponentRegistry {
      * Gets the user ID of the default owning user when creating
      * components. This is currently the ID of the currently logged-in user.
      * 
-     * @return the default user ID
+     * @return the default user ID (if this method is called when there is no user, then
+     *         null is returned)
      */
     protected String getDefaultUser() {
-        return GlobalContext.getGlobalContext().getUser().getUserId();
+        if(GlobalContext.getGlobalContext().getUser() != null)  //we must check if we actually have a user --Harleigh;Issue127 
+            return GlobalContext.getGlobalContext().getUser().getUserId();
+        else
+            return null;
     }
     
     /**
@@ -148,6 +153,18 @@ public class ExternalComponentRegistryImpl implements CoreComponentRegistry {
      */
     public Collection<ExtendedComponentTypeInfo> getComponentInfos() {
         return availableComponents.values();
+    }
+    
+
+    @Override
+    public <T> T getAsset(TypeInfo<?> objectType, Class<T> assetClass) {
+        for (ExtendedComponentProvider provider : activeProviders.get()) {
+            T asset = provider.getAsset(objectType, assetClass);
+            if (asset != null) {
+                return asset;
+            }
+        }
+        return defaultViewProvider.get().getAsset(objectType, assetClass);
     }
 
     /**
@@ -311,6 +328,11 @@ public class ExternalComponentRegistryImpl implements CoreComponentRegistry {
             return provider.getSearchProvider();
         }
 
+        @Override
+        public <T> T getAsset(TypeInfo<?> objectType, Class<T> assetType) {
+            return provider.getAsset(objectType, assetType);
+        }
+
     }
     
     /**
@@ -329,7 +351,7 @@ public class ExternalComponentRegistryImpl implements CoreComponentRegistry {
          * @param bundleSymName the OSGi bundle symbolic name
          */
         public ExtendedComponentTypeInfo(ComponentTypeInfo info, String bundleSymName) {
-            super(info.getDisplayName(), info.getShortDescription(), info.getComponentClass(), info.getId(), info.isCreatable(), info.getWizardUI(), info.getIcon());
+            super(info.getDisplayName(), info.getShortDescription(), info.getComponentClass(), info.getId(), info.isCreatable());
             assert bundleSymName != null: "bundleSymbolicName should not be null";
             symbolicName = bundleSymName;
         }
@@ -402,8 +424,10 @@ public class ExternalComponentRegistryImpl implements CoreComponentRegistry {
             AbstractComponent comp = createComponent(componentType);
             ComponentInitializer ci = comp.getCapability(ComponentInitializer.class);
             String user = getDefaultUser();
-            ci.setCreator(user);
-            comp.setOwner(user);
+            if( user != null) { // i.e.: we found a user --Harleigh;Issue127 
+                ci.setCreator(user);
+                comp.setOwner(user);
+            }
             return comp;
             
         } catch (InstantiationException e) {
@@ -413,4 +437,5 @@ public class ExternalComponentRegistryImpl implements CoreComponentRegistry {
         }
         return null;
     }
+
 }

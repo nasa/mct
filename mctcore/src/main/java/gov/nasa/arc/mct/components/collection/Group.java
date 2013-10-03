@@ -29,5 +29,9 @@ import gov.nasa.arc.mct.components.AbstractComponent;
  *
  */
 public interface Group {
-
+    /**
+     * Get the name of the Group to which this component is assigned.
+     * @return the name of the group to which this component is assigned
+     */
+    public String getDiscipline();
 }

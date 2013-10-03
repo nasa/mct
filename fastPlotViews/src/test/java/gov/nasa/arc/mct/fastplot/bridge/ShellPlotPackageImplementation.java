@@ -22,6 +22,7 @@
 package gov.nasa.arc.mct.fastplot.bridge;
 
 import gov.nasa.arc.mct.components.FeedProvider;
+import gov.nasa.arc.mct.fastplot.bridge.AbstractAxis.AxisVisibleOrientation;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.LimitAlarmState;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.NonTimeAxisSubsequentBoundsSetting;
@@ -30,6 +31,7 @@ import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PlotLineDrawingFlags;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.TimeAxisSubsequentBoundsSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.XAxisMaximumLocationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSetting;
+import gov.nasa.arc.mct.fastplot.bridge.controls.AbstractPlotLocalControl;
 import gov.nasa.arc.mct.fastplot.utils.AbbreviatingPlotLabelingAlgorithm;
 import gov.nasa.arc.mct.fastplot.view.Axis;
 import gov.nasa.arc.mct.fastplot.view.legend.AbstractLegendEntry;
@@ -37,6 +39,8 @@ import gov.nasa.arc.mct.fastplot.view.legend.AbstractLegendEntry;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.Map;
@@ -94,7 +98,7 @@ public class ShellPlotPackageImplementation implements AbstractPlottingPackage{
 	}
 
 	@Override
-	public JPanel getPlotPanel() {
+	public JPanel getPlotComponent() {
 		return new JPanel();
 	}
 
@@ -637,6 +641,30 @@ public class ShellPlotPackageImplementation implements AbstractPlottingPackage{
 	public void setMaxDependent(double max) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public Collection<AbstractAxis> getAxes() {
+		return Collections.<AbstractAxis>emptyList();
+	}
+
+	@Override
+	public void attachLocalControl(AbstractPlotLocalControl control) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void notifyObserversAxisChanged(AbstractAxis axis) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Collection<AbstractAxisBoundManager> getBoundManagers(
+			AxisVisibleOrientation axis) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 

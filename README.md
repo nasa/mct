@@ -17,3 +17,7 @@ Working on MCT
 [Building a MySQL database](https://github.com/nasa/mct/wiki/Creating-a-MySQL-database-for-MCT)
 
 [Using a Derby database](https://github.com/nasa/mct/wiki/Using-Derby-in-MCT)
+
+[Using a Derby database](https://github.com/nasa/mct/wiki/Using-Derby-in-MCT)
+
+[Contributing to MCT](https://github.com/nasa/mct/wiki/Contributing-to-MCT)

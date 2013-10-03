@@ -123,7 +123,7 @@ public class TestPlotDataManager {
 		.plotSettings(settings)
 		.build();
 		plot.setManifestation(manifestation);
-		PlotterPlot testPlot = (PlotterPlot) plot.returnPlottingPackage();
+		final PlotterPlot testPlot = (PlotterPlot) plot.returnPlottingPackage();
 		JPanel plotPanel = plot.getPlotPanel();
 
 		final JFrame frame = new JFrame("testScrunch");
@@ -139,7 +139,12 @@ public class TestPlotDataManager {
 		try {
 			testPlot.addDataSet("feed", Color.white);
 			for(int i = 0; i < 10000; i++) {
-				testPlot.addData("feed", i, Math.sin(i / 10.0));
+				final int j = i;
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						testPlot.addData("feed", j, Math.sin(j / 10.0));		
+					}
+				});				
 				time[0] = i;
 			}
 			Method m = testPlot.getPlotAbstraction().getClass().getDeclaredMethod("timeReachedEnd", new Class[0]);

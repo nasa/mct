@@ -52,6 +52,7 @@ import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -125,7 +126,7 @@ public class DatabaseSearchUI extends JPanel implements SelectionProvider {
                     boolean cellHasFocus) {
                 ComponentInfo ci = (ComponentInfo) value;
                 JLabel label = (JLabel) super.getListCellRendererComponent(list, ci.name, index, isSelected, cellHasFocus);
-                label.setIcon(AbstractComponent.getIconForComponentType(ci.type));
+                label.setIcon(getIconForComponentType(ci.type));
                 return label;
             } 
         });
@@ -211,6 +212,11 @@ public class DatabaseSearchUI extends JPanel implements SelectionProvider {
         return InternalDBPersistenceAccess.getService().findComponentsByBaseDisplayedNamePattern(pattern, props); 
     }
     
+    private ImageIcon getIconForComponentType(String type) {
+    	AbstractComponent iconInstance = PlatformAccess.getPlatform().getComponentRegistry().newInstance(type);
+    	return iconInstance == null ? null : iconInstance.getAsset(ImageIcon.class);
+    }
+    
     private class SearchTask extends SwingWorker<List<ComponentInfo>, Void> {
         private AtomicInteger total = new AtomicInteger();
                         
@@ -264,6 +270,10 @@ public class DatabaseSearchUI extends JPanel implements SelectionProvider {
         removePropertyChangeListener(SelectionProvider.SELECTION_CHANGED_PROP, listener);        
     }
 
+    //Harleigh108: this removes the warning received when we build with respect to java 7; getSelectedValues is now Deprecated in java7
+    //from java7 javadocs (for JList) 'As of JDK 1.7, replaced by getSelectedValuesList()'
+    //Note: we suppress this warning to stay compatible with java6
+    @SuppressWarnings("deprecation")
     @Override
     public Collection<View> getSelectedManifestations() {
         Object[] selectedValues = list.getSelectedValues();

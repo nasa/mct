@@ -5,11 +5,13 @@ import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.gui.ActionContext;
 import gov.nasa.arc.mct.gui.ContextAwareAction;
 import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
+import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
+import gov.nasa.arc.mct.policy.PolicyContext;
+import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.services.internal.component.Updatable;
 
 import java.awt.event.ActionEvent;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -29,17 +31,17 @@ public class ObjectsSaveAllAction extends ContextAwareAction{
     @Override
     public boolean canHandle(ActionContext context) {
         actionContext = (ActionContextImpl) context;
-        return actionContext.getInspectorComponent() != null;
+        return actionContext.getInspectorComponent() != null && isEnabled();
     }
 
-//    private boolean isComponentWriteableByUser(AbstractComponent component) {
-//        Platform p = PlatformAccess.getPlatform();
-//        PolicyContext policyContext = new PolicyContext();
-//        policyContext.setProperty(PolicyContext.PropertyName.TARGET_COMPONENT.getName(), component);
-//        policyContext.setProperty(PolicyContext.PropertyName.ACTION.getName(), 'w');
-//        String inspectionKey = PolicyInfo.CategoryType.OBJECT_INSPECTION_POLICY_CATEGORY.getKey();
-//        return p.getPolicyManager().execute(inspectionKey, policyContext).getStatus();
-//    }
+    private boolean isComponentWriteableByUser(AbstractComponent component) {
+        Platform p = PlatformAccess.getPlatform();
+        PolicyContext policyContext = new PolicyContext();
+        policyContext.setProperty(PolicyContext.PropertyName.TARGET_COMPONENT.getName(), component);
+        policyContext.setProperty(PolicyContext.PropertyName.ACTION.getName(), 'w');
+        String inspectionKey = PolicyInfo.CategoryType.OBJECT_INSPECTION_POLICY_CATEGORY.getKey();
+        return p.getPolicyManager().execute(inspectionKey, policyContext).getStatus();
+    }
     
     private AbstractComponent getInspectorComponent() {
         return actionContext.getInspectorComponent();
@@ -48,7 +50,21 @@ public class ObjectsSaveAllAction extends ContextAwareAction{
     @Override
     public boolean isEnabled() {
         AbstractComponent ac = getInspectorComponent();
-        return !ac.isStale() && ac.isDirty() || !ac.getAllModifiedObjects().isEmpty();
+        Set<AbstractComponent> modified = ac.getAllModifiedObjects();
+        
+        // Ensure that policy permits saving ALL these components
+        boolean hasOnlyWriteableComponents = isComponentWriteableByUser(ac);
+        if (hasOnlyWriteableComponents) {
+            for (AbstractComponent mod : modified) {
+                if (!isComponentWriteableByUser(mod)) {
+                    hasOnlyWriteableComponents = false;
+                    break;
+                }
+            }
+        }
+                
+        return (!ac.isStale() && ac.isDirty() || !modified.isEmpty()) && hasOnlyWriteableComponents;
+
     }
 
     /**
@@ -70,17 +86,17 @@ public class ObjectsSaveAllAction extends ContextAwareAction{
     @Override
     public void actionPerformed(ActionEvent e) {
         AbstractComponent ac = getInspectorComponent();        
-        Set<AbstractComponent> allModifiedObjects = ac.getAllModifiedObjects();
-        if (ac.isDirty()) {
-            if (allModifiedObjects == Collections.EMPTY_SET)
-                allModifiedObjects = new HashSet<AbstractComponent>();
-            allModifiedObjects.add(ac);
-        }
-        try {            
+        
+        Set<AbstractComponent> allModifiedObjects = new HashSet<AbstractComponent>();
+        allModifiedObjects.addAll(ac.getAllModifiedObjects());
+        allModifiedObjects.add(ac);
+
+        try {
             PlatformAccess.getPlatform().getPersistenceProvider().persist(allModifiedObjects);
         } catch (OptimisticLockException ole) {
             handleStaleObject(ac);
         }
+        
         ac.notifiedSaveAllSuccessful();
     }
 

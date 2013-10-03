@@ -75,17 +75,17 @@ public class QCPlotObjects {
 		plot.getPlotView().add(contents);
 		plot.getPlotView().setPreferredSize(new Dimension(PlotterPlot.PLOT_PREFERED_WIDTH, PlotterPlot.PLOT_PREFERED_HEIGHT));
 
-		JComponent panel = plot.getPlotPanel();
-		GridBagLayout layout = new GridBagLayout();
-		panel.setLayout(layout);
-		GridBagConstraints constraints = new GridBagConstraints();
-		constraints.fill = GridBagConstraints.BOTH;
-		constraints.weightx = 1;
-		constraints.weighty = 1;
-		constraints.gridy = 1;
-		constraints.gridwidth = 2;
-		layout.setConstraints(plot.getPlotView(), constraints);
-		panel.add(plot.getPlotView());
+//		JComponent panel = plot.getPlotPanel();
+//		GridBagLayout layout = new GridBagLayout();
+//		panel.setLayout(layout);
+//		GridBagConstraints constraints = new GridBagConstraints();
+//		constraints.fill = GridBagConstraints.BOTH;
+//		constraints.weightx = 1;
+//		constraints.weighty = 1;
+//		constraints.gridy = 1;
+//		constraints.gridwidth = 2;
+//		layout.setConstraints(plot.getPlotView(), constraints);
+//		panel.add(plot.getPlotView());
 		
 		// Setup the plot. 
 		// Note: the order of these operations is important as there are dependencies between plot components.

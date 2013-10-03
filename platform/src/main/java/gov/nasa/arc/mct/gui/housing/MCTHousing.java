@@ -49,6 +49,7 @@ public interface MCTHousing extends CompositeViewManifestationProvider {
     
     public interface ControlProvider {
         public void showControl(boolean show);
+        public boolean isControlShowing();
     }
     
     public void addControlArea(ControlProvider provider);

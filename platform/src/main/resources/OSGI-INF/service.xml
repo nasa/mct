@@ -3,6 +3,7 @@
 <scr:component name="gov.nasa.arc.mct.platform.LaunchMCTService">
    <implementation class="gov.nasa.arc.mct.platform.LaunchMCTService" />
    <reference bind="bind" cardinality="1..1" interface="gov.nasa.arc.mct.platform.spi.PersistenceProvider" name="PersistenceService" policy="dynamic" unbind="unbind"/>
+   <reference bind="bind" cardinality="1..n" interface="gov.nasa.arc.mct.platform.spi.DefaultComponentProvider" name="DefaultComponentProvider" policy="dynamic" unbind="unbind"/>
    <reference bind="componentProviderAdded" cardinality="0..n" interface="gov.nasa.arc.mct.services.component.ComponentProvider" name="ComponentProvider" policy="dynamic" unbind="componentProviderRemoved"/>
 </scr:component>
 <scr:component name="gov.nasa.arc.mct.platform.spi.RoleAccess">

@@ -49,6 +49,7 @@ public class TestComponentIcon {
         component = new MockComponent();
     }
 
+    @SuppressWarnings("deprecation") // getIcon deprecated but may still be used, so test
     @Test
     public void testCreateManifestation() {
         ImageIcon icon = new ImageIcon();
@@ -56,7 +57,7 @@ public class TestComponentIcon {
         ComponentTypeInfo info = new ComponentTypeInfo("displayname", "desc", MockComponent.class, null, icon);
         Mockito.when(mockProvider.getComponentTypes()).thenReturn(Collections.singleton(info));        
         ExternalComponentRegistryImpl.getInstance().refreshComponents(Collections.singletonList(extendedProvider));        
-        Assert.assertSame(component.getIcon(), icon);
+        Assert.assertSame(component.getIcon(), info.getIcon());
         ExternalComponentRegistryImpl.getInstance().refreshComponents(Collections.<ExtendedComponentProvider>emptyList());
     }
 

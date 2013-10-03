@@ -37,14 +37,17 @@ import gov.nasa.arc.mct.gui.TwiddleView;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.ViewProvider;
 import gov.nasa.arc.mct.gui.housing.registry.UserEnvironmentRegistry;
-import gov.nasa.arc.mct.osgi.platform.EquinoxOSGIRuntimeImpl;
+import gov.nasa.arc.mct.gui.impl.WindowManagerImpl;
 import gov.nasa.arc.mct.osgi.platform.OSGIRuntime;
+import gov.nasa.arc.mct.osgi.platform.OSGIRuntimeImpl;
 import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
 import gov.nasa.arc.mct.policy.PolicyContext;
 import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
+import gov.nasa.arc.mct.util.MCTIcons;
 
+import java.awt.Color;
 import java.awt.GraphicsConfiguration;
 import java.awt.GridLayout;
 import java.awt.event.WindowAdapter;
@@ -60,6 +63,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
 import org.slf4j.LoggerFactory;
@@ -79,6 +83,8 @@ public class MCTStandardHousing extends MCTAbstractHousing implements TwiddleVie
             ResourceBundle.getBundle(
                     MCTStandardHousing.class.getName().substring(0, 
                             MCTStandardHousing.class.getName().lastIndexOf("."))+".Bundle");
+    private static final ResourceBundle SHUTDOWN_BUNDLE = 
+            ResourceBundle.getBundle("ShutdownResource"); //NO18N
 
     private final Map<String, MCTHousingViewManifestation> housedManifestations = new HashMap<String, MCTHousingViewManifestation>();
 
@@ -105,7 +111,7 @@ public class MCTStandardHousing extends MCTAbstractHousing implements TwiddleVie
         setSize(this.width, this.height);
         displayPanel.setSize(this.width, this.height);
         setTitle(title);
-        setIconImage(housingView.getManifestedComponent().getIcon().getImage());
+        setIcon(housingView.getManifestedComponent().getAsset(ImageIcon.class));
         setDefaultCloseOperation(closeAction);
         MCTHousingViewManifestation housingManifestation = (MCTHousingViewManifestation) housingView;
         setHousingViewManifesation(housingManifestation);
@@ -123,12 +129,19 @@ public class MCTStandardHousing extends MCTAbstractHousing implements TwiddleVie
         setSize(this.width, this.height);
         displayPanel.setSize(this.width, this.height);
         setTitle(title);
-        setIconImage(housingView.getManifestedComponent().getIcon().getImage());
+        setIcon(housingView.getManifestedComponent().getAsset(ImageIcon.class));
         setDefaultCloseOperation(closeAction);
         MCTHousingViewManifestation housingManifestation = (MCTHousingViewManifestation) housingView;
         setHousingViewManifesation(housingManifestation);
         addWindowListenerToHousing();
         getContentPane().add(displayPanel);
+    }
+    
+    private void setIcon(ImageIcon icon) {
+        icon = MCTIcons.processIcon(icon, new Color(230,230,230), true);
+        if (icon != null) {
+            setIconImage(icon.getImage());
+        }
     }
 
     @Override
@@ -175,109 +188,35 @@ public class MCTStandardHousing extends MCTAbstractHousing implements TwiddleVie
 
             public void windowClosing(WindowEvent e) {
                     if (UserEnvironmentRegistry.getHousingCount() == 1) {
-    
-                        Object[] options = { "Shut Down-Exit-All of MCT", "Cancel the Shutdown" };
-                        String message = "<HTML><B>All of MCT Will Close, Stop, Exit, & Shut Down</B><BR>"
-                            + "<UL>- All MCT windows will close.</UL>"
-                            + "<UL>- All MCT processes will stop.</UL>"
-                            + "<UL>- The next MCT object you open will take longer to open as the <BR> underlying processes restart.</UL>"
-                            + "<UL>- To instead close all MCT windows but one: In any MCT window, <BR> pull down the Windows menu and choose <BR> \"Close All MCT Windows but This One.\"</UL>"
-                            + "</HTML>";
-    
-                        int answer = OptionBox.showOptionDialog(MCTStandardHousing.this, 
-                                                                        message, 
-                                                                        "Exit-Shut Down-All MCT Windows & Processes",
-                                                                        OptionBox.YES_NO_OPTION,
-                                                                        OptionBox.WARNING_MESSAGE, 
-                                                                        null, options, options[0]); 
-    
-                        switch (answer) {
-                        case OptionBox.YES_OPTION:
-                            OSGIRuntime osgiRuntime = EquinoxOSGIRuntimeImpl.getOSGIRuntime();
+                        // Pop up a confirmation dialog if this is the last window
+                        Object[] options = { SHUTDOWN_BUNDLE.getString("OK"), SHUTDOWN_BUNDLE.getString("CANCEL") }; //NO18N  
+
+                        Map<String, Object> hints = new HashMap<String, Object>();
+                        hints.put(WindowManagerImpl.MESSAGE_TYPE, OptionBox.WARNING_MESSAGE);
+                        hints.put(WindowManagerImpl.OPTION_TYPE, OptionBox.YES_NO_OPTION);
+                        hints.put(WindowManagerImpl.PARENT_COMPONENT, (MCTAbstractHousing) UserEnvironmentRegistry.getActiveHousing());
+                        Object response = PlatformAccess.getPlatform().getWindowManager().showInputDialog(
+                                SHUTDOWN_BUNDLE.getString("TITLE"),   //NOI18N
+                                SHUTDOWN_BUNDLE.getString("MESSAGE"), //NOI18N
+                                options,
+                                options[0],
+                                hints);
+                        
+                        if (response == options[0]) { // "OK"
+                            OSGIRuntime osgiRuntime = OSGIRuntimeImpl.getOSGIRuntime();
                             try {
                                 osgiRuntime.stopOSGI();
                             } catch (Exception e1) {
                                 LoggerFactory.getLogger(MCTStandardHousing.class).warn(e1.getMessage(), e1);
                             }
                             disposeHousing();
-                            System.exit(0);
-                            break;
-                        default:
-                            break;
                         }
-    
+                        
                     } else {                        
-                        boolean toCloseWindow = true;
-                        MCTContentArea centerPane = housingViewManifestation.getContentArea();
-                        if (centerPane != null) {
-                            View centerPaneView = centerPane.getHousedViewManifestation();
-                            AbstractComponent centerComponent = centerPaneView.getManifestedComponent();
-                            if (!centerComponent.isStale() && centerComponent.isDirty()) {
-                                toCloseWindow = commitOrAbortPendingChanges(centerPaneView, 
-                                        MessageFormat.format(BUNDLE.getString("centerpane.modified.alert.text"), 
-                                                centerPaneView.getInfo().getViewName(), 
-                                                centerComponent.getDisplayName()));
-                            }
-                        }
-                        View inspectionArea = housingViewManifestation.getInspectionArea();
-                        if (inspectionArea != null) {
-                            View inspectorPaneView = inspectionArea.getHousedViewManifestation();
-                            AbstractComponent inspectorComponent = inspectorPaneView.getManifestedComponent();
-                            if (!inspectorComponent.isStale() && inspectorComponent.isDirty()) {
-                                toCloseWindow = commitOrAbortPendingChanges(inspectionArea, 
-                                            MessageFormat.format(BUNDLE.getString("inspectorpane.modified.alert.text"), 
-                                                inspectorPaneView.getInfo().getViewName(), 
-                                                inspectorComponent.getDisplayName()));
-                            }
-                        }
-                        if (toCloseWindow)
-                            disposeHousing();
+                        closeHousing();
                     }
                 }
             
-            /**
-             * Prompts users to commit or abort pending changes in view.
-             * @param view the modified view
-             * @param dialogMessage the dialog message which differs from where the view is located (in the center or inspector pane)
-             * @return true to keep the window open, false to close the window
-             */
-            private boolean commitOrAbortPendingChanges(View view, String dialogMessage) {
-                if (!isComponentWriteableByUser(view.getManifestedComponent()))
-                    return true; 
-                
-                Object[] options = {
-                        BUNDLE.getString("view.modified.alert.save"),
-                        BUNDLE.getString("view.modified.alert.abort"),
-                        BUNDLE.getString("view.modified.alert.cancel"),
-                    };
-            
-                int answer = OptionBox.showOptionDialog(view,
-                        dialogMessage,                         
-                        BUNDLE.getString("view.modified.alert.title"),
-                        OptionBox.YES_NO_CANCEL_OPTION,
-                        OptionBox.WARNING_MESSAGE,
-                        null,
-                        options, options[0]);
-                
-                switch (answer) {
-                case OptionBox.CANCEL_OPTION:                    
-                    return false;
-                case OptionBox.YES_OPTION:
-                    PlatformAccess.getPlatform().getPersistenceProvider().persist(Collections.singleton(view.getManifestedComponent()));
-                    return true;
-                default:
-                    return true;
-                }
-            }
-            
-            private boolean isComponentWriteableByUser(AbstractComponent component) {
-                Platform p = PlatformAccess.getPlatform();
-                PolicyContext policyContext = new PolicyContext();
-                policyContext.setProperty(PolicyContext.PropertyName.TARGET_COMPONENT.getName(), component);
-                policyContext.setProperty(PolicyContext.PropertyName.ACTION.getName(), 'w');
-                String inspectionKey = PolicyInfo.CategoryType.OBJECT_INSPECTION_POLICY_CATEGORY.getKey();
-                return p.getPolicyManager().execute(inspectionKey, policyContext).getStatus();
-            }
 
 
         });
@@ -299,7 +238,14 @@ public class MCTStandardHousing extends MCTAbstractHousing implements TwiddleVie
     }
 
     public boolean isControlAreaVisible() {
-        return this.housingViewManifestation.isControlAreaVisible();
+        boolean visible = this.housingViewManifestation.isControlAreaVisible();
+        for (WeakReference<ControlProvider> controlArea : controlAreas) {
+            ControlProvider cp = controlArea.get();
+            if (cp != null) {
+                visible |= cp.isControlShowing();
+            }
+        }
+        return visible;
     }
 
     public void setDirectoryArea(View directoryArea) {
@@ -411,4 +357,79 @@ public class MCTStandardHousing extends MCTAbstractHousing implements TwiddleVie
     public void exitTwiddleMode(AbstractComponent originalComponent) {
         MCTHousingFactory.refreshHousing(this, originalComponent.getViewInfos(ViewType.LAYOUT).iterator().next().createView(originalComponent));
     }
+    
+    @Override
+    public void closeHousing() {
+        boolean toCloseWindow = true;
+        MCTContentArea centerPane = housingViewManifestation.getContentArea();
+        if (centerPane != null) {
+            View centerPaneView = centerPane.getHousedViewManifestation();
+            AbstractComponent centerComponent = centerPaneView.getManifestedComponent();
+            if (!centerComponent.isStale() && centerComponent.isDirty()) {
+                toCloseWindow = commitOrAbortPendingChanges(centerPaneView, 
+                        MessageFormat.format(BUNDLE.getString("centerpane.modified.alert.text"), 
+                                centerPaneView.getInfo().getViewName(), 
+                                centerComponent.getDisplayName()));
+            }
+        }
+        View inspectionArea = housingViewManifestation.getInspectionArea();
+        if (inspectionArea != null) {
+            View inspectorPaneView = inspectionArea.getHousedViewManifestation();
+            AbstractComponent inspectorComponent = inspectorPaneView.getManifestedComponent();
+            if (!inspectorComponent.isStale() && inspectorComponent.isDirty()) {
+                toCloseWindow = commitOrAbortPendingChanges(inspectionArea, 
+                            MessageFormat.format(BUNDLE.getString("inspectorpane.modified.alert.text"), 
+                                inspectorPaneView.getInfo().getViewName(), 
+                                inspectorComponent.getDisplayName()));
+            }
+        }
+        if (toCloseWindow) {
+            disposeHousing();
+        }
+    }
+    
+    /**
+     * Prompts users to commit or abort pending changes in view.
+     * @param view the modified view
+     * @param dialogMessage the dialog message which differs from where the view is located (in the center or inspector pane)
+     * @return true to keep the window open, false to close the window
+     */
+    private boolean commitOrAbortPendingChanges(View view, String dialogMessage) {
+        if (!isComponentWriteableByUser(view.getManifestedComponent()))
+            return true; 
+        
+        Object[] options = {
+                BUNDLE.getString("view.modified.alert.save"),
+                BUNDLE.getString("view.modified.alert.abort"),
+                BUNDLE.getString("view.modified.alert.cancel"),
+            };
+    
+        int answer = OptionBox.showOptionDialog(view,
+                dialogMessage,                         
+                BUNDLE.getString("view.modified.alert.title"),
+                OptionBox.YES_NO_CANCEL_OPTION,
+                OptionBox.WARNING_MESSAGE,
+                null,
+                options, options[0]);
+        
+        switch (answer) {
+        case OptionBox.CANCEL_OPTION:                    
+            return false;
+        case OptionBox.YES_OPTION:
+            PlatformAccess.getPlatform().getPersistenceProvider().persist(Collections.singleton(view.getManifestedComponent()));
+            return true;
+        default:
+            return true;
+        }
+    }
+    
+    private boolean isComponentWriteableByUser(AbstractComponent component) {
+        Platform p = PlatformAccess.getPlatform();
+        PolicyContext policyContext = new PolicyContext();
+        policyContext.setProperty(PolicyContext.PropertyName.TARGET_COMPONENT.getName(), component);
+        policyContext.setProperty(PolicyContext.PropertyName.ACTION.getName(), 'w');
+        String inspectionKey = PolicyInfo.CategoryType.OBJECT_INSPECTION_POLICY_CATEGORY.getKey();
+        return p.getPolicyManager().execute(inspectionKey, policyContext).getStatus();
+    }
+
 }

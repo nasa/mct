@@ -29,6 +29,7 @@ import gov.nasa.arc.mct.gui.SelectionProvider;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.ViewProvider;
 import gov.nasa.arc.mct.gui.util.TestUtilities;
+import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.util.condition.Condition;
 
 import java.awt.event.WindowAdapter;
@@ -37,7 +38,9 @@ import java.awt.event.WindowListener;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -203,6 +206,12 @@ public class TestAbstractHousing {
             public boolean getValue() {return !myHousing.isVisible();}
         });
         assertFalse(myHousing.isVisible());
+    }
+    
+    @Test
+    public void testSetHousedView() {
+        // Should not allow housed view to be set at the abstract level
+        Assert.assertFalse(myHousing.setHousedViewManifestation(Mockito.mock(ViewInfo.class)));
     }
 
     @AfterClass

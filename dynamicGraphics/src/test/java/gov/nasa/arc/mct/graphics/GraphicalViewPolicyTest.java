@@ -23,6 +23,7 @@ package gov.nasa.arc.mct.graphics;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.components.FeedProvider;
+import gov.nasa.arc.mct.components.FeedProvider.FeedType;
 import gov.nasa.arc.mct.graphics.component.GraphicalComponent;
 import gov.nasa.arc.mct.graphics.view.GraphicalManifestation;
 import gov.nasa.arc.mct.graphics.view.StaticGraphicalView;
@@ -33,6 +34,7 @@ import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.BeforeTest;
@@ -125,5 +127,20 @@ public class GraphicalViewPolicyTest {
 		Assert.assertTrue(testPolicy.execute(context).getStatus());
 	}
 	
-	
+	@Test
+	public void testStringPolicy() {
+		context.setProperty(PolicyContext.PropertyName.TARGET_COMPONENT.getName(), mockFeedProvider);
+		context.setProperty(PolicyContext.PropertyName.TARGET_VIEW_INFO.getName(), graphicalViewInfo);
+		
+		Policy policy = new GraphicalStringPolicy();
+		
+		Mockito.when(mockFeedProvider.getFeedType()).thenReturn(FeedType.STRING);
+		Assert.assertFalse(policy.execute(context).getStatus());
+		
+		Mockito.when(mockFeedProvider.getFeedType()).thenReturn(FeedType.INTEGER);
+		Assert.assertTrue(policy.execute(context).getStatus());
+		
+		Mockito.when(mockFeedProvider.getFeedType()).thenReturn(FeedType.FLOATING_POINT);
+		Assert.assertTrue(policy.execute(context).getStatus());
+	}
 }

@@ -10,4 +10,9 @@ public interface AbstractAxis {
 	public void setStart(double start);
 	public void setEnd(double end);
 	public void shift(double offset);
+	public AxisVisibleOrientation getVisibleOrientation();
+	
+	public enum AxisVisibleOrientation {
+		HORIZONTAL, VERTICAL
+	}
 }

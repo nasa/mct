@@ -10,7 +10,7 @@ Import-Package:
  gov.nasa.arc.mct.platform.spi;version="1.1.0",
  gov.nasa.arc.mct.policy;version="1.1.0",
  gov.nasa.arc.mct.services.component;version="1.1.0",
- gov.nasa.arc.mct.services.internal.component;version="1.1.0",
+ gov.nasa.arc.mct.services.internal.component;version="1.1.1",
  org.osgi.service.component;version="1.1.0",
  org.slf4j;version="1.5.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
@@ -30,4 +30,7 @@ Bundle-ClassPath:
  	hibernate-c3p0-4.0.1.Final.jar,
  	hibernate-ehcache-4.0.1.Final.jar,
  	ehcache-core-2.4.3.jar,
- 	jboss-transaction-api_1.1_spec-1.0.0.Final.jar
+ 	jboss-transaction-api_1.1_spec-1.0.0.Final.jar,
+ 	mysql-connector-java-5.1.16.jar,
+ 	derby-10.8.2.2.jar,
+ 	derbyclient-10.8.2.2.jar

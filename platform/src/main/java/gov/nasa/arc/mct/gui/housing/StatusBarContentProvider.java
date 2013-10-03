@@ -54,6 +54,9 @@ public class StatusBarContentProvider {
     private final List<Component> dynamicStatusWidgets = new LinkedList<Component>();
     private MCTHousing housing;
 
+    /* Issue124: We want to hide the memory meter when MCT starts-up */
+    private final boolean MemoryMeterVisibleAtStartUp = false;
+    
     public StatusBarContentProvider(MCTHousing housing) {
         super();
         if (housing == null) {
@@ -95,7 +98,7 @@ public class StatusBarContentProvider {
         statusArea.setRightWidget(MemoryMeter.getInstance().getMemoryMeterWidget());
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                MemoryMeter.getInstance().setVisible(true);
+                MemoryMeter.getInstance().setVisible(MemoryMeterVisibleAtStartUp);    //issue124:Harleigh
             }
         });
     }

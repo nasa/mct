@@ -23,6 +23,7 @@ package gov.nasa.arc.mct.fastplot.bridge;
 
 
 import gov.nasa.arc.mct.components.FeedProvider;
+import gov.nasa.arc.mct.fastplot.bridge.AbstractAxis.AxisVisibleOrientation;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.LimitAlarmState;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.NonTimeAxisSubsequentBoundsSetting;
@@ -30,6 +31,7 @@ import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PlotDisplayState;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.TimeAxisSubsequentBoundsSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.XAxisMaximumLocationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.YAxisMaximumLocationSetting;
+import gov.nasa.arc.mct.fastplot.bridge.controls.AbstractPlotLocalControl;
 import gov.nasa.arc.mct.fastplot.settings.PlotConfigurationDelegator;
 import gov.nasa.arc.mct.fastplot.settings.PlotSettings;
 import gov.nasa.arc.mct.fastplot.utils.AbbreviatingPlotLabelingAlgorithm;
@@ -45,6 +47,8 @@ import java.awt.geom.Rectangle2D;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.Set;
 import java.util.SortedMap;
@@ -292,8 +296,8 @@ public class PlotterPlot  extends PlotConfigurationDelegator implements Abstract
 	 * Get the plot panel associated with this plot.
 	 * @return the plot panel
 	 */
-	public JComponent getPlotPanel() {
-		return plotPanel;
+	public JComponent getPlotComponent() {
+		return plotView;
 	}	
 
 	private void setupLegends() {
@@ -1414,5 +1418,30 @@ public class PlotterPlot  extends PlotConfigurationDelegator implements Abstract
 			AbstractLegendEntry legend) {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public void attachLocalControl(AbstractPlotLocalControl control) {
+		// TODO: Move attachment code for local controls here
+	}
+
+	@Override
+	public Collection<AbstractAxis> getAxes() {
+		// TODO: PlotterPlot should use new API
+		return Collections.<AbstractAxis>emptyList();
+	}
+
+	@Override
+	public void notifyObserversAxisChanged(AbstractAxis axis) {
+		for (PlotObserver o : this.observers) {
+			o.plotAxisChanged(this, axis);
+		}
+	}
+
+	@Override
+	public Collection<AbstractAxisBoundManager> getBoundManagers(
+			AxisVisibleOrientation axis) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

@@ -12,6 +12,7 @@ public class JUnitXYPlotLine extends TestCase {
 	private XYPlotLine line;
 
 
+  @SuppressWarnings("serial")//Harleigh108: this removes the warning received when we build with respect to java 7:for XYPlotLine
 	protected void setUp() {
 		line = new XYPlotLine() {
 			@Override

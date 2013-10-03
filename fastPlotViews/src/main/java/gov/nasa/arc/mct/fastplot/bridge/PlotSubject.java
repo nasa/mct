@@ -33,4 +33,6 @@ public interface PlotSubject {
 	public void removeObserver(PlotObserver o);
 	
 	public void notifyObserversTimeChange(); 
+	
+	public void notifyObserversAxisChanged(AbstractAxis axis);
 }

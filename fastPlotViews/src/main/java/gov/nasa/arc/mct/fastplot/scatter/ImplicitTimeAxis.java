@@ -52,4 +52,10 @@ public class ImplicitTimeAxis implements AbstractAxis {
 		this.end   += (long) offset;
 	}
 
+	@Override
+	public AxisVisibleOrientation getVisibleOrientation() {
+		// Time axis has no visible orientation
+		return null;
+	}
+
 }

@@ -240,13 +240,25 @@
 							</javadoc>
 							<record name="${project.build.directory}/published-api/javadoc-log.txt"
 							    action="stop" />
-							
-							<!-- Check whether there were any Javadoc warnings only, and fail if so. -->
-							<condition property="api.javadoc.warnings" value="true" >
-								<resourcecontains resource="${project.build.directory}/published-api/javadoc-log.txt"
-								    substring="warning"
-								    casesensitive="false" />
-							</condition>
+							                     
+                            <!-- Check whether there were any Javadoc warnings only, and fail if so. -->
+                            <!-- HARLEIGH108: We do not care about the following warning:  "warning: [options] bootstrap class path not set in conjunction with -source 1.6"
+                                 here is where we ignore the bootstrap class path warning.  That is, we do not want javadocs to fail for the 'bootstrap' warning; the
+                                 following code sets api.javadoc.warnings to true if the substring 'warning' is found in "${project.build.directory}/published-api/javadoc-log.txt"
+                                 AND the substring 'bootstrap' is NOT found in "${project.build.directory}/published-api/javadoc-log.txt" -->
+                            <condition property="api.javadoc.warnings" value="true" >
+                                <and>
+                                    <resourcecontains resource="${project.build.directory}/published-api/javadoc-log.txt"
+                                    substring="warning"
+                                    casesensitive="false" />
+                                    <not>
+                                        <resourcecontains resource="${project.build.directory}/published-api/javadoc-log.txt"
+                                        substring="bootstrap"
+                                        casesensitive="false" />
+                                    </not>
+                                </and>      
+                            </condition>
+                            
 							<fail if="api.javadoc.warnings"
 							    message="Javadoc warnings in published API. See ${project.build.directory}/published-api/javadoc-log.txt for details." />
 													
@@ -293,7 +305,7 @@
   			<plugin>
   			<groupId>org.apache.maven.plugins</groupId>
   			<artifactId>maven-checkstyle-plugin</artifactId>
-  			<version>2.4</version>
+  			<version>2.6</version> <!--Harleigh: need v2.6 or higher to be compatable with maven 3+-->
   			<executions>
   				<execution>
   					<id>published-api-checks</id>
@@ -380,6 +392,16 @@
   		<groupId>mysql</groupId>
         <artifactId>mysql-connector-java</artifactId>
         <version>5.1.16</version>
+    </dependency>
+      	<dependency>
+  		<groupId>org.apache.derby</groupId>
+        <artifactId>derby</artifactId>
+        <version>10.8.2.2</version>
+    </dependency>  	
+    <dependency>
+  		<groupId>org.apache.derby</groupId>
+        <artifactId>derbyclient</artifactId>
+        <version>10.8.2.2</version>
     </dependency>
   	<dependency>
   		<groupId>gov.nasa.arc.mct</groupId>

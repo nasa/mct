@@ -137,15 +137,22 @@ public class ChangeHousingViewAction extends GroupAction {
         private void commitOrAbortPendingChanges() {
             MCTHousingViewManifestation housingView = (MCTHousingViewManifestation) context.getWindowManifestation();
             View view = housingView.getContentArea().getHousedViewManifestation();
-            Object[] options = {
-                    BUNDLE.getString("view.modified.alert.save"),
-                    BUNDLE.getString("view.modified.alert.abort"),
-                };
         
             if (!isComponentWriteableByUser(view.getManifestedComponent()))
                 return;
-
             
+            // Show options - Save, Abort, or maybe Save All
+            Object[] options = view.getManifestedComponent().getAllModifiedObjects().isEmpty() ?
+                    new Object[]{
+                    BUNDLE.getString("view.modified.alert.save"),            
+                    BUNDLE.getString("view.modified.alert.abort"),
+                } :
+                new Object[]{
+                    BUNDLE.getString("view.modified.alert.save"),
+                    BUNDLE.getString("view.modified.alert.saveAll"),
+                    BUNDLE.getString("view.modified.alert.abort"),
+                };
+        
             int answer = OptionBox.showOptionDialog(view, 
                     MessageFormat.format(BUNDLE.getString("view.modified.alert.text"), view.getInfo().getViewName(), view.getManifestedComponent().getDisplayName()),                         
                     BUNDLE.getString("view.modified.alert.title"),
@@ -156,7 +163,14 @@ public class ChangeHousingViewAction extends GroupAction {
             
             if (answer == OptionBox.YES_OPTION) {
                 PlatformAccess.getPlatform().getPersistenceProvider().persist(Collections.singleton(view.getManifestedComponent()));
-            }                    
+            } else if (answer < options.length - 1) { // Save All
+                AbstractComponent comp = view.getManifestedComponent();
+                Set<AbstractComponent> allModifiedObjects = comp.getAllModifiedObjects();
+                if (comp.isDirty()) {
+                    allModifiedObjects.add(comp);
+                }
+                PlatformAccess.getPlatform().getPersistenceProvider().persist(allModifiedObjects);
+            }                
         }
 
         private boolean isComponentWriteableByUser(AbstractComponent component) {

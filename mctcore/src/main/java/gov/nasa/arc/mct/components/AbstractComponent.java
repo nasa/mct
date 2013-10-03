@@ -37,16 +37,15 @@ import gov.nasa.arc.mct.platform.spi.WindowManager;
 import gov.nasa.arc.mct.policy.PolicyContext;
 import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.registry.ExternalComponentRegistryImpl;
-import gov.nasa.arc.mct.registry.ExternalComponentRegistryImpl.ExtendedComponentTypeInfo;
 import gov.nasa.arc.mct.roles.events.AddChildEvent;
 import gov.nasa.arc.mct.roles.events.PropertyChangeEvent;
 import gov.nasa.arc.mct.roles.events.RemoveChildEvent;
+import gov.nasa.arc.mct.services.component.ComponentTypeInfo;
 import gov.nasa.arc.mct.services.component.PolicyManager;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 import gov.nasa.arc.mct.services.internal.component.ComponentInitializer;
 import gov.nasa.arc.mct.services.internal.component.Updatable;
-import gov.nasa.arc.mct.util.MCTIcons;
 import gov.nasa.arc.mct.util.WeakHashSet;
 import gov.nasa.arc.mct.util.exception.MCTRuntimeException;
 
@@ -59,14 +58,16 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
+
 
 /**
  * The superclass of every component type. A component is uniquely identified by its id.  
@@ -94,6 +95,7 @@ public abstract class AbstractComponent implements Cloneable {
     /** The unique ID of the component, filled in by the framework. */
     private String id;
 
+    private ComponentTypeInfo typeInfo;
     private String owner;
     private String originalOwner;
     private String creator;
@@ -169,7 +171,7 @@ public abstract class AbstractComponent implements Cloneable {
     public String getComponentTypeID() {
         return this.getClass().getName();
     }
-
+    
     /**
      * Returns the views for the desired view type. This method will apply the <code>PolicyInfo.CategoryType.FILTER_VIEW_ROLE</code> policy
      * and the <code>PolicyInfo.CategoryType.PREFERRED_VIEW</code> policy before returning the appropriate list of views.
@@ -707,6 +709,20 @@ public abstract class AbstractComponent implements Cloneable {
                 initializer = new Initializer();
             }
             return capability.cast(initializer);
+        } else if (capability.isAssignableFrom(ComponentTypeInfo.class)) {
+            if (typeInfo == null) {
+                for (ComponentTypeInfo info : 
+                    ExternalComponentRegistryImpl.getInstance().getComponentInfos()) {
+                    if (info != null && info.getComponentClass().equals(getClass())) {
+                        typeInfo = info;
+                        break;
+                    }
+                }
+                if (typeInfo == null) {
+                    typeInfo = new ComponentTypeInfo(getClass().getSimpleName(), getClass().getSimpleName(), getClass()); 
+                }
+            }
+            return capability.cast(typeInfo);
         }
        
         return handleGetCapability(capability);
@@ -871,17 +887,24 @@ public abstract class AbstractComponent implements Cloneable {
     }
     
     /**
+     * Get an asset of a specified type. For instance, an 
+     * Icon may be retrieved using getAsset(Icon.class).
+     * @param <T> the type of asset desired
+     * @param assetClass the desired type of asset
+     * @return an asset of the desired type (or null if there is none)
+     */
+    public <T> T getAsset(Class<T> assetClass) {
+        return getCapability(ComponentTypeInfo.class).getAsset(assetClass);
+    }
+    
+    /**
      * Returns the icon image for this component.
      * @return an icon image
+     * @deprecated use getAsset(Icon.class) instead
      */
-    public final ImageIcon getIcon() {
-        Collection<ExtendedComponentTypeInfo> infos = ExternalComponentRegistryImpl.getInstance().getComponentInfos();
-        for (ExtendedComponentTypeInfo info : infos) {
-            if (getClass() == info.getComponentClass()) {
-                return info.getIcon();
-            }
-        }
-        return MCTIcons.getComponent();
+    @Deprecated
+    public final javax.swing.ImageIcon getIcon() {
+        return getAsset(javax.swing.ImageIcon.class);
     }
     
     /**
@@ -889,14 +912,15 @@ public abstract class AbstractComponent implements Cloneable {
      * @param className of the component type
      * @return an image icon
      */
-    public static ImageIcon getIconForComponentType(String className) {
-        Collection<ExtendedComponentTypeInfo> infos = ExternalComponentRegistryImpl.getInstance().getComponentInfos();
-        for (ExtendedComponentTypeInfo info : infos) {
-            if (className.equals(info.getComponentClass().getName())) {
-                return info.getIcon();
+    @Deprecated
+    public static javax.swing.ImageIcon getIconForComponentType(String className) {
+        for (ComponentTypeInfo componentTypeInfo : 
+            ExternalComponentRegistryImpl.getInstance().getComponentInfos()) {
+            if (componentTypeInfo.getTypeClass().getName().equals(className)) {
+                return componentTypeInfo.getAsset(javax.swing.ImageIcon.class);
             }
         }
-        return MCTIcons.getComponent();        
+        return null;
     }
     
     /**
@@ -1048,6 +1072,40 @@ public abstract class AbstractComponent implements Cloneable {
             if (getVersion() < version) {
                 AbstractComponent.this.isStale = true ;
             }
+        }
+        
+        @Override
+        public synchronized void setStaleByVersion(String componentId, int version) {
+            AbstractComponent component = findComponentById(componentId);
+            if (component != null && component.getVersion() < version) {
+                AbstractComponent.this.isStale = true ;
+            }
+        }        
+
+        /*  
+         * Search recursively for a component with a specific id. This is used 
+         * to support setStaleByVersion for work unit delegates. In principle this 
+         * search could take a long time, but in practice this will probably not be 
+         * the case as this should only be triggered when incoming changes occur 
+         * in a view which contains the specified components. The component's presence 
+         * in that view should generally imply that the component is not particularly 
+         * deep within the graph (hence the choice of a breadth-first search)
+         */
+        private AbstractComponent findComponentById(String id) {
+            Set<String> ignore = new HashSet<String>();
+            Queue<AbstractComponent> queue = new LinkedList<AbstractComponent>();
+            queue.add(AbstractComponent.this);
+            AbstractComponent toCheck;
+            while ( (toCheck = queue.poll()) != null) {
+                String checkedId = toCheck.getComponentId();
+                if (checkedId.equals(id)) {
+                    return toCheck;
+                } else if (!ignore.contains(checkedId)) {
+                    ignore.add(checkedId);
+                    queue.addAll(toCheck.getComponents());
+                }
+            }
+            return null;            
         }
     }    
     

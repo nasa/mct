@@ -24,6 +24,7 @@ package gov.nasa.arc.mct.fastplot.bridge;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.PanDirection;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.ZoomDirection;
+import gov.nasa.arc.mct.fastplot.bridge.controls.AbstractPlotLocalControlsManager;
 import gov.nasa.arc.mct.fastplot.view.Axis;
 import gov.nasa.arc.mct.fastplot.view.IconLoader;
 import gov.nasa.arc.mct.fastplot.view.Pinnable;
@@ -31,6 +32,7 @@ import gov.nasa.arc.mct.fastplot.view.Pinnable;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.util.ResourceBundle;
 
 import javax.swing.BorderFactory;
@@ -48,7 +50,7 @@ import plotter.xy.XYPlotContents;
 /**
  * Manages the hiding and show of the local controls on the plot to support panning, zooming, and pausing. 
  */
-public class PlotLocalControlsManager implements ActionListener {
+public class PlotLocalControlsManager implements ActionListener, AbstractPlotLocalControlsManager {
 	
 	@SuppressWarnings("unused")
 	private final static Logger logger = LoggerFactory.getLogger(PlotLocalControlsManager.class);
@@ -564,5 +566,31 @@ public class PlotLocalControlsManager implements ActionListener {
 		plot.refreshDisplay();
 		plot.notifyObserversTimeChange();
 		plot.getPlotDataManager().resizeAndReloadPlotBuffer();
+	}
+
+	@Override
+	public void informKeyState(int key, boolean pressed) {
+		switch (key) {
+		case KeyEvent.VK_CONTROL:
+			this.informCtlKeyState(pressed);
+			break;
+		case KeyEvent.VK_ALT:
+			this.informAltKeyState(pressed);
+			break;
+		case KeyEvent.VK_SHIFT:
+			this.informShiftKeyState(pressed);
+			break;
+		}
+		
+	}
+
+	@Override
+	public void informMouseHover(boolean inPlotArea) {
+		if (inPlotArea) {
+			informMouseEntered();
+		} else {
+			informMouseExited();
+		}
+		
 	}
 }

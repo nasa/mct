@@ -82,6 +82,9 @@ class AutoscrollDropTargetListener implements DropTargetListener, ActionListener
     /** The tree to scroll. */
     private JComponent comp;
     
+    /** Mouse coordinates, or null if not under mouse */
+    private Point mouse = null;
+    
     /**
      * Creates a new autoscrolling drop target listener.
      * 
@@ -119,18 +122,20 @@ class AutoscrollDropTargetListener implements DropTargetListener, ActionListener
     public synchronized void dragEnter(DropTargetDragEvent dtde) {
         if (!timer.isRunning()) {
             timer.start();
+            mouse = dtde.getLocation();
         }
     }
 
     @Override
     public void dragOver(DropTargetDragEvent dtde) {
-        // ignore
+        mouse = dtde.getLocation();
     }
 
     @Override
     public synchronized void dragExit(DropTargetEvent dte) {
         if (timer.isRunning()) {
             timer.stop();
+            mouse = null;
         }
     }
 
@@ -138,6 +143,7 @@ class AutoscrollDropTargetListener implements DropTargetListener, ActionListener
     public synchronized void drop(DropTargetDropEvent dtde) {
         if (timer.isRunning()) {
             timer.stop();
+            mouse = null;
         }
     }
 
@@ -145,12 +151,17 @@ class AutoscrollDropTargetListener implements DropTargetListener, ActionListener
     // the autoscroll border region, in either axis, then scroll
     // the tree appropriately, if not already at the end of the
     // range for that scroll direction.
+    //
+    // Note that we retain mouse position as reported by 
+    // DropTargetDropEvent. Earlier implementation of this method 
+    // retrieved mouse position explicitly (via Component.getMousePosition())
+    // but this occasionally caused deadlocks on Mac OS X due to
+    // concurrency issues with AppKit thread
     @Override
     public void actionPerformed(ActionEvent e) {
         Rectangle bounds = comp.getBounds();
         Rectangle visible = comp.getVisibleRect();
         Rectangle newVisible = new Rectangle(visible.x, visible.y, visible.width, visible.height);
-        Point mouse = comp.getMousePosition();
         
         // We know that this cast must succeed, since the constructors
         // throw IllegalArgumentException if the component is not a
@@ -192,5 +203,5 @@ class AutoscrollDropTargetListener implements DropTargetListener, ActionListener
     public void dropActionChanged(DropTargetDragEvent dtde) {
         // ignore
     }
-    
+   
 }

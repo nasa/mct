@@ -24,11 +24,15 @@ package gov.nasa.arc.mct.services.component;
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.gui.View;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 public class ViewInfoTest {
@@ -66,21 +70,66 @@ public class ViewInfoTest {
     @Test
     public void testHashCode() {
         ViewInfo vi = new ViewInfo(TestView.class, "tv", ViewType.INSPECTOR);
-        Assert.assertEquals(vi.hashCode(), TestView.class.getName().hashCode());
+        // Hash codes should match for new instance with same parameters
+        Assert.assertEquals(vi.hashCode(), new ViewInfo(TestView.class, "tv", ViewType.INSPECTOR).hashCode());
+        // Hash codes should match for like view types, too
+        // (Set operations elsewhere in MCT depend on this behavior)
+        Assert.assertEquals(vi.hashCode(), new ViewInfo(TestView.class, "tv2", ViewType.CENTER).hashCode());
     }
     
     @Test
     public void testEquals() {
         ViewInfo vi = new ViewInfo(TestView.class, "tv", ViewType.INSPECTOR);
-        ViewInfo vi2 = new ViewInfo(TestView.class, "tv", ViewType.CENTER);
-        View v = Mockito.mock(View.class);
-        ViewInfo vi3 = new ViewInfo(v.getClass(), "tv", TestView.class.getName(),ViewType.LAYOUT);
+        ViewInfo vi2 = new ViewInfo(OtherTestView.class, "tv", ViewType.LAYOUT);
 
+        // Should equal with same arguments
+        Assert.assertTrue (vi.equals(new ViewInfo(TestView.class, "tv", ViewType.INSPECTOR)));
+        // Should equal with same class
+        // (Set operations elsewhere in MCT depend on this behavior)
+        Assert.assertTrue (vi.equals(new ViewInfo(TestView.class, "tv", ViewType.CENTER)));
+                
+        // Should not equal another view class
+        Assert.assertFalse(vi.equals(vi2));
         
+        // Should be false for null or other object types
         Assert.assertFalse(vi.equals(null));
-        Assert.assertEquals(vi, vi2);
-        Assert.assertEquals(vi, vi3);
         Assert.assertFalse(vi.equals(Integer.valueOf(7)));
+    }
+    
+    @Test (dataProvider = "hashCodeMatchesEqualsCases")
+    public void testHashCodeMatchesEquals(ViewInfo a, ViewInfo b) {
+        // Test a decent-sized batch of miscellaneous view info pairs,
+        // ensure that hashCode is equal if equals is true
+        if (a.hashCode() != b.hashCode()) {
+            Assert.assertFalse(a.equals(b));            
+            Assert.assertFalse(b.equals(a));            
+        } 
+        // Note: Hash codes can be the same without implying equality, so
+        // nothing to test where a.hashCode == b.hashCode
+    }
+    
+    @SuppressWarnings("unchecked")
+    @DataProvider
+    public Object[][] hashCodeMatchesEqualsCases() {
+        List<Object> objects = new ArrayList<Object>();
+                
+        for (Class<? extends View> viewClass : new Class[] { TestView.class, OtherTestView.class }) {
+            for (ViewType vt : ViewType.values()) {
+                for (String name : new String[] {"tv", "vt"}) {
+                    objects.add(new ViewInfo(viewClass, name, vt));
+                }
+            }
+        }
+        
+        Object[][] permutations = new Object[(objects.size() * objects.size() + objects.size()) / 2][];
+        int i = 0;
+        for (int j = 0; j < objects.size(); j++) {
+            for (int k = j; k < objects.size(); k++) {
+                permutations[i++] = new Object[] { objects.get(j) , objects.get(k) };
+            }
+        }
+     
+        return permutations;
     }
     
     private static class InvalidConstructorView extends View {
@@ -94,5 +143,13 @@ public class ViewInfoTest {
         public TestView(AbstractComponent ac, ViewInfo vi) {
             super(ac,vi);
         }
+    }
+    
+    public static class OtherTestView extends View {
+        private static final long serialVersionUID = 1L;
+
+        public OtherTestView(AbstractComponent ac, ViewInfo vi) {
+            super(ac,vi);
+        }        
     }
 }

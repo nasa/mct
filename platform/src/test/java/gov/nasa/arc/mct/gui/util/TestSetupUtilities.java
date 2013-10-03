@@ -61,6 +61,10 @@ public class TestSetupUtilities {
      */
     public static MCTHousing setUpActiveHousing() {
         class UtilComponent extends AbstractComponent {
+            @SuppressWarnings("unused") // Needed for ComponentTypeInfo to validate
+            public UtilComponent() {
+                this(IdGenerator.nextComponentId());
+            }
             public UtilComponent(String id) {
                 setId(id);
             }   

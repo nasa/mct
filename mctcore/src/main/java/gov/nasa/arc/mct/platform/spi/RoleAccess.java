@@ -68,9 +68,17 @@ public class RoleAccess {
      * @return true if this components owner can be changed.
      */
     public static boolean canChangeOwner(AbstractComponent component, User runtimeUser) {
+        // TODO: Consider moving this to Policy?
+        // First, rule out bootstrap components - changing ownership of these could result in major loss of functionality
+        for (AbstractComponent bootstrap : PlatformAccess.getPlatform().getBootstrapComponents()) {
+            if (bootstrap.getComponentId().equals(component.getComponentId())) {
+                return false;
+            }
+        }
         
+        // Otherwise, consider ownership and role rules
         String componentOwner = component.getOriginalOwner() == null ? component.getOwner() : component.getOriginalOwner();
-        if (componentOwner.equals(runtimeUser.getUserId()) || "admin".equals(runtimeUser.getUserId())) {
+        if (componentOwner.equals(runtimeUser.getUserId()) || "admin".equals(runtimeUser.getUserId())) {           
             return true;
         } else {
             return RoleAccess.hasRole(runtimeUser, componentOwner);

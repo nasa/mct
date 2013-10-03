@@ -22,7 +22,10 @@
 package gov.nasa.arc.mct.fastplot.bridge;
 
 import gov.nasa.arc.mct.components.FeedProvider;
+import gov.nasa.arc.mct.fastplot.bridge.AbstractAxis.AxisVisibleOrientation;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.LimitAlarmState;
+import gov.nasa.arc.mct.fastplot.bridge.controls.AbstractPlotLocalControl;
+import gov.nasa.arc.mct.fastplot.bridge.controls.AbstractPlotLocalControlsManager;
 import gov.nasa.arc.mct.fastplot.settings.PlotConfiguration;
 import gov.nasa.arc.mct.fastplot.utils.AbbreviatingPlotLabelingAlgorithm;
 import gov.nasa.arc.mct.fastplot.view.Axis;
@@ -30,6 +33,7 @@ import gov.nasa.arc.mct.fastplot.view.legend.AbstractLegendEntry;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.SortedMap;
 
@@ -101,10 +105,10 @@ public interface AbstractPlottingPackage extends PlotSubject, PlotConfiguration 
 	
 	
 	/**
-	 * Get instance of the plot wrapped in a JFrame.
-	 * @return the plot wrapped in a JFrame.
+	 * Get the Swing component which represents this plot
+	 * @return the plot
 	 */
-	public JComponent getPlotPanel();
+	public JComponent getPlotComponent();
 	
 	/**
 	 * Add a data set to the plot.
@@ -317,6 +321,12 @@ public interface AbstractPlottingPackage extends PlotSubject, PlotConfiguration 
 	public Axis getNonTimeAxis();
 
 	/**
+	 * Retrieve all axes which are relevant to this plot
+	 * @return
+	 */
+	public Collection<AbstractAxis> getAxes();
+	
+	/**
 	 * Updates the visibility of the corner reset buttons based on which axes are pinned and what data is visible.
 	 */
 	public void updateResetButtons();
@@ -374,13 +384,44 @@ public interface AbstractPlottingPackage extends PlotSubject, PlotConfiguration 
 
 	public AbstractPlotDataManager getPlotDataManager();
 	
-	public PlotLocalControlsManager getLocalControlsManager();
+	/**
+	 * Get the object which manages local controls for this plot.
+	 * 
+	 * Note: Consider replacing with getLocalControls(), which 
+	 * may return a collection of AbstractPlotLocalControl objects
+	 * @return
+	 */
+	public AbstractPlotLocalControlsManager getLocalControlsManager();
 
 
 	public PlotViewActionListener getPlotActionListener();
 
-
+	/**
+	 * 
+	 * Note: This may be removed in favor of getBoundManagers 
+	 * 
+	 * @return
+	 */
 	public PlotLimitManager getLimitManager();
 	
+	/**
+	 * Create a new plot line 
+	 * @return
+	 */
 	public AbstractPlotLine createPlotLine();
+	
+	/**
+	 * Attach a new local control to the plot. The plotting package will determine 
+	 * how to handle layout for this control based on requested attachment positions 
+	 * provided by the control.
+	 * @param control
+	 */
+	public void attachLocalControl(AbstractPlotLocalControl control);
+
+	/**
+	 * Get all bound managers along a specific visible orientation.
+	 * @param axis
+	 * @return
+	 */
+	public Collection<AbstractAxisBoundManager> getBoundManagers(AxisVisibleOrientation axis);
 }

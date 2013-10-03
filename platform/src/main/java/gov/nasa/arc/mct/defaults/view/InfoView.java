@@ -40,8 +40,10 @@ import gov.nasa.arc.mct.util.LookAndFeelSettings;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -53,6 +55,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
 import java.util.concurrent.Callable;
@@ -61,15 +64,22 @@ import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.BasicArrowButton;
+import javax.swing.plaf.basic.BasicScrollBarUI;
 import javax.swing.text.Document;
+import javax.swing.text.JTextComponent;
 import javax.swing.text.PlainDocument;
 
 import org.slf4j.Logger;
@@ -91,6 +101,7 @@ public class InfoView extends View {
     private JLabel displayNameTag;
     private JLabel componentType;
     private JLabel componentTypeTag;
+    @SuppressWarnings("rawtypes") // Java 7 compatibility
     private JComboBox owner;
     private JLabel ownerTag;
     private JLabel mctId;
@@ -110,6 +121,7 @@ public class InfoView extends View {
     private String initialDisplayNameText;
     private String initialOwnerText;
     private Map<JComponent,Object> extendedFieldCache = new HashMap<JComponent,Object>();
+    private Map<PropertyDescriptor, JComponent> extendedFieldComponents = new HashMap<PropertyDescriptor, JComponent>();
     private Color borderUIColor = UIManager.getColor("border");
     private Color bgUIColor = UIManager.getColor("TextField.background");
     private Color fgUIColor = UIManager.getColor("TextField.foreground");
@@ -246,11 +258,12 @@ public class InfoView extends View {
         return tf;
     }
     
-    private JComboBox createOwnerField() {
-        
+    @SuppressWarnings("rawtypes") // Java 7 compatibility
+    private JComboBox createOwnerField() {        
         List<String> usersAndRoles = new ArrayList<String>();
         usersAndRoles.addAll(Arrays.asList(RoleAccess.getAllRoles()));
         usersAndRoles.addAll(Arrays.asList(RoleAccess.getAllUsers()));
+        @SuppressWarnings("unchecked")
         final JComboBox comboBox = new JComboBox(usersAndRoles.toArray());
         comboBox.setSelectedItem(getManifestedComponent().getOwner());
         return comboBox;
@@ -281,6 +294,10 @@ public class InfoView extends View {
         
         // any of the model specific properties could have changed so reload all the properties
         addExtendedContent();
+        
+        // make sure view redraws on screen
+        revalidate();
+        repaint();
     }
     
     @Override
@@ -304,6 +321,7 @@ public class InfoView extends View {
      * When a component changes locked state, control whether the display name is edit able.
      */
 
+    @SuppressWarnings("unchecked") // Java 7 compatibility
     @Override
     public void enterLockedState() {        
         boolean allowEdit = checkAllowComponentRenamePolicy();
@@ -337,6 +355,7 @@ public class InfoView extends View {
         }
     }
 
+    @SuppressWarnings("unchecked") // Java 7 compatibility
     @Override
     public void exitLockedState() {
         boolean allowEdit = checkAllowComponentRenamePolicy();
@@ -459,6 +478,7 @@ public class InfoView extends View {
     private void addExtendedContent() {
         extendedProperties.removeAll();
         extendedFieldCache.clear();
+        extendedFieldComponents.clear();
         List<PropertyDescriptor> fields = getManifestedComponent().getFieldDescriptors();
         if (fields == null) {
             return;
@@ -499,14 +519,58 @@ public class InfoView extends View {
         extendedProperties.invalidate();
     }
 
+    /**
+     * Refresh extended fields. Called after making changes to a component, in case 
+     * there are interdependencies between fields (sometimes changing one field 
+     * may also indirectly change another, depending on component implementation.)
+     */
+    private void refreshExtendedFields() {
+        for (Entry<PropertyDescriptor, JComponent> visualComponent : this.extendedFieldComponents.entrySet()) {
+            populateVisualComponent(visualComponent.getValue(), visualComponent.getKey());
+        }
+    }
+    
+    @SuppressWarnings("rawtypes") // Java 7 compatibility
+    private void populateVisualComponent(JComponent component, PropertyDescriptor p) {
+        Object newValue = null;
+        // Set the visual component (specific method calls vary by component type)
+        // Note that the methods used here should not trigger action listeners on the component!
+        switch (p.getVisualControlDescriptor()) {
+        case Label: {
+            ((JLabel)component).setText((String) (newValue = p.getPropertyEditor().getAsText()));
+            break;
+        }
+        case TextField: {
+            ((JTextField)component).setText((String) (newValue = p.getPropertyEditor().getAsText()));
+            break;
+        }
+        case CheckBox: {
+            ((JCheckBox)component).setSelected((Boolean) (newValue = p.getPropertyEditor().getValue()));
+            break;
+        }
+        case ComboBox: {
+            ((JComboBox)component).getModel().setSelectedItem(newValue = p.getPropertyEditor().getValue());
+            break;
+        }
+        case TextArea: {
+            ((JTextArea)component).setText((String) (newValue = p.getPropertyEditor().getAsText()));
+            break;
+        }
+        }
+        // Cache the new value (will be used if validation fails)
+        extendedFieldCache.put(component, newValue);
+    }
+    
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private JComponent makeVisualComponent(PropertyDescriptor p) {
         JComponent jComponent = null;
         VisualControlDescriptor visualControlDescriptorType = p.getVisualControlDescriptor();
         boolean isPrivateAndMutable = p.isFieldMutable();
 
+        PropertyEditor<Object> ed = (PropertyEditor<Object>) p.getPropertyEditor();
+        
         switch (visualControlDescriptorType) {
         case Label: {
-            PropertyEditor<?> ed = p.getPropertyEditor();
             String valueText = ed.getAsText();
             jComponent = new JLabel(valueText);
             jComponent.setEnabled(true);
@@ -514,7 +578,6 @@ public class InfoView extends View {
             break;
         }
         case TextField: {
-            PropertyEditor<?> ed = p.getPropertyEditor();
             String valueText = ed.getAsText();
             jComponent = new JTextField(valueText, DISPLAY_NAME_LENGTH);
             if (p.isFieldMutable()) {
@@ -530,7 +593,6 @@ public class InfoView extends View {
             break;
         }
         case CheckBox: {
-            PropertyEditor<?> ed = p.getPropertyEditor();
             Boolean isSelected = (Boolean) ed.getValue();
             jComponent = new JCheckBox();
             ((JCheckBox)jComponent).setSelected(isSelected); 
@@ -547,8 +609,6 @@ public class InfoView extends View {
             break;
         }
         case ComboBox: {
-            @SuppressWarnings("unchecked")
-            PropertyEditor<Object> ed = (PropertyEditor<Object>) p.getPropertyEditor();
             List <Object> comboItems = ed.getTags();
             jComponent = new JComboBox(comboItems.toArray(new String[comboItems.size()]));
             JComboBox combo = (JComboBox)jComponent;
@@ -582,7 +642,46 @@ public class InfoView extends View {
                     b.setBorder(new EmptyBorder(0, 0,0,0)); //match look of text fields
                 }
             }
+            break;
         }
+        case TextArea: {
+            JTextArea textArea = new JTextArea(ed.getAsText());
+            jComponent = textArea;
+            
+            textArea.setRows(6);
+            textArea.setColumns(40);
+            textArea.setLineWrap(true);
+            textArea.setWrapStyleWord(true);
+            
+            JScrollPane scrollPane = new JScrollPane();
+            scrollPane.getViewport().add(textArea);
+            scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);           
+            
+            if (borderUIColor != null) {
+                scrollPane.setBorder(BorderFactory.createLineBorder(borderUIColor));
+                scrollPane.getVerticalScrollBar().setUI(new FlatScrollBarUI());
+            }
+            
+            if (isPrivateAndMutable) {
+                hookupComponentListeners(textArea, ed);
+                jComponent.setEnabled(true);
+                jComponent.setFocusable(true); 
+            } else {
+                jComponent.setEnabled(false);
+                jComponent.setFocusable(false); 
+            }
+            
+            extendedFieldComponents.put(p, textArea);     
+            
+            jComponent = scrollPane;
+            break;
+        }
+        }
+        
+        // Some VisualControlDescriptors may have added this already
+        // (for instance, if the real control is embedded with jComponent)
+        if (!extendedFieldComponents.containsKey(p)) {
+            extendedFieldComponents.put(p, jComponent);
         }
         
         return jComponent;
@@ -621,7 +720,7 @@ public class InfoView extends View {
                         ed.setValue(currentSelection); 
                         extendedFieldCache.put(key, currentSelection);
                         getManifestedComponent().save();
-                        
+                        refreshExtendedFields();
                     } catch (IllegalArgumentException e1) {
                         jComponent.setSelected(prev);
                         ed.setValue(prev);
@@ -632,6 +731,7 @@ public class InfoView extends View {
         });  
     }
 
+    @SuppressWarnings("rawtypes") // Java 7 compatibility
     private void hookupComponentListeners(final JComboBox jComponent, final PropertyEditor<?> ed) {
         
         jComponent.addActionListener(new ActionListener() {
@@ -646,6 +746,7 @@ public class InfoView extends View {
                         ed.setValue(currentSelection); 
                         extendedFieldCache.put(key, currentSelection);
                         getManifestedComponent().save();
+                        refreshExtendedFields();
 
                     } catch (IllegalArgumentException e1) {
                         jComponent.setSelectedItem(prev);
@@ -656,8 +757,22 @@ public class InfoView extends View {
             }
         });        
     }
+    
+    private void hookupComponentListeners(final JTextArea jComponent, final PropertyEditor<?> ed) {
+        jComponent.addFocusListener(new FocusListener() {
 
-    private void saveTextField(final JTextField jComponent, final PropertyEditor<?> ed) {
+            @Override
+            public void focusLost(FocusEvent e) {
+                saveTextField(jComponent, ed);
+            }
+            
+            @Override
+            public void focusGained(FocusEvent e) {
+            }
+        });
+    }
+
+    private void saveTextField(final JTextComponent jComponent, final PropertyEditor<?> ed) {
         String prev = (String) extendedFieldCache.get(jComponent); 
         String currentText = jComponent.getText().trim();
 
@@ -666,6 +781,7 @@ public class InfoView extends View {
                 ed.setAsText(currentText); 
                 extendedFieldCache.put(jComponent, (Object)currentText); 
                 getManifestedComponent().save();
+                refreshExtendedFields();
             } catch (IllegalArgumentException e1) {
                 jComponent.setText(prev);
                 ed.setAsText(prev);
@@ -685,4 +801,52 @@ public class InfoView extends View {
         return rv;
     }
     
+
+
+private class FlatScrollBarUI extends BasicScrollBarUI {
+    @Override
+    protected void paintDecreaseHighlight(Graphics g) {}
+
+    @Override
+    protected void paintIncreaseHighlight(Graphics g) {}
+
+    @Override
+    protected void paintThumb(Graphics g, JComponent c, Rectangle thumbBounds) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(borderUIColor != null ? borderUIColor : fgUIColor);
+        g2.fill(thumbBounds);
+        g2.setColor(bgUIColor);
+        int x = (thumbBounds.x)+ thumbBounds.width / 2;
+        int y = (thumbBounds.y) + thumbBounds.height / 2;
+        int w = thumbBounds.width / 4;
+        g2.drawLine(x-w, y-2, x+w, y-2);
+        g2.drawLine(x-w, y+0, x+w, y+0);
+        g2.drawLine(x-w, y+2, x+w, y+2);
+    }
+
+    @Override
+    protected void paintTrack(Graphics g, JComponent c, Rectangle trackBounds) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(bgUIColor);
+        g2.fill(trackBounds);
+        g2.setColor(borderUIColor != null ? borderUIColor : fgUIColor);
+        g2.draw(trackBounds);
+    }
+
+    @Override
+    protected JButton createDecreaseButton(int orientation) {
+        Color fgColor = borderUIColor != null ? borderUIColor : fgUIColor;
+        JButton b = new BasicArrowButton(orientation, bgUIColor, bgUIColor, fgColor, fgColor);
+        b.setBorder(BorderFactory.createLineBorder(fgColor, 1));
+        return b;
+    }
+
+    @Override
+    protected JButton createIncreaseButton(int orientation) {
+        Color fgColor = borderUIColor != null ? borderUIColor : fgUIColor;
+        JButton b = new BasicArrowButton(orientation, bgUIColor, bgUIColor, fgColor, fgColor);
+        b.setBorder(BorderFactory.createLineBorder(fgColor, 1));
+        return b;
+    }
+}
 }

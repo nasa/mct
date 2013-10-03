@@ -80,4 +80,13 @@ public class TimeXYAxis extends LinearXYAxis implements AbstractAxis {
 		startLong += off;
 		endLong += off;
 	}
+
+	@Override
+	public AxisVisibleOrientation getVisibleOrientation() {
+		switch (this.getPlotDimension()) {
+		case X: return AxisVisibleOrientation.HORIZONTAL;
+		case Y: return AxisVisibleOrientation.VERTICAL;
+		}
+		return null;
+	}
 }

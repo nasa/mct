@@ -370,7 +370,7 @@ public class TestLimitArrowIndicators {
 	   Assert.assertEquals(plot.getDependentMinAlarmState(), LimitAlarmState.NO_ALARM);   
 	   
 		JFrame frame = new JFrame();
-		frame.add(plot.getPlotPanel());
+		frame.add(plot.getPlotComponent());
 		frame.pack();
 		frame.setVisible(true);
 	   
@@ -478,7 +478,7 @@ public class TestLimitArrowIndicators {
 	   Assert.assertEquals(plot.getDependentMaxAlarmState(), LimitAlarmState.NO_ALARM);  
 	   
 		JFrame frame = new JFrame();
-		frame.add(plot.getPlotPanel());
+		frame.add(plot.getPlotComponent());
 		frame.pack();
 		frame.setVisible(true);
 
@@ -583,7 +583,7 @@ public class TestLimitArrowIndicators {
 	   Assert.assertEquals(plot.getDependentMinAlarmState(), LimitAlarmState.NO_ALARM);   
 	   
 		JFrame frame = new JFrame();
-		frame.add(plot.getPlotPanel());
+		frame.add(plot.getPlotComponent());
 		frame.pack();
 		frame.setVisible(true);
 	   
@@ -681,7 +681,7 @@ public class TestLimitArrowIndicators {
 	   Assert.assertEquals(plot.getDependentMaxAlarmState(), LimitAlarmState.NO_ALARM); 
 	   
 		JFrame frame = new JFrame();
-		frame.add(plot.getPlotPanel());
+		frame.add(plot.getPlotComponent());
 		frame.pack();
 		frame.setVisible(true);
 

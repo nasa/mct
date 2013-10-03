@@ -42,7 +42,7 @@ import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 
-import com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel;
+
 
 /**
  * This class stores the current Look and Feel for the user interface.
@@ -130,13 +130,16 @@ public enum LookAndFeelSettings {
         }
     }
 
+    /* Harleigh108:
+     * Replaced if (lookAndFeel instanceof NimbusLookAndFeel) as NimbusLookAndFeel is deprecated 
+     */
     private void initializeColors(LookAndFeel lookAndFeel) {
         lafDefaults = UIManager.getLookAndFeelDefaults();
         if (lookAndFeel instanceof MetalLookAndFeel) {
             WINDOW = lafDefaults.getColor("window");
             WINDOW_BORDER = lafDefaults.getColor("windowBorder");
         } else
-        if (lookAndFeel instanceof NimbusLookAndFeel) {
+        if(lookAndFeel.getClass().getSimpleName().equalsIgnoreCase("NimbusLookAndFeel")) {
             WINDOW = lafDefaults.getColor("Panel.background");
             WINDOW_BORDER = lafDefaults.getColor("nimbusBorder");
         } else {

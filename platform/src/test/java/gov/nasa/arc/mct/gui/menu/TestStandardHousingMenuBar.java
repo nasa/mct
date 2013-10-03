@@ -26,6 +26,8 @@ import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.context.GlobalContext;
 import gov.nasa.arc.mct.defaults.view.MCTHousingViewManifestation;
 import gov.nasa.arc.mct.gui.ContextAwareMenu;
+import gov.nasa.arc.mct.gui.MenuItemInfo;
+import gov.nasa.arc.mct.gui.MenuSection;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.housing.MCTHousingFactory;
 import gov.nasa.arc.mct.gui.housing.MCTStandardHousing;
@@ -57,6 +59,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
 
 public class TestStandardHousingMenuBar {
 
@@ -121,7 +124,39 @@ public class TestStandardHousingMenuBar {
     protected void teardown() {
         new PlatformAccess().setPlatform(null);
     }
+    
+    @Test
+    public void testThisMenuNameProperty() {
+        // Check that default is "This"
+        Assert.assertEquals(new ThisMenu().getText(), "This");
+        // Check that property mct.menu.this overrides default
+        System.setProperty("mct.menu.this", "That");
+        Assert.assertEquals(new ThisMenu().getText(), "That");
+        // Check that cleared property still shows default
+        System.clearProperty("mct.menu.this");
+        Assert.assertEquals(new ThisMenu().getText(), "This");
+    }
 
+    @Test
+    public void testThisOrder() {
+        ContextAwareMenu thisMenu = new ThisMenu() {
+            private static final long serialVersionUID = 1L;
+            {
+                populate();
+            }
+        };
+        List<MenuSection> menuSections = thisMenu.getMenuSections();
+        
+        // Should have multiple sections (quit should be in its own)
+        Assert.assertTrue(menuSections.size() > 1);
+        
+        // Quit should be at the bottom of the last section
+        MenuSection lastSection = menuSections.get(menuSections.size() - 1);
+        List<MenuItemInfo> infos = lastSection.getMenuItemInfoList();
+        MenuItemInfo lastMenuItem = infos.get(infos.size() - 1);
+        Assert.assertTrue(lastMenuItem.getCommandKey().equals("QUIT_ACTION"));
+    }
+    
     @Test(expectedExceptions = IllegalStateException.class)
     public void testNullHousing() {
         if (GraphicsEnvironment.isHeadless()) {
@@ -202,7 +237,7 @@ public class TestStandardHousingMenuBar {
 
     }
 
-    private class MockComposite extends MockComponent {
+    private static class MockComposite extends MockComponent {
 
         public MockComposite() {
             super();

@@ -83,7 +83,7 @@ public class LegendEntryView extends FeedView implements AbstractLegendEntry {
 
 		});
 		// TODO: Attach popup!
-
+		
 	}
 
 	@Override
@@ -136,7 +136,7 @@ public class LegendEntryView extends FeedView implements AbstractLegendEntry {
 
 	@Override
 	public String getDisplayedName() {
-		return getManifestedComponent().getDisplayName();
+		return label.getText();
 	}
 
 	private class LegendEntryMouseAdapter extends MouseAdapter {

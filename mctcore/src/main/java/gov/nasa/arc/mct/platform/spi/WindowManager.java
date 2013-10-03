@@ -26,6 +26,7 @@ import gov.nasa.arc.mct.gui.View;
 
 import java.awt.Component;
 import java.awt.GraphicsConfiguration;
+import java.util.Map;
 
 /**
  * The <code>WindowManager</code> interface represents the window manager provided by
@@ -81,4 +82,18 @@ public interface WindowManager {
      * @param componentId the component id of which the housing should be closed.
      */
     public void closeWindows(String componentId);
+    
+    /**
+     * Display a blocking input dialog (or equivalent) to the user. The user will be presented with 
+     * the specified options (typically from a combo box or similar); the return 
+     * value is the user's selection, or null if the user cancelled.
+     * @param title the title to display for the dialog
+     * @param message the message to display describing the question
+     * @param options the set of options available to the user
+     * @param defaultOption the option which should be selected by default
+     * @param hints used for platform-specific hints; may be null (same as "no hints")
+     * @return the option chosen by the user (null if cancelled)
+     */
+    public <T> T showInputDialog(String title, String message, T[] options, T defaultOption, Map<String, Object> hints);
+    
 }

@@ -131,9 +131,21 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 	}
 
 	public void activate(ComponentContext context) throws IOException {
-		setEntityManagerProperties(getPersistenceProperties());
+		Properties persistenceProperties = getPersistenceProperties();
+		setEntityManagerProperties(persistenceProperties);
 		new InternalDBPersistenceAccess().setPersistenceService(this);
 		checkDatabaseVersion();
+		
+		// Check for configuration of the polling interval (default is 3s)
+		long pollingInterval = 3000;
+		try {
+			String intervalString = persistenceProperties.getProperty("mct.database_pollInterval");
+			if (intervalString != null) {
+				pollingInterval = Long.parseLong(intervalString);
+			}
+		} catch (NumberFormatException nfe) {
+			// Stick with the default
+		}
 		
         Timer databasePollingTimer = new Timer();
         databasePollingTimer.schedule(new TimerTask() {
@@ -143,7 +155,7 @@ public class PersistenceServiceImpl implements PersistenceProvider {
             	InternalDBPersistenceAccess.getService().updateComponentsFromDatabase();
             }
             
-        }, Calendar.getInstance().getTime(), 3000);
+        }, Calendar.getInstance().getTime(), pollingInterval);
 
 	}
 	
@@ -740,10 +752,10 @@ public class PersistenceServiceImpl implements PersistenceProvider {
     	Collection<AbstractComponent> delegateComponets = new ArrayList<AbstractComponent>();
     	for (final AbstractComponent ac : cachedComponents) {
     		Updatable updatable = ac.getCapability(Updatable.class);
-    		updatable.setStaleByVersion(c.getObjVersion());
+    		updatable.setStaleByVersion(c.getComponentId(), c.getObjVersion());
     		cleanCacheIfNecessary(c.getComponentId(), c.getObjVersion());
     		if (ac.getWorkUnitDelegate() != null) {
-    			ac.getWorkUnitDelegate().getCapability(Updatable.class).setStaleByVersion(Integer.MAX_VALUE);
+    			ac.getWorkUnitDelegate().getCapability(Updatable.class).setStaleByVersion(c.getComponentId(), c.getObjVersion());
     			delegateComponets.add(ac.getWorkUnitDelegate());
     		}
     	}

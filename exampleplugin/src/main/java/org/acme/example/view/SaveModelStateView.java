@@ -22,7 +22,6 @@
 package org.acme.example.view;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
-import gov.nasa.arc.mct.gui.OptionBox;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 
@@ -33,17 +32,17 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.ResourceBundle;
 
 import javax.swing.BorderFactory;
-import javax.swing.InputVerifier;
 import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 import org.acme.example.component.ExampleComponent;
 import org.acme.example.component.ExampleModelRole;
@@ -58,13 +57,25 @@ import org.acme.example.component.ExampleModelRole;
 public final class SaveModelStateView extends View {
 	// use a resource bundle for strings to enable localization in the future if required
 	private static ResourceBundle bundle = ResourceBundle.getBundle("ExampleResourceBundle");
-    private JFormattedTextField doubleDataTextField;
+    //private JFormattedTextField doubleDataTextField;
+	private JTextField doubleDataTextField;
     private JTextField descriptionTextField;
+    private JButton saveButton = new JButton(bundle.getString("SaveButton"));
     
     // get this component and its associated model role
     private ExampleModelRole mr = ExampleComponent.class.cast(getManifestedComponent()).getModel(); 
 
-    // create the GUI
+    //tiny method used in determining whether the value of doubleDataTextField is valid; if there exists
+    //a character in the string they entered, the input is not valid.
+    private boolean containsLetters(String s) {
+    	for( char c: s.toCharArray()) {
+    		if( Character.isLetter(c) )
+    			return true;
+    	}
+    	return false;
+    }
+    
+    // create the GUI: How is this called? Well,ExampleComponentProvider tells MCT that SaveStateModel is a view
     public SaveModelStateView(AbstractComponent ac, ViewInfo vi)  {
         super(ac,vi);
        
@@ -75,43 +86,89 @@ public final class SaveModelStateView extends View {
         descriptionTextField = new JTextField();
         descriptionTextField.setText(mr.getData().getDataDescription());
         descriptionTextField.setToolTipText(bundle.getString("DescriptionToolTip"));
-        doubleDataTextField = new JFormattedTextField(NumberFormat.getInstance());
-        doubleDataTextField.setValue(mr.getData().getDoubleData());
+        doubleDataTextField = new JTextField(String.valueOf(mr.getData().getDoubleData()));
+        doubleDataTextField.setText(String.valueOf(mr.getData().getDoubleData()));
         doubleDataTextField.setToolTipText(bundle.getString("ValueToolTip"));
-        // ensure the value is really a double before allowing the focus to change
-        doubleDataTextField.setInputVerifier(new InputVerifier() {
+        
+        /*Purpose for DocumentListener: disable the save button for illegal inputs in the doubleDataTextField.
+         * An illegal input is when the user enters a non-number.  Note: parse double
+         * parses "-46.81d" as "-46.81d" (that is, it allows d, i, L, f at the end of
+         * a number).  I wanted to disable the save button if the user enters any letter,
+         * so that is why I first check if the text-field contains any letters before trying
+         * to parse it as a double.
+         */
+        doubleDataTextField.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				if( !saveButton.isEnabled() )
+					saveButton.setEnabled(true);
+				try {
+					if( containsLetters(doubleDataTextField.getText()))
+						throw new NumberFormatException();
+					
+					Double.parseDouble(doubleDataTextField.getText());
+					
+				} catch (NumberFormatException s) {
+					saveButton.setEnabled(false);
+				}
+			}
 			
 			@Override
-			public boolean verify(JComponent input) {
-				JTextField inputField = (JTextField) input;
+			public void insertUpdate(DocumentEvent e) {
+				
+				if( !saveButton.isEnabled() )
+					saveButton.setEnabled(true);
 				try {
-					Double.parseDouble(inputField.getText());
-				} catch (NumberFormatException e) {
-					return false;
+					if( containsLetters(doubleDataTextField.getText()))
+						throw new NumberFormatException();
+					
+					Double.parseDouble(doubleDataTextField.getText());
+					
+				} catch (NumberFormatException s) {
+					saveButton.setEnabled(false);
 				}
-				return true;
+			}
+			
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				if( !saveButton.isEnabled() )
+					saveButton.setEnabled(true);
+				try {
+					if( containsLetters(doubleDataTextField.getText()))
+						throw new NumberFormatException();
+					
+					Double.parseDouble(doubleDataTextField.getText());
+					
+				} catch (NumberFormatException s) {
+					saveButton.setEnabled(false);
+				}
 			}
 		});
-        JButton saveButton = new JButton(bundle.getString("SaveButton"));
-
-        jp.add(descriptionTextField);
-        jp.add(doubleDataTextField);
-        addToLayout(jp, bundle.getString("Description"), descriptionTextField, 
-        				bundle.getString("Value"), doubleDataTextField, saveButton);
+        
+       jp.add(descriptionTextField);
+       jp.add(doubleDataTextField);
+       
+       addToLayout(jp, bundle.getString("Description"), descriptionTextField, 
+         				bundle.getString("Value"), doubleDataTextField, saveButton);
+        
         saveButton.addActionListener(new ActionListener() {
         	@Override
         	public void actionPerformed(ActionEvent e) {          	
-                AbstractComponent component = getManifestedComponent();  
+                AbstractComponent component = getManifestedComponent();
                 
-                // Update the model from the GUI input.
-			    mr.getData().setDoubleData(Double.parseDouble(doubleDataTextField.getText()));
+                mr.getData().setDoubleData(Double.parseDouble(doubleDataTextField.getText()));
 			    mr.getData().setDataDescription(descriptionTextField.getText());
       		
-        		// Save the component
+        		/*
+        		 * Note that save() tells MCT that the user wishes to persist the data into the database.  Thus, when the user
+        		 * clicks save, and then switches away from this view (like by choosing the info-view) MCT will prompt the user
+        		 * if they wish to save the data. 
+        		 */
         		component.save();  
         	}
         });
        
+        //remember: MCT class 'View' extends a JPanel
         add(jp);
     }
     
@@ -164,7 +221,7 @@ public final class SaveModelStateView extends View {
     @Override
     public void updateMonitoredGUI() {
     	ExampleModelRole mr =  ExampleComponent.class.cast(getManifestedComponent()).getModel();
-    	doubleDataTextField.setValue(mr.getData().getDoubleData());
+    	doubleDataTextField.setText(String.valueOf(mr.getData().getDoubleData()));
     	descriptionTextField.setText(mr.getData().getDataDescription());     	
     }
     

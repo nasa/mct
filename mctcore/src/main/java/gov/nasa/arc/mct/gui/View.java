@@ -318,6 +318,11 @@ public abstract class View extends JPanel implements ViewProvider, LockObserver 
     }
 
     @Override
+    public boolean setHousedViewManifestation(ViewInfo vi) {
+        return false;
+    }
+    
+    @Override
     public boolean equals(Object obj) {
         if (! (obj instanceof View)) { return false; }
         if (this == NULL_VIEW_MANIFESTATION || obj == NULL_VIEW_MANIFESTATION) { return false; }

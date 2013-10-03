@@ -24,6 +24,7 @@ package gov.nasa.arc.mct.collection;
 import gov.nasa.arc.mct.components.collection.CollectionComponent;
 import gov.nasa.arc.mct.services.component.AbstractComponentProvider;
 import gov.nasa.arc.mct.services.component.ComponentTypeInfo;
+import gov.nasa.arc.mct.services.component.TypeInfo;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 
 import java.util.Collection;
@@ -40,6 +41,8 @@ public class CollectionComponentProvider extends AbstractComponentProvider {
 	private static ResourceBundle bundle = ResourceBundle.getBundle("CollectionComponent"); 
 
 	private final ComponentTypeInfo componentTypeInfo;
+
+	private static final ImageIcon ICON = new ImageIcon(CollectionComponent.class.getResource("/icons/Collection.png"));
 	
 	/**
 	 * Default constructor for a collection component object.
@@ -49,7 +52,7 @@ public class CollectionComponentProvider extends AbstractComponentProvider {
 		componentTypeInfo = new ComponentTypeInfo(
 			bundle.getString("display_name"),
 			bundle.getString("description"), 
-			CollectionComponent.class, true, new ImageIcon(CollectionComponent.class.getResource("/icons/Collection.png")));
+			CollectionComponent.class, true);
 	}
 	
     @Override
@@ -61,4 +64,13 @@ public class CollectionComponentProvider extends AbstractComponentProvider {
     public Collection<ViewInfo> getViews(String componentTypeId) {
     	return Collections.<ViewInfo>emptyList();
     }    
+    
+    @Override
+    public <T> T getAsset(TypeInfo<?> typeInfo, Class<T> assetClass) {
+        if (assetClass.isAssignableFrom(ImageIcon.class) && 
+            typeInfo.getTypeClass().equals(CollectionComponent.class)) {
+            return assetClass.cast(ICON);
+        }
+        return super.getAsset(typeInfo, assetClass);
+    }
 }

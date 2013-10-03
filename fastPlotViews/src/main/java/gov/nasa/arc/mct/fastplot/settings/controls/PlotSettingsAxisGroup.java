@@ -46,6 +46,14 @@ import org.slf4j.LoggerFactory;
 public abstract class PlotSettingsAxisGroup extends PlotSettingsPanel implements ActionListener {
 	private static final long serialVersionUID = -6810586939806488596L;
 
+	// Names, for automatic naming of nested Swing components
+	protected static final String MIN_SUFFIX = "Min";
+	protected static final String MAX_SUFFIX = "Max";
+	protected static final String SPAN_SUFFIX = "Span";
+	protected static final String AUTO_SUFFIX = "Auto";
+	protected static final String CURRENT_SUFFIX = "Current";
+	protected static final String MANUAL_SUFFIX = "Manual";
+	protected static final String VALUE_SUFFIX  = "Value";
 
 	// Access bundle file where externalized strings are defined.
 	private static final ResourceBundle BUNDLE = 
@@ -78,18 +86,22 @@ public abstract class PlotSettingsAxisGroup extends PlotSettingsPanel implements
 	private Runnable autoControlsCallback = new Runnable() {
 		@Override
 		public void run() {
-			minControls.auto.setEnabled(!maxControls.auto.isSelected());
-			minControls.autoValue.setEnabled(!maxControls.auto.isSelected());
-			maxControls.auto.setEnabled(!minControls.auto.isSelected());
-			maxControls.autoValue.setEnabled(!minControls.auto.isSelected());
-			if (!maxControls.auto.isSelected() && !minControls.auto.isSelected()) {
-				spanControls.setSpanValue(getValue(maxControls) - getValue(minControls));
-			}
-			if (!maxControls.auto.isSelected()) {
-				minControls.autoValue.setValue(getValue(maxControls) - spanControls.getSpanValue());
-			}
-			if (!minControls.auto.isSelected()) {
-				maxControls.autoValue.setValue(getValue(minControls) + spanControls.getSpanValue());
+			if (!temporal) {
+				minControls.auto.setEnabled(!maxControls.auto.isSelected());
+				minControls.autoValue.setEnabled(!maxControls.auto.isSelected());
+				maxControls.auto.setEnabled(!minControls.auto.isSelected());
+				maxControls.autoValue.setEnabled(!minControls.auto.isSelected());
+				if (!maxControls.auto.isSelected() && !minControls.auto.isSelected()) {
+					spanControls.setSpanValue(getValue(maxControls) - getValue(minControls));
+				}
+				if (!maxControls.auto.isSelected()) {
+					minControls.autoValue.setValue(getValue(maxControls) - spanControls.getSpanValue());
+				}
+				if (!minControls.auto.isSelected()) {
+					maxControls.autoValue.setValue(getValue(minControls) + spanControls.getSpanValue());
+				}
+			} else {
+				maxControls.updateAuto(getValue(minControls) + spanControls.getSpanValue());
 			}
 		}
 	};
@@ -102,10 +114,8 @@ public abstract class PlotSettingsAxisGroup extends PlotSettingsPanel implements
 		addSubPanel(minControls);
 		addSubPanel(maxControls);
 		addSubPanel(spanControls);
-		if (!temporal) {
-			minControls.addCallback(autoControlsCallback);
-			maxControls.addCallback(autoControlsCallback);
-		}
+		minControls.addCallback(autoControlsCallback);
+		maxControls.addCallback(autoControlsCallback);
 	} 
 	
 	public JPanel getMinControls() {
@@ -134,6 +144,14 @@ public abstract class PlotSettingsAxisGroup extends PlotSettingsPanel implements
 
 	public void setTitle(String title) {
 		this.title = title;
+	}
+	
+	@Override
+	public void setName(String name) {
+		super.setName(name);
+		minControls.setName(name + MIN_SUFFIX);
+		maxControls.setName(name + MAX_SUFFIX);
+		spanControls.setName(name + SPAN_SUFFIX);		
 	}
 	
 	public abstract void setBounds(PlotConfiguration settings, double min, double max);	
@@ -337,6 +355,16 @@ public abstract class PlotSettingsAxisGroup extends PlotSettingsPanel implements
 			return true;
 		}
 		
+		@Override
+		public void setName(String name) {
+			auto.setName(name + AUTO_SUFFIX);
+			current.setName(name + CURRENT_SUFFIX);
+			manual.setName(name + MANUAL_SUFFIX);
+			autoValue.setName(name + AUTO_SUFFIX + VALUE_SUFFIX);
+			currentValue.setName(name + CURRENT_SUFFIX + VALUE_SUFFIX);
+			manualValue.setName(name + MANUAL_SUFFIX + VALUE_SUFFIX);
+		}
+		
 	}
 
 
@@ -388,6 +416,11 @@ public abstract class PlotSettingsAxisGroup extends PlotSettingsPanel implements
 				logger.error("Error in creating a mask formatter", e);
 			}
 	        return new TimeSpanTextField(formatter);
+		}
+		
+		public void setName(String name) {
+			super.setName(name);
+			spanValue.setName(name + VALUE_SUFFIX);
 		}
 		
 		public double getSpanValue() {

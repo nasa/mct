@@ -34,18 +34,22 @@ import gov.nasa.arc.mct.policy.ExecutionResult;
 import gov.nasa.arc.mct.policy.PolicyContext;
 import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.policymgr.PolicyManagerImpl;
+import gov.nasa.arc.mct.util.MCTIcons;
 
+import java.awt.Color;
 import java.awt.Container;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.util.Collections;
 
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.TransferHandler;
 
 @SuppressWarnings("serial")
 public class IconMenu extends ContextAwareMenu {
+    private static final Color ICON_COLOR = new Color(40, 40, 40);
     
     public IconMenu() {
         super("");
@@ -53,7 +57,8 @@ public class IconMenu extends ContextAwareMenu {
 
     @Override
     public boolean canHandle(final ActionContext context) {
-        setIcon(context.getWindowManifestation().getManifestedComponent().getIcon());
+        ImageIcon icon = context.getWindowManifestation().getManifestedComponent().getAsset(ImageIcon.class);
+        setIcon(MCTIcons.processIcon(icon, ICON_COLOR, false));
         
         setTransferHandler(new TransferHandler() {
             @Override

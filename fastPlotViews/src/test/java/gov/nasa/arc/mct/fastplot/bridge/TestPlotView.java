@@ -33,6 +33,7 @@ import gov.nasa.arc.mct.fastplot.view.PlotViewManifestation;
 
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.KeyboardFocusManager;
 import java.awt.event.KeyEvent;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -195,7 +196,15 @@ public class TestPlotView {
 	public void testPlotMatchSettings(){		
 		
 		PlotConfiguration plotSettings = new PlotSettings();
-		PlotView basePlot = new PlotView.Builder(PlotterPlot.class).plotSettings(new PlotSettings()).build();
+
+		// Create a second set of settings with defaults...
+		PlotConfiguration otherPlotSettings = new PlotSettings();
+		// ...but explicitly make sure min/max times match 
+		// (these are defined relative to "now", resulting in intermittent test failures otherwise)
+		otherPlotSettings.setMinTime(plotSettings.getMinTime());
+		otherPlotSettings.setMaxTime(plotSettings.getMaxTime());
+		PlotView basePlot = new PlotView.Builder(PlotterPlot.class).plotSettings(otherPlotSettings).build();
+
 		
 		Assert.assertTrue(basePlot.plotMatchesSetting(plotSettings));
 		
@@ -308,7 +317,7 @@ public class TestPlotView {
 	}
 
 
-	@Test
+	@Test (enabled=false) // Partially moved to TestKeyEventDispatcher
 	public void testKeyListener() {
 		PlotView testPlot = new PlotView.Builder(PlotterPlot.class).build();
 		testPlot.setManifestation(mockPlotViewManifestation);
@@ -319,29 +328,29 @@ public class TestPlotView {
 		frame.setVisible(true);
 		try {
 			plot.getPlotActionListener().mouseOutsideOfPlotArea = false;
-			JComponent panel = plot.getPlotPanel();
+			JComponent panel = plot.getPlotComponent();
 			KeyEvent ctrlDown = new KeyEvent(panel, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), KeyEvent.CTRL_MASK, KeyEvent.VK_CONTROL,
 					KeyEvent.CHAR_UNDEFINED);
-			panel.dispatchEvent(ctrlDown);
+			KeyboardFocusManager.getCurrentKeyboardFocusManager().dispatchEvent(ctrlDown);
 			Assert.assertTrue(testPlot.isPinned());
 
 			KeyEvent ctrlUp = new KeyEvent(panel, KeyEvent.KEY_RELEASED, System.currentTimeMillis(), 0, KeyEvent.VK_CONTROL,
 					KeyEvent.CHAR_UNDEFINED);
-			panel.dispatchEvent(ctrlUp);
+			KeyboardFocusManager.getCurrentKeyboardFocusManager().dispatchEvent(ctrlUp);
 			Assert.assertFalse(testPlot.isPinned());
 
 			KeyEvent altDown = new KeyEvent(panel, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), KeyEvent.ALT_MASK, KeyEvent.VK_ALT,
 					KeyEvent.CHAR_UNDEFINED);
-			panel.dispatchEvent(altDown);
+			KeyboardFocusManager.getCurrentKeyboardFocusManager().dispatchEvent(altDown);
 			Assert.assertTrue(testPlot.isPinned());
 
 			KeyEvent altUp = new KeyEvent(panel, KeyEvent.KEY_RELEASED, System.currentTimeMillis(), 0, KeyEvent.VK_ALT, KeyEvent.CHAR_UNDEFINED);
-			panel.dispatchEvent(altUp);
+			KeyboardFocusManager.getCurrentKeyboardFocusManager().dispatchEvent(altUp);
 			Assert.assertFalse(testPlot.isPinned());
 
 			KeyEvent shiftDown = new KeyEvent(panel, KeyEvent.KEY_PRESSED, System.currentTimeMillis(), KeyEvent.SHIFT_MASK, KeyEvent.VK_SHIFT,
 					KeyEvent.CHAR_UNDEFINED);
-			panel.dispatchEvent(shiftDown);
+			KeyboardFocusManager.getCurrentKeyboardFocusManager().dispatchEvent(shiftDown);
 			KeyEvent shiftUp = new KeyEvent(panel, KeyEvent.KEY_RELEASED, System.currentTimeMillis(), 0, KeyEvent.VK_SHIFT, KeyEvent.CHAR_UNDEFINED);
 			panel.dispatchEvent(shiftUp);
 		} finally {

@@ -22,37 +22,59 @@
 
 package org.acme.example.component;
 
-import gov.nasa.arc.mct.components.collection.CollectionComponent;
+import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.services.component.AbstractComponentProvider;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.ResourceBundle;
 
+import org.acme.example.policy.MultiColViewPolicy;
 import org.acme.example.view.MultiColView;
 
 public class MultiColComponentProvider extends AbstractComponentProvider {
 
 	// use a resource bundle for strings to enable localization in the future if required
 	private static ResourceBundle bundle = ResourceBundle.getBundle("MultiColResourceBundle"); 
-
+	
+	/* Our Views associated with the MultiColumn plug-in: (from the getViews method) MCT knows that the class 'MultiColView' is providing
+	 * visualizations 
+	 *    
+	 *  ViewType.OBJECT is for a view that can be displayed in the (MCT) Inspector View
+	 *  ViewType.EMBEDDED is for a view that can be displayed in another view.  We have this so we can put MercatorProjections
+	 *  within a (MCT) Canvas View
+	 */
+	private static final Collection<ViewInfo> VIEWS = Arrays.asList(
+			new ViewInfo(MultiColView.class, bundle.getString("MultiColViewName"), ViewType.OBJECT),
+			new ViewInfo(MultiColView.class, bundle.getString("MultiColViewName"), ViewType.EMBEDDED)
+	);
+	
+	/* Our policies associated with this plug-in:  here we tell MCT that the class 'MultiColViewPolicy'
+	 * is handling the policies for the MultiColumn plug-in
+	 * 
+	 */
+	private static final Collection<PolicyInfo> POLICIES = Arrays.asList(
+			new PolicyInfo(PolicyInfo.CategoryType.FILTER_VIEW_ROLE.getKey(), MultiColViewPolicy.class)
+	);
+	
+	
+	/*
+	 * Here is where MCT talks to our plug-in: our plug-in tells MCT
+	 * what views are associated with this plug-in.
+	 */
 	@Override
 	public Collection<ViewInfo> getViews(String componentTypeId) {
-		// return a view if desired for the components being created. Note that this method is called
-		// for every component type.
-		// Also, note that the default node view, canvas view, and housing view will be supplied
-		// by the MCT platform.
-		if (componentTypeId.equals(CollectionComponent.class.getName())) {
-			return Arrays.asList(new ViewInfo(
-					MultiColView.class, bundle.getString("MultiColViewName"), ViewType.OBJECT),
-					new ViewInfo(
-							MultiColView.class, bundle.getString("MultiColViewName"), ViewType.EMBEDDED));
-		} else {
-			return Collections.emptyList();
-		}
+		return VIEWS;
+	}
+	
+	/*
+	 * Here is where MCT learns of the polices associated with this plug-in
+	 */
+	@Override
+	public Collection<PolicyInfo> getPolicyInfos() {
+        return POLICIES;
 	}
 	
 	

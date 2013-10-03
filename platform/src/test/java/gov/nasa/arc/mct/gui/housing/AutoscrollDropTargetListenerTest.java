@@ -21,13 +21,23 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.gui.housing;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertTrue;
 
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.event.ActionEvent;
+import java.lang.reflect.Field;
 
 import javax.swing.JComponent;
 import javax.swing.JTree;
@@ -37,11 +47,10 @@ import javax.swing.Timer;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.testng.Assert.*;
 
 public class AutoscrollDropTargetListenerTest {
 
@@ -103,14 +112,20 @@ public class AutoscrollDropTargetListenerTest {
             int scrollYSign
     ) {
         Rectangle bounds = new Rectangle(-visibleX, -visibleY, treeWidth, treeHeight);
-        Rectangle visible = new Rectangle(visibleX, visibleY, visibleWidth, visibleHeight);
-        Point mouse = new Point(mouseX, mouseY);
+        Rectangle visible = new Rectangle(visibleX, visibleY, visibleWidth, visibleHeight);     
         
         when(tree.getBounds()).thenReturn(bounds);
         when(tree.getVisibleRect()).thenReturn(visible);
-        when(tree.getMousePosition()).thenReturn(mouse);
         when(tree.getScrollableUnitIncrement(isA(Rectangle.class), eq(SwingConstants.HORIZONTAL), anyInt())).thenReturn(1);
         when(tree.getScrollableUnitIncrement(isA(Rectangle.class), eq(SwingConstants.VERTICAL), anyInt())).thenReturn(1);
+        
+        try {
+            Field mouseField = listener.getClass().getDeclaredField("mouse"); 
+            mouseField.setAccessible(true);
+            mouseField.set(listener, new Point(mouseX, mouseY));
+        } catch (Exception e) {
+            Assert.fail(); // We need to be able to explicitly set the listener's recorded mouse position
+        }
         
         ActionEvent ae = mock(ActionEvent.class);
         listener.actionPerformed(ae);
