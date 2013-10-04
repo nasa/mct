@@ -21,6 +21,7 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.services.component;
 
+import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.gui.MenuItemInfo;
 import gov.nasa.arc.mct.policy.PolicyInfo;
 
@@ -74,4 +75,11 @@ public abstract class AbstractComponentProvider implements ComponentProvider {
     public <T> T getAsset(TypeInfo<?> type, Class<T> assetClass) {
         return null;
     }
+
+    @Override
+    public Collection<AbstractComponent> getBootstrapComponents() {
+        return Collections.emptySet();
+    }
+    
+    
 }

@@ -30,8 +30,9 @@
 package gov.nasa.arc.mct.core.components;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
+import gov.nasa.arc.mct.components.Bootstrap;
 
-public class TelemetryDataTaxonomyComponent extends AbstractComponent {
+public class TelemetryDataTaxonomyComponent extends AbstractComponent implements Bootstrap {
     public TelemetryDataTaxonomyComponent() {
     }
 
@@ -43,5 +44,33 @@ public class TelemetryDataTaxonomyComponent extends AbstractComponent {
      */
     public TelemetryDataTaxonomyComponent(String id) {
         setId(id);
+    }
+    
+    @Override
+    protected <T> T handleGetCapability(Class<T> capability) {
+        return capability.isAssignableFrom(getClass()) ?
+                capability.cast(this) : super.handleGetCapability(capability);
+    }
+
+    @Override
+    public boolean isGlobal() {
+        return true;
+    }
+
+    @Override
+    public boolean isSandbox() {
+        return false;
+    }
+
+    @Override
+    public int categoryIndex() {
+        return Integer.MAX_VALUE; // Always should appear at bottom
+    }
+
+    @Override
+    public int componentIndex() {
+        // "Somewhere in the middle"
+        // Use Component Id's hash code to keep position consistent.        
+        return getComponentId().hashCode() & 0xFFFF;
     }
 }

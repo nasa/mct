@@ -30,10 +30,37 @@
 package gov.nasa.arc.mct.core.components;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
+import gov.nasa.arc.mct.components.Bootstrap;
 
-public class MineTaxonomyComponent extends AbstractComponent {
+public class MineTaxonomyComponent extends AbstractComponent implements Bootstrap {
     
     public MineTaxonomyComponent() {
+    }
+
+    @Override
+    protected <T> T handleGetCapability(Class<T> capability) {
+        return capability.isAssignableFrom(getClass()) ?
+                capability.cast(this) : super.handleGetCapability(capability);
+    }
+
+    @Override
+    public boolean isGlobal() {
+        return false;
+    }
+
+    @Override
+    public boolean isSandbox() {
+        return true;
+    }
+
+    @Override
+    public int categoryIndex() {
+        return Integer.MAX_VALUE; // Always should appear at bottom
+    }
+
+    @Override
+    public int componentIndex() {
+        return Integer.MAX_VALUE; // Always should appear at bottom
     }
     
 }
