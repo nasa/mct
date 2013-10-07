@@ -42,7 +42,9 @@ public class PropertyDescriptor  {
         /**A combo box component such as a JComboBox, initialized and modified using getValue and setValue. Its enumerated list is populated using getTags. */
         ComboBox,
         /**A text area component such as a JTextArea, initialized and modified using getValueAsText and setValueAsText. Used for long-form text. */
-        TextArea;
+        TextArea,
+        /**Search for a custom GUI component using {@link gov.nasa.arc.mct.services.component.ComponentProvider#getAsset(gov.nasa.arc.mct.services.component.TypeInfo, Class) }. */
+        Custom;
     };
 
     private boolean isFieldMutable = false;

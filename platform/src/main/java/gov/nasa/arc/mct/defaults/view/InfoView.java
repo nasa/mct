@@ -26,6 +26,7 @@ import gov.nasa.arc.mct.components.PropertyDescriptor;
 import gov.nasa.arc.mct.components.PropertyDescriptor.VisualControlDescriptor;
 import gov.nasa.arc.mct.components.PropertyEditor;
 import gov.nasa.arc.mct.context.GlobalContext;
+import gov.nasa.arc.mct.gui.CustomVisualControl;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.platform.spi.RoleAccess;
 import gov.nasa.arc.mct.policy.PolicyContext;
@@ -76,6 +77,8 @@ import javax.swing.JTextField;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.plaf.basic.BasicArrowButton;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import javax.swing.text.Document;
@@ -556,6 +559,10 @@ public class InfoView extends View {
             ((JTextArea)component).setText((String) (newValue = p.getPropertyEditor().getAsText()));
             break;
         }
+        case Custom: {
+            ((CustomVisualControl)component).setValue(newValue = p.getPropertyEditor().getValue());
+            break;
+        }
         }
         // Cache the new value (will be used if validation fails)
         extendedFieldCache.put(component, newValue);
@@ -676,6 +683,19 @@ public class InfoView extends View {
             jComponent = scrollPane;
             break;
         }
+        case Custom: {
+            CustomVisualControl customControl = 
+                    getManifestedComponent().getAsset(CustomVisualControl.class);            
+            if (customControl != null) {
+                customControl.setMutable(isPrivateAndMutable);
+                customControl.setValue(ed.getValue());
+            } else {
+                l.warn("Cannot provide custom visual control for {}", getManifestedComponent().getComponentTypeID());
+            }
+            hookupComponentListeners(customControl, ed);
+            jComponent = customControl;
+            break;
+        }            
         }
         
         // Some VisualControlDescriptors may have added this already
@@ -687,6 +707,28 @@ public class InfoView extends View {
         return jComponent;
     }
 
+    private void hookupComponentListeners(final CustomVisualControl jComponent, final PropertyEditor<?> ed) {
+        jComponent.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                Object prev = extendedFieldCache.get(jComponent); 
+                Object currentSelection = jComponent.getValue();
+                if (currentSelection != prev) {
+                    try {
+                        ed.setValue(currentSelection); 
+                        extendedFieldCache.put(jComponent, currentSelection);
+                        getManifestedComponent().save();
+                        refreshExtendedFields();
+                    } catch (IllegalArgumentException e1) {
+                        jComponent.setValue(prev);
+                        ed.setValue(prev);
+                        extendedFieldCache.put(jComponent, prev);
+                    }
+                }
+            }            
+        });
+    }
+    
     private void hookupComponentListeners(final JTextField jComponent, final PropertyEditor<?> ed) {
         jComponent.addFocusListener(new FocusListener() {
 
