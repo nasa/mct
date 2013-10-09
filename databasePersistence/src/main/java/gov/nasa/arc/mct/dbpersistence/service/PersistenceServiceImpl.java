@@ -49,7 +49,6 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -71,6 +70,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.persistence.Cache;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.NoResultException;
 import javax.persistence.OptimisticLockException;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
@@ -91,6 +91,7 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 	private static final String VERSION_PROPS = "properties/version.properties";
 	private static final JAXBContext propContext;
 	private static final ComponentIdComparator COMPONENT_ID_COMPARATOR = new ComponentIdComparator();
+	private static final long MINIMUM_POLLING_INTERVAL = 10; // Don't poll more often than 10 ms
 	
 	private final ConcurrentHashMap<String, List<WeakReference<AbstractComponent>>> cache = new ConcurrentHashMap<String, List<WeakReference<AbstractComponent>>>(); 
 	
@@ -142,6 +143,11 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 			String intervalString = persistenceProperties.getProperty("mct.database_pollInterval");
 			if (intervalString != null) {
 				pollingInterval = Long.parseLong(intervalString);
+				if (pollingInterval < MINIMUM_POLLING_INTERVAL) {
+					LOGGER.warn("Configured database polling interval {} too short. Defaulting to {} ms.", 
+							pollingInterval);
+					pollingInterval = MINIMUM_POLLING_INTERVAL;
+				}
 			}
 		} catch (NumberFormatException nfe) {
 			// Stick with the default
@@ -155,7 +161,7 @@ public class PersistenceServiceImpl implements PersistenceProvider {
             	InternalDBPersistenceAccess.getService().updateComponentsFromDatabase();
             }
             
-        }, Calendar.getInstance().getTime(), pollingInterval);
+        }, pollingInterval, pollingInterval);
 
 	}
 	
@@ -692,6 +698,10 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 			TypedQuery<Date> q = em.createQuery("SELECT CURRENT_TIMESTAMP FROM ComponentSpec c WHERE c.owner = :owner", Date.class);
 			q.setParameter("owner", userId);
 			return q.getSingleResult();
+		} catch (NoResultException e) {
+			// No result from database, so no current time
+			// (database may not be fully initialized)
+			return null;
 		} finally {
 			em.close();
 		}
