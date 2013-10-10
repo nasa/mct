@@ -81,6 +81,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import org.hibernate.ejb.HibernateEntityManagerFactory;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +92,7 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 	private static final String VERSION_PROPS = "properties/version.properties";
 	private static final JAXBContext propContext;
 	private static final ComponentIdComparator COMPONENT_ID_COMPARATOR = new ComponentIdComparator();
-	private static final long MINIMUM_POLLING_INTERVAL = 10; // Don't poll more often than 10 ms
+	private static final long MINIMUM_POLLING_INTERVAL = 10; // Don't poll more often than 10 ms 
 	
 	private final ConcurrentHashMap<String, List<WeakReference<AbstractComponent>>> cache = new ConcurrentHashMap<String, List<WeakReference<AbstractComponent>>>(); 
 	
@@ -120,7 +121,10 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 	
 	private EntityManagerFactory entityManagerFactory;
 		
-	private Date lastPollTime;
+	private PollTime lastPollTime;
+	private Date lastModified;
+	private long pollingInterval;
+	
 	public void setEntityManagerProperties(Properties p) {
 		ClassLoader originalCL = Thread.currentThread().getContextClassLoader();
 		Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
@@ -138,7 +142,7 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 		checkDatabaseVersion();
 		
 		// Check for configuration of the polling interval (default is 3s)
-		long pollingInterval = 3000;
+		pollingInterval = 3000;
 		try {
 			String intervalString = persistenceProperties.getProperty("mct.database_pollInterval");
 			if (intervalString != null) {
@@ -409,6 +413,8 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 		cs.setCreatorUserId(ac.getCreator());
 		cs.setComponentType(ac.getClass().getName());
 		cs.setExternalKey(ac.getExternalKey());
+		cs.setLastModified(lastModified);
+		
 		if (!fullSave) {
 			return;
 		}
@@ -442,6 +448,12 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 	@Override
 	public void persist(Collection<AbstractComponent> componentsToPersist) {
 		EntityManager em = entityManagerFactory.createEntityManager();
+		lastModified = lastPollTime != null ? 
+				lastPollTime.getAdjustedNow() : // Predict database time 
+				getCurrentTimeFromDatabase();   // Or read it, if we haven't yet
+		if (lastModified == null) {
+			lastModified = new Date(); // Use system time as a fallback
+		}
 		try {
 			em.getTransaction().begin();
 			// first persist all new components, without relationships, model, and view states 
@@ -498,8 +510,14 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 				TypedQuery<ComponentSpec> q = em.createNamedQuery("ComponentSpec.findReferencingComponents", ComponentSpec.class);
 				q.setParameter("component", component.getComponentId());
 				List<ComponentSpec> referencingComponents = q.getResultList();
+				Date lastModified = lastPollTime != null ? 
+						lastPollTime.getAdjustedNow() : getCurrentTimeFromDatabase();
+				if (lastModified == null) {
+					lastModified = new Date();
+				}
 				for (ComponentSpec cs:referencingComponents) {
 					cs.getReferencedComponents().remove(componentToDelete);
+					cs.setLastModified(lastModified != null ? lastModified : new Date());
 				}
 				em.remove(componentToDelete);
 			}
@@ -709,15 +727,18 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 
 	private void iterateOverChangedComponents(ChangedComponentVisitor v) {		
 		if (lastPollTime == null) {
-			lastPollTime = getCurrentTimeFromDatabase();
-			if (lastPollTime == null)
+			Date storeTime = getCurrentTimeFromDatabase();
+			if (storeTime == null)
 				return;
+			else
+				lastPollTime = new PollTime(storeTime);
 		}
+		
         String query = "SELECT CURRENT_TIMESTAMP, c FROM ComponentSpec c WHERE c.lastModified BETWEEN ?1 AND CURRENT_TIMESTAMP";
         EntityManager em = entityManagerFactory.createEntityManager();        
         try {
             Query q = em.createQuery(query);
-            q.setParameter(1, lastPollTime, TemporalType.TIMESTAMP);
+            q.setParameter(1, new Date(lastPollTime.getStoreTime().getTime() - pollingInterval), TemporalType.TIMESTAMP);
             final int MAX_CACHE_SIZE = 500;
             int iteration = 0;
             boolean done = false;
@@ -731,7 +752,7 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 	            		if (obj instanceof ComponentSpec)
 	            			v.operateOnComponent((ComponentSpec) obj);
 	            		if (obj instanceof Date)
-	            			lastPollTime = (Date) obj;
+	            			lastPollTime = new PollTime((Date) obj);
 	            	}
 	            }    	
             	done = resultList.size() < MAX_CACHE_SIZE;
@@ -794,6 +815,14 @@ public class PersistenceServiceImpl implements PersistenceProvider {
                 new ChangedComponentVisitor() {
                     @Override
                     public void operateOnComponent(ComponentSpec c) {
+                    	// Evict referenced components from L2 cache
+                    	// TODO: Find alternate solution or refactor in order
+                    	//       to remove this explicit reference to Hibernate
+                    	((HibernateEntityManagerFactory)entityManagerFactory)
+                    	   .getSessionFactory()
+                    	   .getCache().evictCollection(
+                    	       ComponentSpec.class.getName() + ".referencedComponents", 
+                    	       c.getComponentId());
                     	List<WeakReference<AbstractComponent>> list = cache.get(c.getComponentId());
                         if (list != null && !list.isEmpty()) {
                         	Collection<AbstractComponent> cachedComponents = new ArrayList<AbstractComponent>(list.size());
@@ -986,5 +1015,24 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 			em.close();
 		}
 		
+	}
+	
+	private static class PollTime {
+		private Date storeTime;
+		private long localTime;
+		
+		public PollTime(Date storeTime) {
+			this.storeTime = storeTime;
+			localTime = System.currentTimeMillis();
+		}
+		
+		public Date getStoreTime() {
+			return storeTime;
+		}
+		
+		public Date getAdjustedNow() {
+			long diff = System.currentTimeMillis() - localTime;
+			return new Date(storeTime.getTime() + diff);
+		}
 	}
 }
