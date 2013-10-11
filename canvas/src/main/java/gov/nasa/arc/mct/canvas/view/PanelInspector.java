@@ -273,7 +273,11 @@ public class PanelInspector extends View {
     
         return true;
     }
-
+  
+    @Override
+    public View getHousedViewManifestation() {
+        return view;
+    }
     
     private static final class WidgetDragger extends MouseMotionAdapter {
         @Override

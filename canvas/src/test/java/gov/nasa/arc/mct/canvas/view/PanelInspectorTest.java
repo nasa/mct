@@ -132,6 +132,11 @@ public final class PanelInspectorTest {
     }
     
     @Test
+    public void testGetHousedViewManifestation() {
+        Assert.assertEquals(panelInspector.getHousedViewManifestation(), view);
+    }
+    
+    @Test
     public void testEnterLockedState() {
         try {
             
