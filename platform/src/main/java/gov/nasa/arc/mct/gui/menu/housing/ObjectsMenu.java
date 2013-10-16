@@ -101,7 +101,8 @@ public class ObjectsMenu extends ContextAwareMenu {
         // DELETION
         addMenuItemInfos(OBJECTS_DELETION_EXT, Arrays.asList(
                 new MenuItemInfo("OBJECTS_REMOVE_MANIFESTATION", MenuItemType.NORMAL),
-                new MenuItemInfo("DELETE_OBJECTS", MenuItemType.NORMAL)));
+                new MenuItemInfo("DELETE_OBJECTS", MenuItemType.NORMAL),
+                new MenuItemInfo("DELETE_ALL", MenuItemType.NORMAL)));
         
         // EXPORT
         addMenuItemInfos(OBJECTS_EXPORT_EXT, Collections.<MenuItemInfo>singleton(

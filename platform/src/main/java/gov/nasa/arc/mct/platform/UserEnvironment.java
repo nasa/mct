@@ -36,6 +36,7 @@ import gov.nasa.arc.mct.gui.actions.CenterPaneRevertToCommitted;
 import gov.nasa.arc.mct.gui.actions.ChangeHousingViewAction;
 import gov.nasa.arc.mct.gui.actions.ConveniencesOpenMineGroupAction;
 import gov.nasa.arc.mct.gui.actions.ConveniencesOpenUserEnvAction;
+import gov.nasa.arc.mct.gui.actions.DeleteAllAction;
 import gov.nasa.arc.mct.gui.actions.DeleteObjectAction;
 import gov.nasa.arc.mct.gui.actions.DuplicateAction;
 import gov.nasa.arc.mct.gui.actions.ExportThisAsImageAction;
@@ -115,6 +116,7 @@ public class UserEnvironment {
         ActionManager.registerAction(DuplicateAction.class, "OBJECTS_DUPLICATE");
         ActionManager.registerAction(RemoveManifestationAction.class, "OBJECTS_REMOVE_MANIFESTATION");
         ActionManager.registerAction(DeleteObjectAction.class, "DELETE_OBJECTS");
+        ActionManager.registerAction(DeleteAllAction.class, "DELETE_ALL");
         ActionManager.registerAction(ShowHideControlArea.class, "VIEW_CONTROL");
         ActionManager.registerAction(AboutMCT.class, "HELP_ABOUT");
         ActionManager.registerAction(AboutMCTLicenses.class, "HELP_LICENSES");
