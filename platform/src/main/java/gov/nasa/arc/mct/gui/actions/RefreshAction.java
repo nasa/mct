@@ -123,7 +123,7 @@ public class RefreshAction extends ContextAwareAction {
                         new String[]{ok, cancel}, 
                         ok, 
                         hints);
-                doRefresh = input.equals(ok);
+                doRefresh = ok.equals(input);
             }
            
             // Perform the refresh by re-creating view

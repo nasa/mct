@@ -169,9 +169,9 @@ public class ChangeHousingViewAction extends GroupAction {
                     options[0], 
                     hints);
             
-            if (answer.equals(save)) {
+            if (save.equals(answer)) {
                 PlatformAccess.getPlatform().getPersistenceProvider().persist(Collections.singleton(comp));
-            } else if (answer.equals(saveAll)) { // Save All
+            } else if (saveAll.equals(answer)) { // Save All
                 Set<AbstractComponent> allModifiedObjects;
                 if (comp.isDirty()) {
                     // Create a new set including the object if it's dirty

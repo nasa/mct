@@ -29,6 +29,7 @@
 package gov.nasa.arc.mct.gui.housing;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
+import gov.nasa.arc.mct.components.ObjectManager;
 import gov.nasa.arc.mct.context.GlobalContext;
 import gov.nasa.arc.mct.defaults.view.MCTHousingViewManifestation;
 import gov.nasa.arc.mct.gui.OptionBox;
@@ -58,10 +59,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
@@ -202,7 +205,7 @@ public class MCTStandardHousing extends MCTAbstractHousing implements TwiddleVie
                                 options[0],
                                 hints);
                         
-                        if (response == options[0]) { // "OK"
+                        if (response != null && response.equals(options[0])) { // "OK"
                             OSGIRuntime osgiRuntime = OSGIRuntimeImpl.getOSGIRuntime();
                             try {
                                 osgiRuntime.stopOSGI();
@@ -392,34 +395,61 @@ public class MCTStandardHousing extends MCTAbstractHousing implements TwiddleVie
      * Prompts users to commit or abort pending changes in view.
      * @param view the modified view
      * @param dialogMessage the dialog message which differs from where the view is located (in the center or inspector pane)
-     * @return true to keep the window open, false to close the window
+     * @return false to keep the window open, true to close the window
      */
     private boolean commitOrAbortPendingChanges(View view, String dialogMessage) {
-        if (!isComponentWriteableByUser(view.getManifestedComponent()))
-            return true; 
+        AbstractComponent comp = view.getManifestedComponent();
+        if (!isComponentWriteableByUser(comp))
+            return true;
+
+        // Options (save, save all, abort)
+        String save = BUNDLE.getString("view.modified.alert.save");
+        String saveAll = BUNDLE.getString("view.modified.alert.saveAll");
+        String discard = BUNDLE.getString("view.modified.alert.abort");
+        String cancel = BUNDLE.getString("view.modified.alert.cancel");
         
-        Object[] options = {
-                BUNDLE.getString("view.modified.alert.save"),
-                BUNDLE.getString("view.modified.alert.abort"),
-                BUNDLE.getString("view.modified.alert.cancel"),
-            };
+        // Show options - Save, Abort, or maybe Save All
+        ObjectManager om = comp.getCapability(ObjectManager.class);
+        Set<AbstractComponent> modified = om != null ? om.getAllModifiedObjects() : Collections.<AbstractComponent> emptySet();
+        String[] options = modified.isEmpty() ?
+                new String[]{ save, discard, cancel} :
+                new String[]{ save, saveAll, discard, cancel };
     
-        int answer = OptionBox.showOptionDialog(view,
-                dialogMessage,                         
-                BUNDLE.getString("view.modified.alert.title"),
-                OptionBox.YES_NO_CANCEL_OPTION,
-                OptionBox.WARNING_MESSAGE,
-                null,
-                options, options[0]);
-        
-        switch (answer) {
-        case OptionBox.CANCEL_OPTION:                    
+        Map<String, Object> hints = new HashMap<String, Object>();
+        hints.put(WindowManagerImpl.MESSAGE_TYPE, OptionBox.WARNING_MESSAGE);
+        hints.put(WindowManagerImpl.OPTION_TYPE, OptionBox.YES_NO_OPTION);
+        hints.put(WindowManagerImpl.PARENT_COMPONENT, view);
+
+        String answer = PlatformAccess.getPlatform().getWindowManager().showInputDialog(
+                BUNDLE.getString("view.modified.alert.title"), 
+                dialogMessage, 
+                options, 
+                options[0], 
+                hints);
+
+        if (save.equals(answer)) {
+            PlatformAccess.getPlatform().getPersistenceProvider().persist(Collections.singleton(comp));
+            return true;
+        } else if (saveAll.equals(answer)) { // Save All
+            Set<AbstractComponent> allModifiedObjects;
+            if (comp.isDirty()) {
+                // Create a new set including the object if it's dirty
+                allModifiedObjects = new HashSet<AbstractComponent>();
+                allModifiedObjects.addAll(modified);
+                allModifiedObjects.add(comp);
+            } else {
+                // Just use the same set returned by the comp's ObjectManager capability
+                allModifiedObjects = modified; 
+            }
+            PlatformAccess.getPlatform().getPersistenceProvider().persist(allModifiedObjects);
+            
+            om.notifySaved(modified);
+            return true;
+        } else if (discard.equals(answer)){
+            // Do close window, don't save changes
+            return true;
+        } else { // Cancel
             return false;
-        case OptionBox.YES_OPTION:
-            PlatformAccess.getPlatform().getPersistenceProvider().persist(Collections.singleton(view.getManifestedComponent()));
-            return true;
-        default:
-            return true;
         }
     }
     

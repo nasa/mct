@@ -213,7 +213,7 @@ public class DeleteAllAction extends ContextAwareAction {
                     hints); // hints
             
             // Complete the action, if the user has confirmed it
-            if (choice.equals(confirm)) {
+            if (confirm.equals(choice)) {
                 for (AbstractComponent delete : toDelete) {
                     windowManager.closeWindows(delete.getComponentId());
                 }
