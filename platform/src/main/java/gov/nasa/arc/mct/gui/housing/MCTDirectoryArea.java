@@ -34,7 +34,6 @@ import gov.nasa.arc.mct.gui.OptionBox;
 import gov.nasa.arc.mct.gui.SelectionProvider;
 import gov.nasa.arc.mct.gui.Twistie;
 import gov.nasa.arc.mct.gui.View;
-import gov.nasa.arc.mct.gui.ViewListener;
 import gov.nasa.arc.mct.gui.ViewProvider;
 import gov.nasa.arc.mct.gui.ViewRoleSelection;
 import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
@@ -701,16 +700,9 @@ public class MCTDirectoryArea extends View implements ViewProvider, SelectionPro
                         if (selectedNode.isProxy()) {
                             return;
                         }
-                        selectedNode.removeAllChildren();
+                        // Let the node know it needs to refresh itself
                         View gui = (View) selectedNode.getUserObject();
-                        ViewListener listener = gui.getViewListener();
-                        
-                        if (listener != null) {
-                            // this action currently fires a structure change event
-                            // so there is no need to fire another event here
-                            listener.actionPerformed(event);
-                        }
-                        
+                        gui.updateMonitoredGUI();
                     }
                 }).execute();
             }

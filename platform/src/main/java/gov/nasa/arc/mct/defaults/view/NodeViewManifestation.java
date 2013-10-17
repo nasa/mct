@@ -144,8 +144,15 @@ public class NodeViewManifestation extends View {
 
             if (labelChanged) treeModel.nodeChanged(node);
             if (node.isProxy())                
-                return;            
+                return;
 
+            // First, remove any placeholder nodes
+            for (int i = 0; i < node.getChildCount(); i++) {
+                while (i < node.getChildCount() && !(node.getChildAt(i) instanceof MCTMutableTreeNode)) {
+                    node.remove(i);
+                }
+            }
+            
             // Check if a node structure refresh is necessary
             List<AbstractComponent> visibleChildComponents = new ArrayList<AbstractComponent>();
             for (AbstractComponent childComponent : getManifestedComponent().getComponents()) {
