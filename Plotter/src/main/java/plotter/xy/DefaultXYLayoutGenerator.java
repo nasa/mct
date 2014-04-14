@@ -54,6 +54,8 @@ public class DefaultXYLayoutGenerator {
 
 		XYAxis xAxis = null;
 		XYAxis yAxis = null;
+		XYAxis x2Axis = null;
+		XYAxis y2Axis = null;
 		XYPlotContents contents = null;
 		XYLocationDisplay locationDisplay = null;
 		SlopeLineDisplay slopeDisplay = null;
@@ -65,13 +67,29 @@ public class DefaultXYLayoutGenerator {
 			} else if(c instanceof XYAxis) {
 				XYAxis a = (XYAxis) c;
 				if(a.getPlotDimension() == XYDimension.X) {
-					xAxis = a;
-					layout.putConstraint(SpringLayout.SOUTH, c, 0, SpringLayout.SOUTH, plot);
-					layout.putConstraint(SpringLayout.EAST, c, 0, SpringLayout.EAST, plot);
+					if(a.isMirrored()) {
+						x2Axis = a;
+						layout.putConstraint(SpringLayout.NORTH, c, 0, SpringLayout.NORTH, plot);
+						layout.putConstraint(SpringLayout.EAST, c, 0, SpringLayout.EAST, plot);
+						layout.putConstraint(SpringLayout.WEST, c, 0, SpringLayout.WEST, plot);
+					} else {
+						xAxis = a;
+						layout.putConstraint(SpringLayout.SOUTH, c, 0, SpringLayout.SOUTH, plot);
+						layout.putConstraint(SpringLayout.EAST, c, 0, SpringLayout.EAST, plot);
+						layout.putConstraint(SpringLayout.WEST, c, 0, SpringLayout.WEST, plot);
+					}
 				} else {
-					yAxis = a;
-					layout.putConstraint(SpringLayout.WEST, c, 0, SpringLayout.WEST, plot);
-					layout.putConstraint(SpringLayout.NORTH, c, 0, SpringLayout.NORTH, plot);
+					if(a.isMirrored()) {
+						y2Axis = a;
+						layout.putConstraint(SpringLayout.EAST, c, 0, SpringLayout.EAST, plot);
+						layout.putConstraint(SpringLayout.NORTH, c, 0, SpringLayout.NORTH, plot);
+						layout.putConstraint(SpringLayout.SOUTH, c, 0, SpringLayout.SOUTH, plot);
+					} else {
+						yAxis = a;
+						layout.putConstraint(SpringLayout.WEST, c, 0, SpringLayout.WEST, plot);
+						layout.putConstraint(SpringLayout.NORTH, c, 0, SpringLayout.NORTH, plot);
+						layout.putConstraint(SpringLayout.SOUTH, c, 0, SpringLayout.SOUTH, plot);
+					}
 				}
 			} else if(c instanceof XYLocationDisplay) {
 				locationDisplay = (XYLocationDisplay) c;
@@ -96,7 +114,15 @@ public class DefaultXYLayoutGenerator {
 			}
 
 			int margin;
-			if(locationDisplay != null) {
+			if(x2Axis != null) {
+				layout.putConstraint(SpringLayout.NORTH, contents, 0, SpringLayout.SOUTH, x2Axis);
+				margin = (int) x2Axis.getPreferredSize().getHeight();
+				if(locationDisplay != null) {
+					margin += (int) locationDisplay.getPreferredSize().getHeight();
+				} else if(slopeDisplay != null) {
+					margin += (int) slopeDisplay.getPreferredSize().getHeight();
+				}
+			} else if(locationDisplay != null) {
 				layout.putConstraint(SpringLayout.NORTH, contents, 0, SpringLayout.SOUTH, locationDisplay);
 				margin = (int) locationDisplay.getPreferredSize().getHeight();
 			} else if(slopeDisplay != null) {
@@ -124,13 +150,32 @@ public class DefaultXYLayoutGenerator {
 				layout.putConstraint(SpringLayout.NORTH, legend, 0, SpringLayout.NORTH, contents);
 				layout.putConstraint(SpringLayout.EAST, legend, 0, SpringLayout.EAST, contents);
 			}
+			if(y2Axis != null) {
+				layout.putConstraint(SpringLayout.EAST, contents, 0, SpringLayout.WEST, y2Axis);
+				y2Axis.setEndMargin(margin);
+			} else {
+				layout.putConstraint(SpringLayout.EAST, contents, 0, SpringLayout.EAST, plot);
+			}
 		}
 
 		if(xAxis != null && yAxis != null) {
 			xAxis.setStartMargin((int) yAxis.getPreferredSize().getWidth());
 			yAxis.setStartMargin((int) xAxis.getPreferredSize().getHeight());
-			layout.putConstraint(SpringLayout.WEST, xAxis, 0, SpringLayout.WEST, yAxis);
-			layout.putConstraint(SpringLayout.SOUTH, yAxis, 0, SpringLayout.SOUTH, xAxis);
+		}
+
+		if(xAxis != null && y2Axis != null) {
+			xAxis.setEndMargin((int) y2Axis.getPreferredSize().getWidth());
+			y2Axis.setStartMargin((int) xAxis.getPreferredSize().getHeight());
+		}
+
+		if(x2Axis != null && yAxis != null) {
+			x2Axis.setStartMargin((int) yAxis.getPreferredSize().getWidth());
+			yAxis.setEndMargin((int) x2Axis.getPreferredSize().getHeight());
+		}
+
+		if(x2Axis != null && y2Axis != null) {
+			x2Axis.setEndMargin((int) y2Axis.getPreferredSize().getWidth());
+			y2Axis.setEndMargin((int) x2Axis.getPreferredSize().getHeight());
 		}
 	}
 }

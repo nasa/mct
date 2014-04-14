@@ -23,6 +23,7 @@ package plotter.xy;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.text.NumberFormat;
 import java.util.HashSet;
@@ -149,10 +150,13 @@ public class LinearXYAxis extends XYAxis {
 		// Position the labels to line up with the corresponding tick marks.
 		int textMargin = getTextMargin();
 		boolean inverted = getEnd() < getStart();
+		boolean mirrored = isMirrored();
 		if(plotDimension == XYDimension.X) {
 			for(int i = 0; i < major.length; i++) {
 				Component label = labels[i];
-				double preferredSize = label.getPreferredSize().getWidth();
+				Dimension preferredSize2 = label.getPreferredSize();
+				double preferredSize = preferredSize2.getWidth();
+				double preferredHeight = preferredSize2.getHeight();
 				double end = preferredSize / 2;
 				double start = -end;
 				if(inverted) {
@@ -172,7 +176,8 @@ public class LinearXYAxis extends XYAxis {
 				}
 				double labelWidth = end - start;
 				label.setSize((int) labelWidth, label.getHeight());
-				label.setLocation((int) (start + startMargin + major[i]), textMargin);
+				int y = mirrored ? (int)(height - 1 - textMargin - preferredHeight) : textMargin;
+				label.setLocation((int) (start + startMargin + major[i]), y);
 			}
 		} else {
 			int height2 = height - startMargin;
@@ -200,7 +205,8 @@ public class LinearXYAxis extends XYAxis {
 				double labelHeight = end - start;
 				int labelWidth = label.getWidth();
 				label.setSize(labelWidth, (int) labelHeight);
-				label.setLocation(width2 - labelWidth, (int) (height2 - major[i] - end));
+				int x = mirrored ? textMargin : (width2 - labelWidth);
+				label.setLocation(x, (int) (height2 - major[i] - end));
 			}
 		}
 	}

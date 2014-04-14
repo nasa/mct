@@ -58,6 +58,9 @@ public abstract class XYAxis extends Axis {
 	/** Specifies how the labels are oriented. */
 	private Rotation labelRotation;
 
+	/** True if the axis has its tick marks on the opposite side from the default. */
+	private boolean mirrored;
+
 	
 	/**
 	 * Creates an axis.
@@ -88,20 +91,40 @@ public abstract class XYAxis extends Axis {
 		int majorTickLength = getMajorTickLength();
 		int minorTickLength = getMinorTickLength();
 		if(plotDimension == XYDimension.X) {
-			g.drawLine(0, 0, width - 1, 0);
-			for(int x : getMajorTicks()) {
-				g.drawLine(x, 0, x, majorTickLength);
-			}
-			for(int x : getMinorTicks()) {
-				g.drawLine(x, 0, x, minorTickLength);
+			if(mirrored) {
+				g.drawLine(0, height - 1, width - 1, height - 1);
+				for(int x : getMajorTicks()) {
+					g.drawLine(x, height - 1, x, height - 1 - majorTickLength);
+				}
+				for(int x : getMinorTicks()) {
+					g.drawLine(x, height - 1, x, height - 1 - minorTickLength);
+				}
+			} else {
+				g.drawLine(0, 0, width - 1, 0);
+				for(int x : getMajorTicks()) {
+					g.drawLine(x, 0, x, majorTickLength);
+				}
+				for(int x : getMinorTicks()) {
+					g.drawLine(x, 0, x, minorTickLength);
+				}
 			}
 		} else {
-			g.drawLine(width - 1, height - 1, width - 1, 0);
-			for(int y : getMajorTicks()) {
-				g.drawLine(width - 1 - majorTickLength, height - 1 - y, width - 1, height - 1 - y);
-			}
-			for(int y : getMinorTicks()) {
-				g.drawLine(width - 1 - minorTickLength, height - 1 - y, width - 1, height - 1 - y);
+			if(mirrored) {
+				g.drawLine(0, height - 1, 0, 0);
+				for(int y : getMajorTicks()) {
+					g.drawLine(majorTickLength, height - 1 - y, 0, height - 1 - y);
+				}
+				for(int y : getMinorTicks()) {
+					g.drawLine(minorTickLength, height - 1 - y, 0, height - 1 - y);
+				}
+			} else {
+				g.drawLine(width - 1, height - 1, width - 1, 0);
+				for(int y : getMajorTicks()) {
+					g.drawLine(width - 1 - majorTickLength, height - 1 - y, width - 1, height - 1 - y);
+				}
+				for(int y : getMinorTicks()) {
+					g.drawLine(width - 1 - minorTickLength, height - 1 - y, width - 1, height - 1 - y);
+				}
 			}
 		}
 	}
@@ -235,6 +258,25 @@ public abstract class XYAxis extends Axis {
 	public void setLabelRotation(Rotation labelRotation) {
 		this.labelRotation = labelRotation;
 	}
+
+
+	/**
+	 * Returns true if the axis is mirrored.
+	 * @return true if the axis is mirrored
+	 */
+	public boolean isMirrored() {
+		return mirrored;
+	}
+
+
+	/**
+	 * Sets whether or not the axis is mirrored.
+	 * @param mirrored true if the axis should be mirrored
+	 */
+	public void setMirrored(boolean mirrored) {
+		this.mirrored = mirrored;
+	}
+
 
 
 	/**

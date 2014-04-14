@@ -54,7 +54,13 @@ public class XYPlotFrame extends JFrame {
 
 	private XYAxis yAxis;
 
+	private XYAxis x2Axis;
+
+	private XYAxis y2Axis;
+
 	private XYGrid grid;
+
+	private XYGrid grid2;
 
 	private XYPlotContents contents;
 
@@ -65,6 +71,12 @@ public class XYPlotFrame extends JFrame {
 	private Legend legend;
 
 	private boolean useLegend;
+
+	private boolean useX2;
+
+	private boolean useY2;
+
+	private boolean useGrid2;
 
 
 	public void setup() {
@@ -83,13 +95,42 @@ public class XYPlotFrame extends JFrame {
 		plot.add(yAxis);
 		plot.setXAxis(xAxis);
 		plot.setYAxis(yAxis);
+		if(useX2) {
+			x2Axis = createX2Axis();
+			x2Axis.setMirrored(true);
+			x2Axis.setPreferredSize(new Dimension(1, 40));
+			x2Axis.setForeground(Color.white);
+			x2Axis.setTextMargin(10);
+			plot.add(x2Axis);
+			plot.setX2Axis(x2Axis);
+		}
+		if(useY2) {
+			y2Axis = createY2Axis();
+			y2Axis.setMirrored(true);
+			y2Axis.setPreferredSize(new Dimension(40, 1));
+			y2Axis.setForeground(Color.white);
+			y2Axis.setTextMargin(10);
+			plot.add(y2Axis);
+			plot.setY2Axis(y2Axis);
+		}
 		plot.setBackground(Color.darkGray);
 		contents = new XYPlotContents();
 		contents.setBackground(Color.black);
 		plot.setBackground(Color.darkGray);
+
 		grid = new XYGrid(xAxis, yAxis);
 		grid.setForeground(Color.lightGray);
 		contents.add(grid);
+
+		if(useGrid2) {
+			if(!useX2 || !useY2) {
+				throw new IllegalStateException("If useGrid2 is enabled, then useX2 and useY2 must be enabled");
+			}
+			grid2 = new XYGrid(x2Axis, y2Axis);
+			grid2.setForeground(Color.lightGray);
+			contents.add(grid2);
+		}
+
 		plot.add(contents);
 		plot.setPreferredSize(new Dimension(150, 100));
 
@@ -132,16 +173,6 @@ public class XYPlotFrame extends JFrame {
 
 		new DefaultXYLayoutGenerator().generateLayout(plot);
 
-		SpringLayout layout2 = (SpringLayout) plot.getLayout();
-		layout2.putConstraint(SpringLayout.NORTH, locationDisplay, 0, SpringLayout.NORTH, plot);
-		layout2.putConstraint(SpringLayout.WEST, locationDisplay, 0, SpringLayout.WEST, contents);
-		layout2.putConstraint(SpringLayout.EAST, locationDisplay, 0, SpringLayout.HORIZONTAL_CENTER, contents);
-		layout2.putConstraint(SpringLayout.NORTH, contents, 0, SpringLayout.SOUTH, locationDisplay);
-		layout2.putConstraint(SpringLayout.NORTH, slopeLineDisplay, 0, SpringLayout.NORTH, plot);
-		layout2.putConstraint(SpringLayout.WEST, slopeLineDisplay, 0, SpringLayout.HORIZONTAL_CENTER, contents);
-		layout2.putConstraint(SpringLayout.EAST, slopeLineDisplay, 0, SpringLayout.EAST, contents);
-		yAxis.setEndMargin((int) locationDisplay.getPreferredSize().getHeight());
-
 		SpringLayout layout = new SpringLayout();
 		contentPane.setLayout(layout);
 		layout.putConstraint(SpringLayout.NORTH, plot, 0, SpringLayout.NORTH, contentPane);
@@ -161,6 +192,16 @@ public class XYPlotFrame extends JFrame {
 	}
 
 
+	protected XYAxis createY2Axis() {
+		return new LinearXYAxis(XYDimension.Y);
+	}
+
+
+	protected XYAxis createX2Axis() {
+		return new LinearXYAxis(XYDimension.X);
+	}
+
+
 	/**
 	 * @deprecated Use {@link #addPlotLine(String,XYPlotLine)} instead
 	 */
@@ -175,6 +216,9 @@ public class XYPlotFrame extends JFrame {
 		if(description != null && legend != null) {
 			legend.addLine(description, plotLine);
 		}
+		if(grid2 != null) {
+			contents.setComponentZOrder(grid2, contents.getComponentCount() - 1);
+		}
 	}
 
 
@@ -185,6 +229,16 @@ public class XYPlotFrame extends JFrame {
 
 	public XYAxis getYAxis() {
 		return yAxis;
+	}
+
+
+	public XYAxis getX2Axis() {
+		return x2Axis;
+	}
+
+
+	public XYAxis getY2Axis() {
+		return y2Axis;
 	}
 
 
@@ -220,5 +274,45 @@ public class XYPlotFrame extends JFrame {
 
 	public Legend getLegend() {
 		return legend;
+	}
+
+
+	public boolean isUseX2() {
+		return useX2;
+	}
+
+
+	public void setUseX2(boolean useX2) {
+		this.useX2 = useX2;
+	}
+
+
+	public boolean isUseY2() {
+		return useY2;
+	}
+
+
+	public void setUseY2(boolean useY2) {
+		this.useY2 = useY2;
+	}
+
+
+	public boolean isUseGrid2() {
+		return useGrid2;
+	}
+
+
+	public void setUseGrid2(boolean useGrid2) {
+		this.useGrid2 = useGrid2;
+	}
+
+
+	public XYGrid getGrid() {
+		return grid;
+	}
+
+
+	public XYGrid getGrid2() {
+		return grid2;
 	}
 }
