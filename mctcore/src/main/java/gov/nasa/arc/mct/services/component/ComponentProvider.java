@@ -21,6 +21,7 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.services.component;
 
+import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.gui.MenuItemInfo;
 import gov.nasa.arc.mct.policy.PolicyInfo;
 
@@ -93,4 +94,28 @@ public interface ComponentProvider {
     * @return an asset of the requested type (or null, if none is provided)
     */
    <T> T getAsset(TypeInfo<?> objectType, Class<T> assetClass);
+   
+   /**
+    * Get any bootstrap components (top-level objects seen in the User Environment) 
+    * that should be seen. Plug-ins may wish to consult the platform to determine 
+    * the current user here.
+    * 
+    * Some of these objects may already exist in persistence from previous executions of MCT, 
+    * so the platform will check for this and filter out any redundant values returned. 
+    * In support of this behavior, plug-ins which utilize this feature should initialize  
+    * the component IDs for all components returned here in a repeatable way.
+    * 
+    * Component IDs may be initialized as:
+    *   <code>component.getCapability(ComponentInitializer.class).setId(id)</code>
+    * 
+    * The platform additionally infers whether a component should be visible to all users 
+    * or visible only to a specific user. If the creator is * (the wildcard user), then 
+    * it will be visible to all users; otherwise, it is user-specific. 
+    * 
+    * Component creators can be set as:
+    *   <code>component.getCapability(ComponentInitializer.class).setCreator(id)</code>
+    * 
+    * @return a collection of bootstrap components offered by this plug-in
+    */
+   Collection<AbstractComponent> getBootstrapComponents();
 }

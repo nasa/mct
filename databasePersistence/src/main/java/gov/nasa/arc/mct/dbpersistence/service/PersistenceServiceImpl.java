@@ -34,9 +34,9 @@ import gov.nasa.arc.mct.dbpersistence.dao.TagAssociationPK;
 import gov.nasa.arc.mct.dbpersistence.dao.ViewState;
 import gov.nasa.arc.mct.dbpersistence.dao.ViewStatePK;
 import gov.nasa.arc.mct.dbpersistence.search.QueryResult;
+import gov.nasa.arc.mct.dbpersistence.service.StepBehindCache.Lookup;
 import gov.nasa.arc.mct.platform.spi.PersistenceProvider;
 import gov.nasa.arc.mct.platform.spi.Platform;
-import gov.nasa.arc.mct.platform.spi.PlatformAccess;
 import gov.nasa.arc.mct.services.internal.component.ComponentInitializer;
 import gov.nasa.arc.mct.services.internal.component.Updatable;
 import gov.nasa.arc.mct.services.internal.component.User;
@@ -49,7 +49,6 @@ import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -71,6 +70,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.persistence.Cache;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.NoResultException;
 import javax.persistence.OptimisticLockException;
 import javax.persistence.Persistence;
 import javax.persistence.Query;
@@ -81,6 +81,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import org.hibernate.ejb.HibernateEntityManagerFactory;
 import org.osgi.service.component.ComponentContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,8 +92,25 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 	private static final String VERSION_PROPS = "properties/version.properties";
 	private static final JAXBContext propContext;
 	private static final ComponentIdComparator COMPONENT_ID_COMPARATOR = new ComponentIdComparator();
+	private static final long MINIMUM_POLLING_INTERVAL = 10; // Don't poll more often than 10 ms 
+	private static final int DEFAULT_MAX_RESULTS = 100; // Default max search results
 	
-	private final ConcurrentHashMap<String, List<WeakReference<AbstractComponent>>> cache = new ConcurrentHashMap<String, List<WeakReference<AbstractComponent>>>(); 
+	private final ConcurrentHashMap<String, List<WeakReference<AbstractComponent>>> cache = 
+			new ConcurrentHashMap<String, List<WeakReference<AbstractComponent>>>(); 
+	private Platform platform = null;
+
+	private StepBehindCache<Set<String>> allUsers =
+			new StepBehindCache<Set<String>>(new Lookup<Set<String>>() {
+				public Set<String> lookup() {
+					return lookupAllUsers();
+				}
+			});
+	private StepBehindCache<List<String>> bootstrapComponentIds =
+			new StepBehindCache<List<String>>(new Lookup<List<String>>() {
+				public List<String> lookup() {
+					return lookupBootstrapComponents();
+				}
+			});	
 	
 	static {
 		try {
@@ -119,7 +137,21 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 	
 	private EntityManagerFactory entityManagerFactory;
 		
-	private Date lastPollTime;
+	private PollTime lastPollTime;
+	private Date lastModified;
+	private long pollingInterval;
+	private int maxResults = DEFAULT_MAX_RESULTS;
+	
+	public void bind(Platform platform) {
+		this.platform = platform;
+	}
+	
+	public void unbind(Platform platform) {
+		if (this.platform == platform) {
+			this.platform = null;
+		}
+	}
+	
 	public void setEntityManagerProperties(Properties p) {
 		ClassLoader originalCL = Thread.currentThread().getContextClassLoader();
 		Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
@@ -136,15 +168,33 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 		new InternalDBPersistenceAccess().setPersistenceService(this);
 		checkDatabaseVersion();
 		
+		// Trigger initial lookup of users
+		// (this leaves something in cache for subsequent lookups)
+		allUsers.get();
+		
 		// Check for configuration of the polling interval (default is 3s)
-		long pollingInterval = 3000;
+		pollingInterval = 3000;
 		try {
 			String intervalString = persistenceProperties.getProperty("mct.database_pollInterval");
 			if (intervalString != null) {
 				pollingInterval = Long.parseLong(intervalString);
+				if (pollingInterval < MINIMUM_POLLING_INTERVAL) {
+					LOGGER.warn("Configured database polling interval {} too short. Defaulting to {} ms.", 
+							pollingInterval);
+					pollingInterval = MINIMUM_POLLING_INTERVAL;
+				}
 			}
 		} catch (NumberFormatException nfe) {
 			// Stick with the default
+		}
+		try {
+			String maxResultsString = persistenceProperties.getProperty("mct.database_maxResults");
+			if (maxResultsString != null) {
+				maxResults = Integer.parseInt(maxResultsString);
+			}
+		} catch (NumberFormatException nfe) {
+			// Stick with the default
+			maxResults = DEFAULT_MAX_RESULTS;
 		}
 		
         Timer databasePollingTimer = new Timer();
@@ -155,7 +205,7 @@ public class PersistenceServiceImpl implements PersistenceProvider {
             	InternalDBPersistenceAccess.getService().updateComponentsFromDatabase();
             }
             
-        }, Calendar.getInstance().getTime(), pollingInterval);
+        }, pollingInterval, pollingInterval);
 
 	}
 	
@@ -316,6 +366,10 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 
 	@Override
 	public Set<String> getAllUsers() {
+		return allUsers.get();
+	}
+	
+	private Set<String> lookupAllUsers() {
 		EntityManager em = entityManagerFactory.createEntityManager();
 		Set<String> userNames = null;
 		try {
@@ -403,6 +457,8 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 		cs.setCreatorUserId(ac.getCreator());
 		cs.setComponentType(ac.getClass().getName());
 		cs.setExternalKey(ac.getExternalKey());
+		cs.setLastModified(lastModified);
+		
 		if (!fullSave) {
 			return;
 		}
@@ -436,6 +492,12 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 	@Override
 	public void persist(Collection<AbstractComponent> componentsToPersist) {
 		EntityManager em = entityManagerFactory.createEntityManager();
+		lastModified = lastPollTime != null ? 
+				lastPollTime.getAdjustedNow() : // Predict database time 
+				getCurrentTimeFromDatabase();   // Or read it, if we haven't yet
+		if (lastModified == null) {
+			lastModified = new Date(); // Use system time as a fallback
+		}
 		try {
 			em.getTransaction().begin();
 			// first persist all new components, without relationships, model, and view states 
@@ -492,8 +554,14 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 				TypedQuery<ComponentSpec> q = em.createNamedQuery("ComponentSpec.findReferencingComponents", ComponentSpec.class);
 				q.setParameter("component", component.getComponentId());
 				List<ComponentSpec> referencingComponents = q.getResultList();
+				Date lastModified = lastPollTime != null ? 
+						lastPollTime.getAdjustedNow() : getCurrentTimeFromDatabase();
+				if (lastModified == null) {
+					lastModified = new Date();
+				}
 				for (ComponentSpec cs:referencingComponents) {
 					cs.getReferencedComponents().remove(componentToDelete);
+					cs.setLastModified(lastModified != null ? lastModified : new Date());
 				}
 				em.remove(componentToDelete);
 			}
@@ -589,7 +657,7 @@ public class PersistenceServiceImpl implements PersistenceProvider {
      */
     @SuppressWarnings("unchecked")
     public QueryResult findComponentsByBaseDisplayedNamePattern(String pattern, Properties props) {
-        String username = PlatformAccess.getPlatform().getCurrentUser().getUserId();
+        String username = platform.getCurrentUser().getUserId();
         
         pattern = pattern.isEmpty() ? "%" : pattern.replace('*', '%');
         
@@ -597,14 +665,13 @@ public class PersistenceServiceImpl implements PersistenceProvider {
                         + "where c.creator_user_id like :creator "
                         + "and c.component_id not in (select component_id from component_spec where component_type = 'gov.nasa.arc.mct.core.components.TelemetryDataTaxonomyComponent' and component_name = 'All')"
                         + "and (c.component_type != 'gov.nasa.arc.mct.core.components.MineTaxonomyComponent' or c.owner = :owner) "
-                        + "and c.component_name like :pattern ;";
+                        + "and c.component_name like :pattern ";
                 
         String entitiesQuery = "select c.* from component_spec c "
             + "where c.creator_user_id like :creator "
             + "and c.component_id not in (select component_id from component_spec where component_type = 'gov.nasa.arc.mct.core.components.TelemetryDataTaxonomyComponent' and component_name = 'All')"
             + "and (c.component_type != 'gov.nasa.arc.mct.core.components.MineTaxonomyComponent' or c.owner = :owner) "
-            + "and c.component_name like :pattern "
-            + "limit 100";
+            + "and c.component_name like :pattern ";
         
         EntityManager em = entityManagerFactory.createEntityManager();
         try {
@@ -616,6 +683,7 @@ public class PersistenceServiceImpl implements PersistenceProvider {
             int count = ((Number) q.getSingleResult()).intValue();
 
             q = em.createNativeQuery(entitiesQuery, ComponentSpec.class);
+            q.setMaxResults(maxResults);
             q.setParameter("pattern", pattern);
             q.setParameter("owner", username);
             q.setParameter("creator", (props != null && props.get("creator") != null) ? props.get("creator") : "%" );    
@@ -630,7 +698,7 @@ public class PersistenceServiceImpl implements PersistenceProvider {
     }
     
     AbstractComponent newAbstractComponent(ComponentSpec cs) {
-    	return PlatformAccess.getPlatform().getComponentRegistry().newInstance(cs.getComponentType());
+    	return platform.getComponentRegistry().newInstance(cs.getComponentType());
     }
 
     private AbstractComponent createAbstractComponent(ComponentSpec cs) {
@@ -678,11 +746,10 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 	}
 	
 	private Date getCurrentTimeFromDatabase() {
-		Platform p = PlatformAccess.getPlatform();
-		if (p==null) {
+		if (platform==null) {
 			return null;
 		}
-		User currentUser = PlatformAccess.getPlatform().getCurrentUser();
+		User currentUser = platform.getCurrentUser();
 		if (currentUser == null)
 			return null;
 		
@@ -692,6 +759,10 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 			TypedQuery<Date> q = em.createQuery("SELECT CURRENT_TIMESTAMP FROM ComponentSpec c WHERE c.owner = :owner", Date.class);
 			q.setParameter("owner", userId);
 			return q.getSingleResult();
+		} catch (NoResultException e) {
+			// No result from database, so no current time
+			// (database may not be fully initialized)
+			return null;
 		} finally {
 			em.close();
 		}
@@ -699,15 +770,18 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 
 	private void iterateOverChangedComponents(ChangedComponentVisitor v) {		
 		if (lastPollTime == null) {
-			lastPollTime = getCurrentTimeFromDatabase();
-			if (lastPollTime == null)
+			Date storeTime = getCurrentTimeFromDatabase();
+			if (storeTime == null)
 				return;
+			else
+				lastPollTime = new PollTime(storeTime);
 		}
+		
         String query = "SELECT CURRENT_TIMESTAMP, c FROM ComponentSpec c WHERE c.lastModified BETWEEN ?1 AND CURRENT_TIMESTAMP";
         EntityManager em = entityManagerFactory.createEntityManager();        
         try {
             Query q = em.createQuery(query);
-            q.setParameter(1, lastPollTime, TemporalType.TIMESTAMP);
+            q.setParameter(1, new Date(lastPollTime.getStoreTime().getTime() - pollingInterval), TemporalType.TIMESTAMP);
             final int MAX_CACHE_SIZE = 500;
             int iteration = 0;
             boolean done = false;
@@ -721,7 +795,7 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 	            		if (obj instanceof ComponentSpec)
 	            			v.operateOnComponent((ComponentSpec) obj);
 	            		if (obj instanceof Date)
-	            			lastPollTime = (Date) obj;
+	            			lastPollTime = new PollTime((Date) obj);
 	            	}
 	            }    	
             	done = resultList.size() < MAX_CACHE_SIZE;
@@ -784,6 +858,14 @@ public class PersistenceServiceImpl implements PersistenceProvider {
                 new ChangedComponentVisitor() {
                     @Override
                     public void operateOnComponent(ComponentSpec c) {
+                    	// Evict referenced components from L2 cache
+                    	// TODO: Find alternate solution or refactor in order
+                    	//       to remove this explicit reference to Hibernate
+                    	((HibernateEntityManagerFactory)entityManagerFactory)
+                    	   .getSessionFactory()
+                    	   .getCache().evictCollection(
+                    	       ComponentSpec.class.getName() + ".referencedComponents", 
+                    	       c.getComponentId());
                     	List<WeakReference<AbstractComponent>> list = cache.get(c.getComponentId());
                         if (list != null && !list.isEmpty()) {
                         	Collection<AbstractComponent> cachedComponents = new ArrayList<AbstractComponent>(list.size());
@@ -818,10 +900,27 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 
     @Override
 	public List<AbstractComponent> getBootstrapComponents() {
-		List<ComponentSpec> cslist = null;
+    	List<String> bootstrapCache = bootstrapComponentIds.get();
+
+    	if (bootstrapCache != null) {
+    		// Look up specific components based on bootstrap ids
+    		List<AbstractComponent> result = new ArrayList<AbstractComponent>(bootstrapCache.size());
+    		for (String id : bootstrapCache) {
+    			result.add(getComponent(id));
+    		}
+    		return result;
+    	}
+    
+		return null;				
+	}
+    
+    private List<String> lookupBootstrapComponents() {
+    	List<ComponentSpec> cslist = null;
 		EntityManager em = entityManagerFactory.createEntityManager();
 		try {
-			String userId = PlatformAccess.getPlatform().getCurrentUser() == null ? null : PlatformAccess.getPlatform().getCurrentUser().getUserId();
+			String userId = platform == null                  ? null : 
+				            platform.getCurrentUser() == null ? null : 
+				            platform.getCurrentUser().getUserId();
 			TypedQuery<ComponentSpec> q = em.createQuery("SELECT t.componentSpec FROM TagAssociation t where t.tag.tagId = 'bootstrap:admin' or (t.tag.tagId = 'bootstrap:creator' and t.componentSpec.creatorUserId = :user)", ComponentSpec.class);
 			q.setParameter("user", userId);
 			cslist = q.getResultList();
@@ -830,16 +929,16 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 		}
 		
 		if (cslist != null) {
-			List<AbstractComponent> aclist = new ArrayList<AbstractComponent>();
+			// Assemble list of component ids
+			List<String> bootstrapCache = new ArrayList<String>();
 			for (ComponentSpec cs : cslist) {
-				AbstractComponent ac = createAbstractComponent(cs);
-				aclist.add(ac);
+				bootstrapCache.add(cs.getComponentId());
 			}
-			return aclist;
+			return bootstrapCache;
+		} else {
+			return null;
 		}
-			
-		return null;				
-	}
+    }
     
     private void cleanCache() {
     	Iterator<String> iterator = cache.keySet().iterator();
@@ -861,7 +960,7 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 
 	@Override
 	public void addNewUser(String userId, String groupId, AbstractComponent mysandbox, AbstractComponent dropbox) {
-		String userDropboxesId = PlatformAccess.getPlatform().getUserDropboxes().getComponentId();
+		String userDropboxesId = platform.getUserDropboxes().getComponentId();
 	 	EntityManager em = entityManagerFactory.createEntityManager();
 	 	try {
 	 		em.getTransaction().begin();
@@ -903,6 +1002,9 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 	 			em.getTransaction().rollback();
  			em.close();
 	 	}
+	 	// My Sandbox was marked a bootstrap, so we need to refresh cache
+	 	// Otherwise, My Sandbox may not appear for the newly-created user.
+	 	bootstrapComponentIds.refresh();
 	}
 
 	@Override
@@ -975,6 +1077,28 @@ public class PersistenceServiceImpl implements PersistenceProvider {
 	 			em.getTransaction().rollback();
 			em.close();
 		}
+		// Refresh the bootstrap cache if it appears to have changed.
+		if (tag.startsWith("bootstrap:")) {
+			bootstrapComponentIds.refresh();
+		}
+	}
+	
+	private static class PollTime {
+		private Date storeTime;
+		private long localTime;
 		
+		public PollTime(Date storeTime) {
+			this.storeTime = storeTime;
+			localTime = System.currentTimeMillis();
+		}
+		
+		public Date getStoreTime() {
+			return storeTime;
+		}
+		
+		public Date getAdjustedNow() {
+			long diff = System.currentTimeMillis() - localTime;
+			return new Date(storeTime.getTime() + diff);
+		}
 	}
 }

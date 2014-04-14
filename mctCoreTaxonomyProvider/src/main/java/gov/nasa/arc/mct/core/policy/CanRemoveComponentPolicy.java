@@ -21,6 +21,8 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.core.policy;
 
+import java.util.ResourceBundle;
+
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.core.components.TelemetryUserDropBoxComponent;
 import gov.nasa.arc.mct.platform.core.access.PlatformAccess;
@@ -29,6 +31,7 @@ import gov.nasa.arc.mct.policy.Policy;
 import gov.nasa.arc.mct.policy.PolicyContext;
 
 public class CanRemoveComponentPolicy implements Policy {
+    private static final ResourceBundle BUNDLE = ResourceBundle.getBundle("CoreTaxonomyResourceBundle"); // NO18N
 
     public CanRemoveComponentPolicy() {
     }
@@ -41,7 +44,7 @@ public class CanRemoveComponentPolicy implements Policy {
                
         if (component instanceof TelemetryUserDropBoxComponent) {
             String runtimeUser = PlatformAccess.getPlatform().getCurrentUser().getUserId();
-            String usersDropBoxName = runtimeUser+"'s Drop Box";
+            String usersDropBoxName = runtimeUser+ BUNDLE.getString("user_drop_box");
             
             if (component.getCreator().equals(runtimeUser) && component.getDisplayName().equals(usersDropBoxName)) {
                 return result;

@@ -5,6 +5,7 @@ import gov.nasa.arc.mct.components.PropertyDescriptor;
 import gov.nasa.arc.mct.components.PropertyDescriptor.VisualControlDescriptor;
 import gov.nasa.arc.mct.components.PropertyEditor;
 import gov.nasa.arc.mct.context.GlobalContext;
+import gov.nasa.arc.mct.gui.CustomVisualControl;
 import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
 import gov.nasa.arc.mct.platform.spi.RoleAccess;
@@ -18,6 +19,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -46,17 +48,17 @@ public class TestInfoView {
     ViewInfo info = new ViewInfo(InfoView.class, "Info", ViewType.CENTER);    
     
     @BeforeMethod
-    public void setup() {            
+    public void setup() {                    
         // Setup minimum expected environment for info view
         oldPlatform = PlatformAccess.getPlatform();
-        new PlatformAccess().setPlatform(mockPlatform);
         Mockito.when(comp.getOwner()).thenReturn("*");
-        Mockito.when(comp.getComponentTypeID()).thenReturn("");   
+        Mockito.when(comp.getComponentTypeID()).thenReturn(""); 
         Mockito.when(mockUser.getUserId()).thenReturn("");
         Mockito.when(mockRoleService.getAllUsers()).thenReturn(Collections.singleton(""));
         Mockito.when(mockPlatform.getBootstrapComponents()).thenReturn(Collections.<AbstractComponent>emptyList());
         GlobalContext.getGlobalContext().switchUser(mockUser, Mockito.mock(Runnable.class));
         new RoleAccess().addRoleService(mockRoleService);
+        new PlatformAccess().setPlatform(mockPlatform);
     }
     
     @AfterMethod
@@ -102,6 +104,22 @@ public class TestInfoView {
         List<PropertyDescriptor> mockDescriptors = Arrays.asList(buildMockDescriptor(a), buildMockDescriptor(b));       
         
         Mockito.when(comp.getFieldDescriptors()).thenReturn(mockDescriptors);
+        
+        // Mocking Swing components tends to fail on different platforms, so stub
+        CustomVisualControl mockControl = new CustomVisualControl() {
+            private static final long serialVersionUID = -7026155085259171397L;
+            private Object object = null;
+
+            @Override
+            public void setValue(Object value) { this.object = value; }
+
+            @Override
+            public Object getValue() { return object; }
+
+            @Override
+            public void setMutable(boolean mutable) {}
+        };
+        Mockito.when(comp.getAsset(CustomVisualControl.class)).thenReturn(mockControl);
         PropertyDescriptor lastPropertyDescriptor = mockDescriptors.get(mockDescriptors.size() - 1);        
         
         // Build a new info view
@@ -164,6 +182,18 @@ public class TestInfoView {
                 }
             }
             break;            
+        }
+        case Custom: {
+            CustomVisualControl control = findLastComponentOfType(infoView, CustomVisualControl.class);
+            control.setValue("changed");
+            try {
+                Method m = CustomVisualControl.class.getDeclaredMethod("fireChange");
+                m.setAccessible(true);
+                m.invoke(control);
+            } catch (Exception e) {
+                Assert.fail("Could not fire property change", e);
+            }
+            break;
         }
         }
         

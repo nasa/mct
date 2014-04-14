@@ -1072,7 +1072,7 @@ public class CanvasManifestation extends View implements PanelFocusSelectionProv
             }
             
             Set<ViewInfo> viewInfos = comp.getViewInfos(ViewType.EMBEDDED);    
-            return viewInfos.iterator().next();
+            return viewInfos.isEmpty() ? EmptyPanelView.VIEW_INFO : viewInfos.iterator().next();
         }
         
         private Collection<Panel> addToCanvas(Collection<View> toBeAddedViews,
@@ -1150,6 +1150,15 @@ public class CanvasManifestation extends View implements PanelFocusSelectionProv
             return marshalledComponents;
         }
 
+    }
+    
+    public static class EmptyPanelView extends View {
+        private static final long serialVersionUID = -5989827616630705392L;
+        static final ViewInfo VIEW_INFO = 
+                        new ViewInfo(EmptyPanelView.class, "", ViewType.EMBEDDED);
+        public EmptyPanelView (AbstractComponent ac, ViewInfo vi) {
+            super(ac, vi);
+        }
     }
     
 }

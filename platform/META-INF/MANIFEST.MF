@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: MCT Platform
 Bundle-SymbolicName: gov.nasa.arc.mct.mctplatform
-Bundle-Version: 1.1.0
+Bundle-Version: 1.1.2
 Import-Package: gov.nasa.arc.mct.api.feed;version="1.1.0",
  gov.nasa.arc.mct.api.persistence;version="1.1.0",
  gov.nasa.arc.mct.components;version="1.1.0",
@@ -17,8 +17,8 @@ Import-Package: gov.nasa.arc.mct.api.feed;version="1.1.0",
  gov.nasa.arc.mct.roles.events;version="1.1.0",
  gov.nasa.arc.mct.services.activity;version="1.1.0",
  gov.nasa.arc.mct.services.adapter;version="1.1.0",
- gov.nasa.arc.mct.services.component;version="1.1.0",
- gov.nasa.arc.mct.services.internal.component;version="1.1.0",
+ gov.nasa.arc.mct.services.component;version="1.1.2",
+ gov.nasa.arc.mct.services.internal.component;version="1.1.1",
  gov.nasa.arc.mct.services.serviceLocator;version="1.1.0",
  gov.nasa.arc.mct.util;version="1.1.0",
  gov.nasa.arc.mct.util.exception;version="1.1.0",

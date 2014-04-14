@@ -218,5 +218,21 @@ public class TestDefaultNodeView {
         Assert.assertTrue(rootNode.isProxy());
     }
 
+    @Test
+    public void testGetParentView() {
+        MCTMutableTreeNode mockTreeNode = Mockito.mock(MCTMutableTreeNode.class);
+        MCTMutableTreeNode mockParentNode = Mockito.mock(MCTMutableTreeNode.class);
+        View mockView = Mockito.mock(View.class);
+        Mockito.when(mockTreeNode.getParent()).thenReturn(mockParentNode);
+        Mockito.when(mockParentNode.getUserObject()).thenReturn(mockView);
+        nodeViewManifestation.addMonitoredGUI(mockTreeNode);
+        
+        // Should not matter whether or not node is a proxy
+        // nasa/mct#261
+        for (boolean truth : new boolean[]{false, true}) {
+            Mockito.when(mockTreeNode.isProxy()).thenReturn(truth);
+            Assert.assertNotNull(nodeViewManifestation.getParentView());
+        }
+    }
 }
 

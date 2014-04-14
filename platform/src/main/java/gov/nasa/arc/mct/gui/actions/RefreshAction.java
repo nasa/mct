@@ -52,8 +52,8 @@ public class RefreshAction extends ContextAwareAction {
     private static final long serialVersionUID = -224000420281170561L;
     private static final ResourceBundle BUNDLE = 
             ResourceBundle.getBundle(
-                    ThisSaveAllAction.class.getName().substring(0, 
-                            ThisSaveAllAction.class.getName().lastIndexOf("."))+".Bundle"); //NOI18N
+                    SaveAction.class.getName().substring(0, 
+                            SaveAction.class.getName().lastIndexOf("."))+".Bundle"); //NOI18N
     private static final Icon ICON = 
             new ImageIcon(RefreshAction.class.getResource("/icons/mct_icon_refresh.png"));
     
@@ -123,7 +123,7 @@ public class RefreshAction extends ContextAwareAction {
                         new String[]{ok, cancel}, 
                         ok, 
                         hints);
-                doRefresh = input.equals(ok);
+                doRefresh = ok.equals(input);
             }
            
             // Perform the refresh by re-creating view

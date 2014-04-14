@@ -654,6 +654,8 @@ public class TestPanAndZoomManager {
                 build();
 		plotTimeOnX = (PlotterPlot) testPlotTimeX.returnPlottingPackage();
 		plotTimeOnX.setPlotAbstraction(plotAbstraction);
+		Mockito.when(plotAbstraction.getMinTime()).thenReturn(0L);
+		Mockito.when(plotAbstraction.getMaxTime()).thenReturn(100L);
 		panAndZoomManagerTimeOnX = plotTimeOnX.panAndZoomManager; 
 		
 		// Add a data set
@@ -771,6 +773,9 @@ public class TestPanAndZoomManager {
 		settings.setNonTimeMaxPadding(0);
 		settings.setNonTimeAxisSubsequentMinSetting(NonTimeAxisSubsequentBoundsSetting.AUTO);
 		settings.setNonTimeAxisSubsequentMaxSetting(NonTimeAxisSubsequentBoundsSetting.AUTO);
+		
+		Mockito.when(plotAbstraction.getMinTime()).thenReturn(now);
+		Mockito.when(plotAbstraction.getMaxTime()).thenReturn(now + 300000L);
 		
 		PlotAbstraction testPlotTimeX = new PlotView.Builder(PlotterPlot.class).
                 plotSettings(settings).

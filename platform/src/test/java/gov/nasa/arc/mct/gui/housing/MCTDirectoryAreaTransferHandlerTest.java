@@ -36,9 +36,11 @@ import gov.nasa.arc.mct.gui.ViewRoleSelection;
 import gov.nasa.arc.mct.platform.spi.PersistenceProvider;
 import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
+import gov.nasa.arc.mct.platform.spi.WindowManager;
 import gov.nasa.arc.mct.policy.ExecutionResult;
 import gov.nasa.arc.mct.policy.PolicyContext;
 import gov.nasa.arc.mct.services.component.PolicyManager;
+import gov.nasa.arc.mct.services.internal.component.CoreComponentRegistry;
 
 import java.awt.Component;
 import java.awt.Point;
@@ -49,7 +51,9 @@ import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -63,6 +67,8 @@ import javax.swing.tree.TreePath;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -197,8 +203,12 @@ public class MCTDirectoryAreaTransferHandlerTest {
         };
     }
     
+    @SuppressWarnings("unchecked")
     @Test(dataProvider="importTests")
     public void testImport(int childIndex) throws Exception {
+        // To verify (AbstractComponent cannot be entirely stubbed)
+        final Collection<AbstractComponent> added = new ArrayList<AbstractComponent>();
+        
         // Set up the root node.
         View rootView = mock(View.class);
         MCTMutableTreeNode root = createMockNode(rootView);
@@ -213,11 +223,20 @@ public class MCTDirectoryAreaTransferHandlerTest {
 
         View targetView = mock(View.class);
         MCTMutableTreeNode target = createMockNode(targetView);
-        AbstractComponent targetComponent = mock(AbstractComponent.class);
+        AbstractComponent targetComponent = new AbstractComponent() {
+
+            @Override
+            protected void addDelegateComponentsCallback(Collection<AbstractComponent> childComponents) {
+                added.addAll(childComponents);
+                super.addDelegateComponentsCallback(childComponents);
+            }
+            
+            
+        };
         when(targetView.getManifestedComponent()).thenReturn(targetComponent);
         
         View mockView = mock(View.class);
-        AbstractComponent mockComponent = mock(AbstractComponent.class);
+        AbstractComponent mockComponent = new AbstractComponent() {};
         when(mockView.getManifestedComponent()).thenReturn(mockComponent);
         
         when(transferable.getTransferData(eq(GOOD_FLAVOR))).thenReturn(new View[]{mockView});
@@ -227,15 +246,27 @@ public class MCTDirectoryAreaTransferHandlerTest {
         Platform mockPlatform = Mockito.mock(Platform.class);
         PersistenceProvider mockPersistenceProvider = Mockito.mock(PersistenceProvider.class);
         PolicyManager mockpoPolicyManager = Mockito.mock(PolicyManager.class);       
+        CoreComponentRegistry mockComponentRegistry = Mockito.mock(CoreComponentRegistry.class);
+        WindowManager mockWindowManager = Mockito.mock(WindowManager.class);
         
         access.setPlatform(mockPlatform);
         Mockito.when(mockPlatform.getPersistenceProvider()).thenReturn(mockPersistenceProvider);
-        Mockito.when(mockPlatform.getPolicyManager()).thenReturn(mockPolicyManager);        
+        Mockito.when(mockPlatform.getPolicyManager()).thenReturn(mockPolicyManager);
+        Mockito.when(mockPlatform.getComponentRegistry()).thenReturn(mockComponentRegistry);
+        Mockito.when(mockPlatform.getWindowManager()).thenReturn(mockWindowManager);
         ExecutionResult mockResult = new ExecutionResult(new PolicyContext(), true, "");
         Mockito.when(mockpoPolicyManager.execute(Mockito.anyString(), Mockito.any(PolicyContext.class))).thenReturn(mockResult);
+        Mockito.when(mockWindowManager.<Object>showInputDialog(
+                Mockito.anyString(), Mockito.anyString(), Mockito.<Object[]>any(), Mockito.any(), Mockito.anyMap()))
+                .thenAnswer(new Answer<Object>() {
+                    @Override
+                    public Object answer(InvocationOnMock invocation) throws Throwable {
+                        return ((Object[])invocation.getArguments()[2])[0];
+                    }            
+        });
         
         handler.internalImport(support, target, new TreePath(target), childIndex);
-        Assert.assertEquals(handler.getDelegates(),Collections.singleton(mockComponent));
+        Assert.assertEquals(added,Collections.singleton(mockComponent));
     }
     
     @DataProvider(name="importTests")
@@ -247,6 +278,7 @@ public class MCTDirectoryAreaTransferHandlerTest {
         };
     }
     
+    @SuppressWarnings("unchecked")
     @Test(dataProvider="importTests")
     public void testImportIntoEmptyRoot(int childIndex) throws Exception {
         // Set up the root node.
@@ -272,13 +304,24 @@ public class MCTDirectoryAreaTransferHandlerTest {
         Platform mockPlatform = Mockito.mock(Platform.class);
         PersistenceProvider mockPersistenceProvider = Mockito.mock(PersistenceProvider.class);
         PolicyManager mockpoPolicyManager = Mockito.mock(PolicyManager.class);       
+        CoreComponentRegistry mockComponentRegistry = Mockito.mock(CoreComponentRegistry.class);
+        WindowManager mockWindowManager = Mockito.mock(WindowManager.class);
         
         access.setPlatform(mockPlatform);
         Mockito.when(mockPlatform.getPersistenceProvider()).thenReturn(mockPersistenceProvider);
         Mockito.when(mockPlatform.getPolicyManager()).thenReturn(mockPolicyManager);        
         ExecutionResult mockResult = new ExecutionResult(new PolicyContext(), true, "");
         Mockito.when(mockpoPolicyManager.execute(Mockito.anyString(), Mockito.any(PolicyContext.class))).thenReturn(mockResult);
-
+        Mockito.when(mockPlatform.getComponentRegistry()).thenReturn(mockComponentRegistry);
+        Mockito.when(mockPlatform.getWindowManager()).thenReturn(mockWindowManager);
+        Mockito.when(mockWindowManager.<Object>showInputDialog(
+                Mockito.anyString(), Mockito.anyString(), Mockito.<Object[]>any(), Mockito.any(), Mockito.anyMap()))
+                .thenAnswer(new Answer<Object>() {
+                    @Override
+                    public Object answer(InvocationOnMock invocation) throws Throwable {
+                        return ((Object[])invocation.getArguments()[2])[0];
+                    }            
+        });
         handler.internalImport(support, root, new TreePath(root), childIndex);
         
         // Verify that the tree model root structure changed.
@@ -287,20 +330,8 @@ public class MCTDirectoryAreaTransferHandlerTest {
     
     private static class StubbedHandler extends MCTDirectoryArea.DirectoryTreeTransferHandler {
         private static final long serialVersionUID = 1L;
-        private List<AbstractComponent> delegatesInvoked;
-    	
     	public StubbedHandler(MCTDirectoryArea dir, JTree tree, DefaultTreeModel model) {
     		super(dir, model);
-    	}
-    	
-    	public List<AbstractComponent> getDelegates() {
-    		return delegatesInvoked;
-    	}
-    	
-    	@Override
-    	protected void addDelegateComponents(AbstractComponent component, List<AbstractComponent> delegates,
-    	        int childIndex) {
-    	    delegatesInvoked = delegates;
     	}
     }    
     

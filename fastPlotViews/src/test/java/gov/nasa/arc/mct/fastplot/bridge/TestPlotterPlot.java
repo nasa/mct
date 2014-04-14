@@ -251,5 +251,25 @@ public class TestPlotterPlot {
 		Assert.assertEquals(nonTime.getEnd(), 12.0);
 	}
 	
+	@Test
+	public void testFastForward() {
+		PlotAbstraction mockAbstraction = plot.getPlotAbstraction();
+		
+		Mockito.when(mockAbstraction.getMinTime()).thenReturn(-2000L);
+		Mockito.when(mockAbstraction.getMaxTime()).thenReturn(-1000L);
+		Mockito.when(mockAbstraction.getCurrentMCTTime()).thenReturn(500L);
+		
+		plot.setTimeAxis(new TimeXYAxis(XYDimension.X));
+		
+		plot.getTimeAxis().setStart(0L);
+		plot.getTimeAxis().setEnd(100L);
+		Assert.assertEquals(plot.getMinTime(),   0L);
+		Assert.assertEquals(plot.getMaxTime(), 100L);
+		plot.fastForwardTimeAxisToCurrentMCTTime(true);
+		
+		Assert.assertEquals(plot.getMinTime(), -500L);
+		Assert.assertEquals(plot.getMaxTime(), 500L);		
+	}
+	
 	
 }

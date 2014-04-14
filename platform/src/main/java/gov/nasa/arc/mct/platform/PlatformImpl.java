@@ -24,6 +24,7 @@ package gov.nasa.arc.mct.platform;
 import gov.nasa.arc.mct.api.feed.FeedAggregator;
 import gov.nasa.arc.mct.api.feed.FeedDataArchive;
 import gov.nasa.arc.mct.components.AbstractComponent;
+import gov.nasa.arc.mct.components.Bootstrap;
 import gov.nasa.arc.mct.context.GlobalContext;
 import gov.nasa.arc.mct.gui.housing.MCTAbstractHousing;
 import gov.nasa.arc.mct.gui.housing.registry.UserEnvironmentRegistry;
@@ -45,6 +46,7 @@ import gov.nasa.arc.mct.services.internal.component.CoreComponentRegistry;
 import gov.nasa.arc.mct.services.internal.component.User;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -64,7 +66,7 @@ public class PlatformImpl implements Platform {
     
     private final RootComponent rootComponent = new RootComponent();
     
-    private AbstractComponent mysanboxComponent; // initialized from the bootstrapping components loaded from the database
+    private AbstractComponent mySandbox; // initialized from the bootstrapping components loaded from the database
     private String userDropboxesId;
     private final AtomicReference<BundleContext> bundleContext = new AtomicReference<BundleContext>();
     
@@ -165,22 +167,25 @@ public class PlatformImpl implements Platform {
         // Inject root and My Sandbox components to GlobalComponentRegistry
         List<AbstractComponent> bootstrapComponents = getPersistenceProvider().getBootstrapComponents();
         for (AbstractComponent ac : bootstrapComponents) {
-            // Should introduce a property indicating an AbstractComponent to be My Sandbox.
-            // Assuming that there's only one My Sandbox among the bootstrap components. 
-            if ("gov.nasa.arc.mct.core.components.MineTaxonomyComponent".equals(ac.getComponentTypeID())) {
-                mysanboxComponent = ac;
+            // Check capability to determine if this is the sandbox
+            Bootstrap capability = ac.getCapability(Bootstrap.class);
+            if (capability != null && capability.isSandbox()) {
+                mySandbox = ac;
             }
             if ("/UserDropBoxes".equals(ac.getExternalKey())) {
                 userDropboxesId = ac.getComponentId();
             }
         }
+        // Sort them, such that they are displayed in an appropriate order
+        Collections.sort(bootstrapComponents, Bootstrap.COMPARATOR);
         return bootstrapComponents;
     }
 
 
     @Override
     public AbstractComponent getMySandbox() {
-        return getPersistenceProvider().getComponent(mysanboxComponent.getComponentId());
+        if (mySandbox == null) getBootstrapComponents();
+        return getPersistenceProvider().getComponent(mySandbox.getComponentId());
     }
 
 

@@ -120,6 +120,7 @@ public class PanelInspector extends View {
         titleLabel.setForeground(FOREGROUND_COLOR);
         viewTitle.setForeground(FOREGROUND_COLOR);
         viewTitle.addMouseMotionListener(new WidgetDragger());
+        viewTitle.setTransferHandler(new WidgetTransferHandler());
         titlebar.setBackground(BACKGROUND_COLOR);
         
         add(titlebar, BorderLayout.NORTH);
@@ -135,12 +136,10 @@ public class PanelInspector extends View {
         if (view == null) {
             viewTitle.setIcon(null);
             viewTitle.setText("");   
-            viewTitle.setTransferHandler(null);
             content = emptyPanel;
         } else {
             viewTitle.setIcon(MCTIcons.processIcon(view.getManifestedComponent().getAsset(ImageIcon.class), new Color(230,230,230), false));
-            viewTitle.setText(view.getManifestedComponent().getDisplayName() + PANEL_SPECIFIC);
-            viewTitle.setTransferHandler(new WidgetTransferHandler());
+            viewTitle.setText(view.getManifestedComponent().getDisplayName() + PANEL_SPECIFIC);            
             content = this.view = view.getInfo().createView(view.getManifestedComponent());
             
             if (controlAreaToggle.isSelected()) { // Close control area if it's open
@@ -273,7 +272,11 @@ public class PanelInspector extends View {
     
         return true;
     }
-
+  
+    @Override
+    public View getHousedViewManifestation() {
+        return view;
+    }
     
     private static final class WidgetDragger extends MouseMotionAdapter {
         @Override
@@ -287,7 +290,7 @@ public class PanelInspector extends View {
     private final class WidgetTransferHandler extends TransferHandler {
         @Override
         public int getSourceActions(JComponent c) {
-            return COPY;
+            return view != null ? COPY : NONE;
         }
 
         @Override

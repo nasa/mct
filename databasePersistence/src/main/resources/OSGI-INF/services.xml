@@ -6,7 +6,9 @@
 		<service>
 			<provide interface="gov.nasa.arc.mct.api.persistence.PersistenceService"/>
 			<provide interface="gov.nasa.arc.mct.platform.spi.PersistenceProvider"/>
-		</service>		
+		</service>
+		<reference bind="bind" unbind="unbind" cardinality="1..1" interface="gov.nasa.arc.mct.platform.spi.Platform" name="Platform" policy="dynamic"/>
+				
 	</scr:component>
 	<scr:component name="gov.nasa.arc.mct.dbpersistence.provider.DBPersistenceProvider" 
 				   immediate="true">

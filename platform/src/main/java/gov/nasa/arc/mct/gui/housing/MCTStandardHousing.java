@@ -36,14 +36,12 @@ import gov.nasa.arc.mct.gui.SelectionProvider;
 import gov.nasa.arc.mct.gui.TwiddleView;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.ViewProvider;
+import gov.nasa.arc.mct.gui.dialogs.ViewModifiedDialog;
 import gov.nasa.arc.mct.gui.housing.registry.UserEnvironmentRegistry;
 import gov.nasa.arc.mct.gui.impl.WindowManagerImpl;
 import gov.nasa.arc.mct.osgi.platform.OSGIRuntime;
 import gov.nasa.arc.mct.osgi.platform.OSGIRuntimeImpl;
-import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
-import gov.nasa.arc.mct.policy.PolicyContext;
-import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 import gov.nasa.arc.mct.util.MCTIcons;
 
@@ -56,7 +54,6 @@ import java.lang.ref.WeakReference;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -202,7 +199,7 @@ public class MCTStandardHousing extends MCTAbstractHousing implements TwiddleVie
                                 options[0],
                                 hints);
                         
-                        if (response == options[0]) { // "OK"
+                        if (response != null && response.equals(options[0])) { // "OK"
                             OSGIRuntime osgiRuntime = OSGIRuntimeImpl.getOSGIRuntime();
                             try {
                                 osgiRuntime.stopOSGI();
@@ -392,44 +389,10 @@ public class MCTStandardHousing extends MCTAbstractHousing implements TwiddleVie
      * Prompts users to commit or abort pending changes in view.
      * @param view the modified view
      * @param dialogMessage the dialog message which differs from where the view is located (in the center or inspector pane)
-     * @return true to keep the window open, false to close the window
+     * @return false to keep the window open, true to close the window
      */
     private boolean commitOrAbortPendingChanges(View view, String dialogMessage) {
-        if (!isComponentWriteableByUser(view.getManifestedComponent()))
-            return true; 
-        
-        Object[] options = {
-                BUNDLE.getString("view.modified.alert.save"),
-                BUNDLE.getString("view.modified.alert.abort"),
-                BUNDLE.getString("view.modified.alert.cancel"),
-            };
-    
-        int answer = OptionBox.showOptionDialog(view,
-                dialogMessage,                         
-                BUNDLE.getString("view.modified.alert.title"),
-                OptionBox.YES_NO_CANCEL_OPTION,
-                OptionBox.WARNING_MESSAGE,
-                null,
-                options, options[0]);
-        
-        switch (answer) {
-        case OptionBox.CANCEL_OPTION:                    
-            return false;
-        case OptionBox.YES_OPTION:
-            PlatformAccess.getPlatform().getPersistenceProvider().persist(Collections.singleton(view.getManifestedComponent()));
-            return true;
-        default:
-            return true;
-        }
-    }
-    
-    private boolean isComponentWriteableByUser(AbstractComponent component) {
-        Platform p = PlatformAccess.getPlatform();
-        PolicyContext policyContext = new PolicyContext();
-        policyContext.setProperty(PolicyContext.PropertyName.TARGET_COMPONENT.getName(), component);
-        policyContext.setProperty(PolicyContext.PropertyName.ACTION.getName(), 'w');
-        String inspectionKey = PolicyInfo.CategoryType.OBJECT_INSPECTION_POLICY_CATEGORY.getKey();
-        return p.getPolicyManager().execute(inspectionKey, policyContext).getStatus();
+        return new ViewModifiedDialog(view).commitOrAbortPendingChanges(dialogMessage);
     }
 
 }

@@ -22,6 +22,7 @@
 package gov.nasa.arc.mct.registry;
 
 import gov.nasa.arc.mct.components.AbstractComponent;
+import gov.nasa.arc.mct.components.Bootstrap;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.platform.spi.PersistenceProvider;
 import gov.nasa.arc.mct.platform.spi.Platform;
@@ -43,6 +44,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
@@ -359,5 +361,68 @@ public class TestExternalComponentRegistryImpl {
             }
         }
         return caseList.toArray(new Object[caseList.size()][]);        
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testPluginBootstraps() {
+        final Bootstrap mockGlobal = Mockito.mock(Bootstrap.class);
+        final Bootstrap mockNonGlobal = Mockito.mock(Bootstrap.class);
+        Mockito.when(mockGlobal.isGlobal()).thenReturn(true);
+        Mockito.when(mockNonGlobal.isGlobal()).thenReturn(false);
+        
+        class BootstrapComponent extends AbstractComponent {
+            private boolean global;
+
+            public BootstrapComponent(boolean global) {
+                this.global = global;
+            }
+
+            @Override
+            protected <T> T handleGetCapability(Class<T> capability) {
+                if (capability.isAssignableFrom(Bootstrap.class)) {
+                    return capability.cast(global ? mockGlobal : mockNonGlobal);
+                }
+                return super.handleGetCapability(capability);
+            }
+            
+        }
+        
+        // First, do a run with no bootstrap components
+        ExtendedComponentProvider mockProvider = Mockito.mock(ExtendedComponentProvider.class);        
+        Mockito.when(mockProvider.getBootstrapComponents()).thenReturn(Collections.<AbstractComponent>emptyList());
+        
+        registry.refreshComponents(Arrays.asList(mockProvider));
+        
+        // Verify that this method was probed
+        Mockito.verify(mockProvider).getBootstrapComponents();
+        
+        // Verify that persistence was not invoked
+        Mockito.verifyNoMoreInteractions(mockPersistence);
+        
+        // Now, do a run with two bootstraps components (one global, one local)
+        AbstractComponent global = new BootstrapComponent(true);
+        AbstractComponent local = new BootstrapComponent(false);
+        Mockito.when(mockProvider.getBootstrapComponents()).thenReturn(Arrays.asList(global, local));
+        
+        registry.refreshComponents(Arrays.asList(mockProvider));
+        
+        // Verify that persistence was invoked, including appropriate tagging
+        @SuppressWarnings("rawtypes")
+        ArgumentCaptor<Collection> captor = 
+                ArgumentCaptor.forClass(Collection.class);
+
+        Mockito.verify(mockPersistence).persist(captor.capture());
+        Assert.assertEquals(captor.getValue().size(), 2);
+        Assert.assertTrue(captor.getValue().contains(global));
+        Assert.assertTrue(captor.getValue().contains(local));
+        
+        Mockito.verify(mockPersistence).tagComponents(Mockito.eq("bootstrap:admin"), captor.capture());
+        Assert.assertEquals(captor.getValue().size(), 1);
+        Assert.assertTrue(captor.getValue().contains(global));
+        
+        Mockito.verify(mockPersistence).tagComponents(Mockito.eq("bootstrap:creator"), captor.capture());
+        Assert.assertEquals(captor.getValue().size(), 1);
+        Assert.assertTrue(captor.getValue().contains(local));
     }
 }

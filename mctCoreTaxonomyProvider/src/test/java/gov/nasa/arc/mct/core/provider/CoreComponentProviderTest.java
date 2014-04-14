@@ -21,25 +21,38 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.core.provider;
 
+import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.core.components.BrokenComponent;
 import gov.nasa.arc.mct.core.components.BrokenInfoPanel;
 import gov.nasa.arc.mct.core.components.MineTaxonomyComponent;
 import gov.nasa.arc.mct.core.components.TelemetryDataTaxonomyComponent;
 import gov.nasa.arc.mct.core.components.TelemetryDisciplineComponent;
 import gov.nasa.arc.mct.core.components.TelemetryUserDropBoxComponent;
+import gov.nasa.arc.mct.core.policy.CanRemoveComponentPolicy;
 import gov.nasa.arc.mct.core.roles.DropboxCanvasView;
 import gov.nasa.arc.mct.core.roles.UsersManifestation;
+import gov.nasa.arc.mct.platform.core.access.PlatformAccess;
+import gov.nasa.arc.mct.platform.spi.Platform;
+import gov.nasa.arc.mct.policy.PolicyContext;
 import gov.nasa.arc.mct.services.component.ComponentTypeInfo;
 import gov.nasa.arc.mct.services.component.CreateWizardUI;
 import gov.nasa.arc.mct.services.component.TypeInfo;
 import gov.nasa.arc.mct.services.component.ViewInfo;
+import gov.nasa.arc.mct.services.internal.component.CoreComponentRegistry;
+import gov.nasa.arc.mct.services.internal.component.User;
 
 import java.util.Collection;
+import java.util.Collections;
 
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.testng.Assert;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -47,9 +60,24 @@ import org.testng.annotations.Test;
 public class CoreComponentProviderTest {
     private CoreComponentProvider provider;
     
+    private Platform oldPlatform;
+    private Platform mockPlatform;
+    
+    @BeforeClass
+    public void setupPlatform() {
+        oldPlatform = PlatformAccess.getPlatform();
+    }
+    
+    @AfterClass
+    public void restorePlatform() {
+        new PlatformAccess().setPlatform(oldPlatform);
+    }
+    
     @BeforeMethod
     public void setup() {
         provider = new CoreComponentProvider();
+        mockPlatform = Mockito.mock(Platform.class);
+        new PlatformAccess().setPlatform(mockPlatform);
     }
     
     @Test (dataProvider="componentTypesTestCases")
@@ -112,6 +140,40 @@ public class CoreComponentProviderTest {
         } else {
             Assert.assertNull(provider.getAsset(typeInfo, assetClass));
         }
+    }
+    
+    @Test
+    public void testCreateDropBox() {
+        // Regression test for root cause of https://github.com/nasa/mct/issues/281
+        String id = "someTestUser";
+        
+        CoreComponentRegistry mockRegistry = Mockito.mock(CoreComponentRegistry.class);
+        Mockito.when(mockPlatform.getComponentRegistry()).thenReturn(mockRegistry);
+        Mockito.when(mockRegistry.newInstance(Mockito.anyString()))
+            .thenAnswer(new Answer<AbstractComponent>() {
+                @Override
+                public AbstractComponent answer(InvocationOnMock invocation) throws Throwable {
+                    return AbstractComponent.class.cast(
+                            Class.forName(invocation.getArguments()[0].toString()).newInstance()
+                            );
+                }                
+            });
+        
+        AbstractComponent comp = provider.createDropbox(id);
+        Assert.assertEquals(comp.getClass(), TelemetryUserDropBoxComponent.class);
+        Assert.assertEquals(comp.getOwner(), "*");
+        Assert.assertEquals(comp.getCreator(), id);
+        
+        // Verify that policy allows Remove Manifestation here
+        User mockUser = Mockito.mock(User.class);
+        Mockito.when(mockPlatform.getCurrentUser()).thenReturn(mockUser);
+        Mockito.when(mockUser.getUserId()).thenReturn(id);
+        
+        PolicyContext context = new PolicyContext();
+        AbstractComponent mockChild = Mockito.mock(AbstractComponent.class);
+        context.setProperty(PolicyContext.PropertyName.TARGET_COMPONENT.getName(), comp);
+        context.setProperty(PolicyContext.PropertyName.SOURCE_COMPONENTS.getName(), Collections.singleton(mockChild));
+        Assert.assertTrue(new CanRemoveComponentPolicy().execute(context).getStatus());
     }
     
     @DataProvider

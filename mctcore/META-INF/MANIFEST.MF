@@ -2,10 +2,10 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: MCT APIs
 Bundle-SymbolicName: gov.nasa.arc.mct
-Bundle-Version: 1.1.1
+Bundle-Version: 1.1.2
 Export-Package: 
   gov.nasa.arc.mct.services.adapter; version="1.1.0",
-  gov.nasa.arc.mct.services.component; version="1.1.0",
+  gov.nasa.arc.mct.services.component; version="1.1.2",
   gov.nasa.arc.mct.services.internal.component; version="1.1.1",
   gov.nasa.arc.mct.components; version="1.1.0",
   gov.nasa.arc.mct.components.collection;version="1.1.0",

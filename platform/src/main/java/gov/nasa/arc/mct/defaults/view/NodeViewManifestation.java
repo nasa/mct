@@ -55,6 +55,7 @@ import javax.swing.JLabel;
 import javax.swing.JTree;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 import org.slf4j.Logger;
@@ -144,8 +145,15 @@ public class NodeViewManifestation extends View {
 
             if (labelChanged) treeModel.nodeChanged(node);
             if (node.isProxy())                
-                return;            
+                return;
 
+            // First, remove any placeholder nodes
+            for (int i = 0; i < node.getChildCount(); i++) {
+                while (i < node.getChildCount() && !(node.getChildAt(i) instanceof MCTMutableTreeNode)) {
+                    node.remove(i);
+                }
+            }
+            
             // Check if a node structure refresh is necessary
             List<AbstractComponent> visibleChildComponents = new ArrayList<AbstractComponent>();
             for (AbstractComponent childComponent : getManifestedComponent().getComponents()) {
@@ -249,8 +257,11 @@ public class NodeViewManifestation extends View {
             MCTMutableTreeNode childNode = (MCTMutableTreeNode) node.getChildAt(i);
             View childGUIComponent = (View) childNode.getUserObject();
             AbstractComponent childComponent = childGUIComponent.getManifestedComponent();
-            if (event.getFocusComponents().contains(childComponent))
-                treePaths.add(new TreePath(treeModel.getPathToRoot(childNode)));
+            for (AbstractComponent focusComponent : event.getFocusComponents()) {
+                if (focusComponent.getComponentId().equals(childComponent.getComponentId())) {
+                    treePaths.add(new TreePath(treeModel.getPathToRoot(childNode)));
+                }
+            }
         }
         if (treePaths.size() > 0) {
             tree.setSelectionPaths(treePaths.toArray(new TreePath[treePaths.size()]));
@@ -308,6 +319,19 @@ public class NodeViewManifestation extends View {
             treeNode.getParentTree().repaint();
         }
     }
+    
+    @Override
+    public View getParentView() {
+        if (node != null) {
+            TreeNode parentNode = node.getParent();
+            if (parentNode instanceof MCTMutableTreeNode) {
+                return ((View) ((MCTMutableTreeNode) parentNode).getUserObject());
+            }
+        }
+        // If the parent can't be found, return default (null)
+        return super.getParentView();
+    }
+
     
     protected class NodeViewManifestationListener extends AbstractViewListener {
         

@@ -25,18 +25,14 @@ import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.defaults.view.SwitcherView;
 import gov.nasa.arc.mct.gui.ActionContext;
 import gov.nasa.arc.mct.gui.ContextAwareButton;
-import gov.nasa.arc.mct.gui.OptionBox;
 import gov.nasa.arc.mct.gui.SelectionProvider;
 import gov.nasa.arc.mct.gui.SettingsButton;
 import gov.nasa.arc.mct.gui.View;
 import gov.nasa.arc.mct.gui.ViewRoleSelection;
 import gov.nasa.arc.mct.gui.actions.RefreshAction;
+import gov.nasa.arc.mct.gui.dialogs.ViewModifiedDialog;
 import gov.nasa.arc.mct.gui.impl.ActionContextImpl;
-import gov.nasa.arc.mct.gui.impl.WindowManagerImpl;
-import gov.nasa.arc.mct.platform.spi.Platform;
 import gov.nasa.arc.mct.platform.spi.PlatformAccess;
-import gov.nasa.arc.mct.policy.PolicyContext;
-import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 import gov.nasa.arc.mct.util.LafColor;
@@ -56,11 +52,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.text.MessageFormat;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
 
@@ -100,7 +92,7 @@ public class Inspector extends View {
             @SuppressWarnings("unchecked")
             Collection<View> selectedViews =  (Collection<View>) evt.getNewValue();
             if (selectedViews.isEmpty() || selectedViews.size() > 1) {
-                selectedManifestationChanged(null);
+                selectedManifestationChanged(null, null);
             } else {
                 // Retrieve component from database.
                 AbstractComponent ac = PlatformAccess.getPlatform().getPersistenceProvider().getComponent(selectedViews.iterator().next().getManifestedComponent().getComponentId());
@@ -115,9 +107,9 @@ public class Inspector extends View {
                             infoViewInfo = vi;
                     }
                     if (preferredViewInfo == null && infoViewInfo == null)
-                        selectedManifestationChanged(viewInfos.iterator().next().createView(ac));
+                        selectedManifestationChanged(viewInfos.iterator().next(), ac);
                     else
-                        selectedManifestationChanged(preferredViewInfo != null ? preferredViewInfo.createView(ac) : infoViewInfo.createView(ac));
+                        selectedManifestationChanged(preferredViewInfo != null ? preferredViewInfo : infoViewInfo, ac);
                 }
             }
         }
@@ -178,6 +170,7 @@ public class Inspector extends View {
         titleLabel.setForeground(FOREGROUND_COLOR);
         viewTitle.setForeground(FOREGROUND_COLOR);
         viewTitle.addMouseMotionListener(new WidgetDragger());
+        viewTitle.setTransferHandler(new WidgetTransferHandler());
         viewTitle.addMouseListener(new MCTPopupOpenerForInspector(this));
         titlebar.setBackground(BACKGROUND_COLOR);
         statusbar.setBackground(BACKGROUND_COLOR);
@@ -220,55 +213,7 @@ public class Inspector extends View {
      * @return false if change was aborted
      */
     private boolean commitOrAbortPendingChanges() {
-        AbstractComponent committedComponent = PlatformAccess.getPlatform().getPersistenceProvider().getComponent(view.getManifestedComponent().getComponentId());
-        if (committedComponent == null)
-            return true;
-        
-        if (!isComponentWriteableByUser(view.getManifestedComponent()))
-            return true;
-        
-        String save = BUNDLE.getString("view.modified.alert.save");
-        String saveAll = BUNDLE.getString("view.modified.alert.saveAll");
-        String abort = BUNDLE.getString("view.modified.alert.abort");
-        
-        // Show options - Save, Abort, or maybe Save All
-        String[] options = view.getManifestedComponent().getAllModifiedObjects().isEmpty() ?
-        		    new String[]{ save, abort } :
-        		    new String[]{ save, saveAll, abort};
-    
-        Map<String, Object> hints = new HashMap<String, Object>();
-        hints.put(WindowManagerImpl.MESSAGE_TYPE, OptionBox.WARNING_MESSAGE);
-        hints.put(WindowManagerImpl.OPTION_TYPE, OptionBox.YES_NO_OPTION);
-        hints.put(WindowManagerImpl.PARENT_COMPONENT, view);
-
-        Object answer = PlatformAccess.getPlatform().getWindowManager().showInputDialog(
-                BUNDLE.getString("view.modified.alert.title"), 
-                MessageFormat.format(BUNDLE.getString("view.modified.alert.text"), view.getInfo().getViewName(), view.getManifestedComponent().getDisplayName()), 
-                options, 
-                options[0], 
-                hints);
-        
-        if (answer.equals(save)) {
-            PlatformAccess.getPlatform().getPersistenceProvider().persist(Collections.singleton(view.getManifestedComponent()));
-        } else if (answer.equals(saveAll)) { // Save All
-            AbstractComponent comp = view.getManifestedComponent();
-            Set<AbstractComponent> allModifiedObjects = comp.getAllModifiedObjects();
-            if (comp.isDirty()) {
-                allModifiedObjects.add(comp);
-            }
-            PlatformAccess.getPlatform().getPersistenceProvider().persist(allModifiedObjects);
-        }
-        
-        return true;
-    }
-    
-    private boolean isComponentWriteableByUser(AbstractComponent component) {
-        Platform p = PlatformAccess.getPlatform();
-        PolicyContext policyContext = new PolicyContext();
-        policyContext.setProperty(PolicyContext.PropertyName.TARGET_COMPONENT.getName(), component);
-        policyContext.setProperty(PolicyContext.PropertyName.ACTION.getName(), 'w');
-        String inspectionKey = PolicyInfo.CategoryType.OBJECT_INSPECTION_POLICY_CATEGORY.getKey();
-        return p.getPolicyManager().execute(inspectionKey, policyContext).getStatus();
+        return new ViewModifiedDialog(view).commitOrAbortPendingChanges();
     }
 
     public void refreshCurrentlyShowingView() {
@@ -320,20 +265,18 @@ public class Inspector extends View {
         return view;
     }
     
-    private void selectedManifestationChanged(View view) {
+    private void selectedManifestationChanged(ViewInfo viewInfo, AbstractComponent ac) {
         remove(content);
-        if (view == null) {
+        if (viewInfo == null || ac == null) {
             viewTitle.setIcon(null);
-            viewTitle.setText("");   
-            viewTitle.setTransferHandler(null);
+            viewTitle.setText("");
             content = emptyPanel;
         } else {
-            viewTitle.setIcon(MCTIcons.processIcon(view.getManifestedComponent().getAsset(ImageIcon.class), new Color(230,230,230), false));
-            viewTitle.setText(view.getManifestedComponent().getDisplayName());
-            viewTitle.setTransferHandler(new WidgetTransferHandler());
+            viewTitle.setIcon(MCTIcons.processIcon(ac.getAsset(ImageIcon.class), new Color(230,230,230), false));
+            viewTitle.setText(ac.getDisplayName());
             if (this.view != null)
                 this.view.removePropertyChangeListener(VIEW_STALE_PROPERTY, objectStaleListener);
-            content = this.view = view.getInfo().createView(view.getManifestedComponent());
+            content = this.view = viewInfo.createView(ac);
 
             if (controlAreaToggle.isSelected()) { // Close control area if it's open
                 controlAreaToggle.doClick();
@@ -473,7 +416,7 @@ public class Inspector extends View {
     private final class WidgetTransferHandler extends TransferHandler {
         @Override
         public int getSourceActions(JComponent c) {
-            return COPY;
+            return view != null ? COPY : NONE;
         }
 
         @Override

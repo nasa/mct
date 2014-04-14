@@ -44,9 +44,9 @@ import gov.nasa.arc.mct.core.policy.ReservedWordsNamingPolicy;
 import gov.nasa.arc.mct.core.policy.SameComponentsCannotBeLinkedPolicy;
 import gov.nasa.arc.mct.core.roles.DropboxCanvasView;
 import gov.nasa.arc.mct.core.roles.UsersManifestation;
+import gov.nasa.arc.mct.platform.core.access.PlatformAccess;
 import gov.nasa.arc.mct.platform.spi.DefaultComponentProvider;
 import gov.nasa.arc.mct.platform.spi.Platform;
-import gov.nasa.arc.mct.platform.spi.PlatformAccess;
 import gov.nasa.arc.mct.policy.PolicyInfo;
 import gov.nasa.arc.mct.policy.PolicyInfo.CategoryType;
 import gov.nasa.arc.mct.services.component.AbstractComponentProvider;
@@ -157,9 +157,9 @@ public class CoreComponentProvider extends AbstractComponentProvider implements 
         Platform platform = PlatformAccess.getPlatform();
         AbstractComponent dropbox = platform.getComponentRegistry().newInstance(TelemetryUserDropBoxComponent.class.getName());
         ComponentInitializer dropboxCapability = dropbox.getCapability(ComponentInitializer.class);
-        dropboxCapability.setCreator("admin");
-        dropboxCapability.setOwner(userId);
-        dropbox.setDisplayName(userId + "\'s drop box");
+        dropboxCapability.setCreator(userId);
+        dropboxCapability.setOwner("*");
+        dropbox.setDisplayName(userId + resource.getString("user_drop_box"));
         
         return dropbox;
     }

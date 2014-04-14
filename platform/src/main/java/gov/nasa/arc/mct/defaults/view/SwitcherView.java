@@ -150,7 +150,8 @@ public class SwitcherView extends View {
     private final ItemListener itemListener = new ItemListener() {
         @Override
         public void itemStateChanged(ItemEvent e) {
-            if (managedView != null) {       
+            // Only respond to SELECTED events to avoid double-firing
+            if (managedView != null && e.getStateChange() == ItemEvent.SELECTED) {       
                 Object item = e.getItem();
                 if (item != null && item instanceof ViewInfo) {
                     // Try to change the view

@@ -1158,7 +1158,7 @@ public class PlotterPlot  extends PlotConfigurationDelegator implements Abstract
 		long requestMinTime = -1;
 
 		if (resetSpan) {
-			desiredSpan = getMaxTime() - getMinTime();
+			desiredSpan = getPlotAbstraction().getMaxTime() - getPlotAbstraction().getMinTime();
 		} else {
 			// TODO: Check rounding, or change desiredSpan to a double
 			desiredSpan = (long)Math.abs(theTimeAxis.getEnd() - theTimeAxis.getStart());
@@ -1170,12 +1170,12 @@ public class PlotterPlot  extends PlotConfigurationDelegator implements Abstract
 			requestMaxTime = getPlotAbstraction().getCurrentMCTTime();
 			requestMinTime = requestMaxTime - desiredSpan;
 		} else if (getTimeAxisSubsequentSetting() == TimeAxisSubsequentBoundsSetting.SCRUNCH) {
-			requestMinTime = getMinTime();
+			requestMinTime = getPlotAbstraction().getMinTime();
 			requestMaxTime = getPlotAbstraction().getCurrentMCTTime();
 		} else {
 			assert false : "Unknown time axis subsquent settings mode: " + getTimeAxisSubsequentSetting();
-			requestMaxTime = getMaxTime();
-			requestMinTime = getMinTime();
+			requestMaxTime = getPlotAbstraction().getMaxTime();
+			requestMinTime = getPlotAbstraction().getMinTime();
 		}
 	
 		if (!isTimeAxisInverted()) {

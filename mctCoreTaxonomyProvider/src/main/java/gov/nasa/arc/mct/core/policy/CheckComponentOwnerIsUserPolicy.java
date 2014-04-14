@@ -24,9 +24,11 @@ package gov.nasa.arc.mct.core.policy;
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.components.collection.Group;
 import gov.nasa.arc.mct.platform.core.access.PlatformAccess;
+import gov.nasa.arc.mct.platform.spi.RoleAccess;
 import gov.nasa.arc.mct.policy.ExecutionResult;
 import gov.nasa.arc.mct.policy.Policy;
 import gov.nasa.arc.mct.policy.PolicyContext;
+import gov.nasa.arc.mct.services.internal.component.User;
 
 /**
  * A Policy which enforces the rule that certain actions (generally speaking, 
@@ -44,9 +46,12 @@ public class CheckComponentOwnerIsUserPolicy implements Policy {
         // "*" is the wildcard owner, so always allow this
         // Otherwise, check for a match on owner
         // Finally, check if there is Group ownership of this component
-        if (!component.getOwner().equals("*") && !component.getOwner().equals(PlatformAccess.getPlatform().getCurrentUser().getUserId())) {
+        User user = PlatformAccess.getPlatform().getCurrentUser();
+        String owner = component.getOwner();
+        if (!owner.equals("*") && !owner.equals(user.getUserId()) && !RoleAccess.hasRole(user, owner)) {
             Group group = component.getCapability(Group.class); // Check for group ownership
-            if (group == null || !group.getDiscipline().equals(PlatformAccess.getPlatform().getCurrentUser().getDisciplineId())) {
+            String groupId = group != null ? group.getDiscipline() : null;
+            if (groupId == null || !groupId.equals(PlatformAccess.getPlatform().getCurrentUser().getDisciplineId())) {
                 return new ExecutionResult(context, false, "User does not own this component.");
             }
         }

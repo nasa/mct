@@ -83,6 +83,7 @@ public class WindowManagerImpl implements WindowManager {
     public static final String PARENT_COMPONENT = "PARENT_COMPONENT";
     public static final String OPTION_TYPE = "OPTION_TYPE";
     public static final String MESSAGE_TYPE = "MESSAGE_TYPE";
+    public static final String MESSAGE_OBJECT = "MESSAGE_OBJECT";
     
     /**
      * Creates a new instance of the window manager. Protected, to enforce the
@@ -301,17 +302,20 @@ public class WindowManagerImpl implements WindowManager {
                 optionType = (Integer) optionObj;
             }
             
-            // Options indicator (OptionBox.YES_NO_OPTION, for example)
+            // Message type (OptionBox.YES_NO_OPTION, for example)
             Integer messageType = null;
             Object messageObj = hints.get(MESSAGE_TYPE);
             if (messageObj != null && messageObj instanceof Integer) {
                 messageType = (Integer) messageObj;
             }
             
+            // Custom message object (a component, for example)
+            Object customMessage = hints.get(MESSAGE_OBJECT);            
+            
             // Only use OptionBox if some known hint has been set
-            if (parentComponent != null || optionType != null || messageType != null) {
+            if (parentComponent != null || optionType != null || messageType != null || customMessage != null) {
                 int answer = OptionBox.showOptionDialog(parentComponent, 
-                        message,  
+                        customMessage != null ? customMessage : message,  
                         title,   
                         optionType != null ? optionType.intValue() : OptionBox.OK_CANCEL_OPTION,
                         messageType != null ? messageType.intValue() : OptionBox.INFORMATION_MESSAGE, 

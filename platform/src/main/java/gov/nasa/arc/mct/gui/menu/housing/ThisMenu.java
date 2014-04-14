@@ -39,6 +39,7 @@ import java.util.ResourceBundle;
 public class ThisMenu extends ContextAwareMenu {
     private static final String THIS_ADDITIONS = "/this/additions";
     private static final String THIS_OPEN_EXT = "/this/open.ext";
+    private static final String THIS_PORT_EXT = "/this/port.ext";
     private static final String THIS_CLOSE_EXT = "/this/close.ext";
     
     private static final ResourceBundle bundle = ResourceBundle.getBundle("gov/nasa/arc/mct/gui/actions/Bundle");
@@ -62,8 +63,14 @@ public class ThisMenu extends ContextAwareMenu {
                         new MenuItemInfo(DetectGraphicsDevices.THIS_OPEN_MULTIPLE_MONITORS_MENU, MenuItemType.SUBMENU),
                         new MenuItemInfo("THIS_SAVE_ACTION", MenuItemType.NORMAL),
                         new MenuItemInfo("THIS_SAVE_ALL_ACTION", MenuItemType.NORMAL),
-                        new MenuItemInfo("VIEW_REVERT_TO_COMMITTED", MenuItemType.NORMAL),
-                        new MenuItemInfo(bundle.getString("ExportThisAsImageCommandKey"), MenuItemType.NORMAL)
+                        new MenuItemInfo("VIEW_REVERT_TO_COMMITTED", MenuItemType.NORMAL)
+                ));
+        
+        // Import / export
+        addMenuItemInfos(THIS_PORT_EXT,
+                Arrays.asList(             
+                        new MenuItemInfo("THIS_IMPORT_SUBMENU", MenuItemType.SUBMENU),
+                        new MenuItemInfo("THIS_EXPORT_SUBMENU", MenuItemType.SUBMENU)
                 ));
         
         // Placeholder for plugin-introduced additions

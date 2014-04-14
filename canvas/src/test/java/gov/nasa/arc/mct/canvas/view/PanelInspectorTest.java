@@ -29,19 +29,22 @@ import gov.nasa.arc.mct.services.component.ViewInfo;
 import gov.nasa.arc.mct.services.component.ViewType;
 
 import java.awt.Color;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
 
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public final class PanelInspectorTest {
@@ -60,7 +63,7 @@ public final class PanelInspectorTest {
     Method showHideControllerMethod;
     
     @SuppressWarnings("serial")
-    @BeforeClass
+    @BeforeMethod
     public void setup() {
         MockitoAnnotations.initMocks(this);
         
@@ -68,7 +71,7 @@ public final class PanelInspectorTest {
          * Rather than mocking a view, we create one with dummy-content, this is because adding a mocked container to a container
          * will cause a NPE.  See testMouseDragIncremental in MarqueSelectionListenerTest.java 
          */
-        view = new MockManifestation(mockComponent, new ViewInfo(CanvasManifestation.class, "", ViewType.OBJECT)) {
+        view = new MockManifestation(mockComponent, new ViewInfo(MockManifestation.class, "", ViewType.OBJECT)) {
             /*
              * Originally, in 'testLockedState()' we had Mockito.verify(view, Mockito.times(1)).exitLockedState(), that is we verified
              * that the method 'exitLockedState()' is called exactly once during the test 'testLockedState()'.  Since we can not use
@@ -132,6 +135,11 @@ public final class PanelInspectorTest {
     }
     
     @Test
+    public void testGetHousedViewManifestation() {
+        Assert.assertEquals(panelInspector.getHousedViewManifestation(), view);
+    }
+    
+    @Test
     public void testEnterLockedState() {
         try {
             
@@ -170,6 +178,36 @@ public final class PanelInspectorTest {
             Assert.fail(e.getMessage(), e); 
         }
         
+    }
+    
+    
+    // Test for root cause of https://github.com/nasa/mct/issues/172
+    @Test
+    public void testLabelTransferHandler() throws Exception {
+        Mockito.when(mockComponent.getViewInfos(Mockito.<ViewType>any()))
+            .thenReturn(Collections.singleton(
+                            new ViewInfo(MockManifestation.class, "", ViewType.OBJECT)));
+        
+        PropertyChangeEvent mockEvent = Mockito.mock(PropertyChangeEvent.class);
+        
+        Field viewTitleField = PanelInspector.class.getDeclaredField("viewTitle");
+        viewTitleField.setAccessible(true);
+        JLabel viewTitle = JLabel.class.cast(viewTitleField.get(panelInspector));
+        
+        Field changeField = PanelInspector.class.getDeclaredField("selectionChangeListener");
+        changeField.setAccessible(true);
+        PropertyChangeListener inspectorPropertyChangeListener = 
+                        PropertyChangeListener.class.cast(changeField.get(panelInspector));
+                
+        Mockito.when(mockEvent.getNewValue()).thenReturn(Collections.singleton(view));
+        inspectorPropertyChangeListener.propertyChange(mockEvent);
+
+        Assert.assertNotNull(viewTitle.getTransferHandler());
+        
+        Mockito.when(mockEvent.getNewValue()).thenReturn(Collections.EMPTY_LIST);
+        inspectorPropertyChangeListener.propertyChange(mockEvent);
+        
+        Assert.assertNotNull(viewTitle.getTransferHandler());
     }
     
     /* Harleigh108:

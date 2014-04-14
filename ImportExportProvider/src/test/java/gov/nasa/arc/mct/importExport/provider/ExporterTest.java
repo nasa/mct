@@ -21,6 +21,8 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.importExport.provider;
 
+import static org.mockito.Mockito.when;
+import static org.testng.Assert.assertEquals;
 import gov.nasa.arc.mct.components.AbstractComponent;
 import gov.nasa.arc.mct.components.ExtendedProperties;
 import gov.nasa.arc.mct.components.JAXBModelStatePersistence;
@@ -59,6 +61,8 @@ import org.testng.annotations.Test;
 
 public class ExporterTest {
 
+    public static TemporaryFolder tmpDir = new TemporaryFolder();
+
 	@Mock private PersistenceProvider persistenceProvider;
 	@Mock private ComponentRegistry mockRegistry;
 	@Mock private Platform mockPlatform;
@@ -83,17 +87,18 @@ public class ExporterTest {
     private int count = 0;
 
   @BeforeMethod
-  public void setup() {
+  public void setup() throws Exception {
       MockitoAnnotations.initMocks(this);
+      tmpDir.create();
       access = new ComponentRegistryAccess();
       
       (new PlatformAccess()).setPlatform(mockPlatform);
-      Mockito.when(mockRegistry
+      when(mockRegistry
                    .isCreatable(Mockito.any(AbstractComponent.class.getClass())))
              .thenReturn(true);
-      Mockito.when(mockPlatform.getPersistenceProvider()).thenReturn(persistenceProvider);
-      Mockito.when(mockPlatform.getPolicyManager()).thenReturn(mockPolicyManager);
-      Mockito.when(mockPolicyManager
+      when(mockPlatform.getPersistenceProvider()).thenReturn(persistenceProvider);
+      when(mockPlatform.getPolicyManager()).thenReturn(mockPolicyManager);
+      when(mockPolicyManager
                   .execute(Mockito.anyString(), Mockito.any(PolicyContext.class)))
              .thenReturn(new ExecutionResult(null,true,""));
       
@@ -124,7 +129,7 @@ public class ExporterTest {
       componentE = createAbstractComponent("compE", String.valueOf(base + 11));
       componentF = createAbstractComponent("compF", String.valueOf(base + 12));
       
-      Mockito.when(mockRegistry
+      when(mockRegistry
              .newInstance(Mockito.eq(ImportExportComponent.class), 
                            Mockito.any(AbstractComponent.class)))
              .thenReturn(ieComponentDate)
@@ -134,7 +139,7 @@ public class ExporterTest {
              .thenReturn(ieComponentFileName4)
              .thenReturn(ieComponentFileName5)
              .thenReturn(ieComponentFileName6);
-      Mockito.when(mockRegistry.newInstance(Mockito.anyString()))
+      when(mockRegistry.newInstance(Mockito.anyString()))
              .thenReturn(componentB)
              .thenReturn(componentC)
              .thenReturn(componentD)
@@ -147,117 +152,112 @@ public class ExporterTest {
   @AfterMethod
   public void tearDown() {
       access.releaseRegistry(mockRegistry);
+      tmpDir.destroy();
   }
-  
+
   @Test
-  public void testExportWithoutChildren() {
-	  
-	  File file = 
-			  new File("src/test/resources/testOutput/oneComponentWithoutChildren.xml");
+  public void testExportWithoutChildren() throws Exception {
+      File export = tmpDir.newFile("oneComponentWithoutChildren.xml");
+      File expected = new File("src/test/resources/testOutput/oneComponentWithoutChildren.xml");
 	  AbstractComponent componentWithoutChildren = newCompWOChildren(componentA, 
 			  "NOCHILDREN","rootOneComponentWithoutChildren");
-	  
-	  AbstractComponent parent = exportAndVerify(file, 
-	                                             Arrays.asList(componentWithoutChildren));
-	  
+
+	  AbstractComponent parent = exportAndVerify(Arrays.asList(componentWithoutChildren), export, expected);
+
 	  // component with date
-	  Assert.assertEquals(parent.getComponents().size(), 1);
+	  assertEquals(parent.getComponents().size(), 1);
 	  // comp with filename
-	  Assert.assertEquals(parent.getComponents().get(0)
+	  assertEquals(parent.getComponents().get(0)
               .getComponents().size(), 1);
 	  // top level comp
-      Assert.assertEquals(parent.getComponents().get(0)
+      assertEquals(parent.getComponents().get(0)
               .getComponents().get(0)
               .getComponents().size(), 1);
       // no child
-      Assert.assertEquals(parent.getComponents().get(0)
+      assertEquals(parent.getComponents().get(0)
               .getComponents().get(0)
               .getComponents().get(0)
               .getComponents().size(), 0);
   }
   
   @Test
-  public void testExportWithChildren() {
-	  
-	  File file = 
-			  new File("src/test/resources/testOutput/componentWithChildren.xml");
+  public void testExportWithChildren() throws Exception {
+      File export = tmpDir.newFile("componentWithChildren.xml");
+	  File expected = new File("src/test/resources/testOutput/componentWithChildren.xml");
 	  AbstractComponent componentWithChildren = newCompWithChildren();
-	  
-	  AbstractComponent parent = exportAndVerify(file, 
-	                                             Arrays.asList(componentWithChildren));
+
+	  AbstractComponent parent = exportAndVerify(Arrays.asList(componentWithChildren), export, expected);
 	  
 	  // component with date
-	  Assert.assertEquals(parent.getComponents().size(), 1);
+	  assertEquals(parent.getComponents().size(), 1);
 	  // comp with filename
-      Assert.assertEquals(parent.getComponents().get(0)
+      assertEquals(parent.getComponents().get(0)
               .getComponents().size(), 1);
       // top level comp
-      Assert.assertEquals(parent.getComponents().get(0)
+      assertEquals(parent.getComponents().get(0)
               .getComponents().get(0)
               .getComponents().size(), 1);
       // child
-      Assert.assertEquals(parent.getComponents().get(0)
+      assertEquals(parent.getComponents().get(0)
               .getComponents().get(0)
               .getComponents().get(0)
               .getComponents().size(), 1);
   }
-  
+
   @Test
-  public void testExportWithMultiLevelChildren() {
-	  
-	  File file = 
-			  new File("src/test/resources/testOutput/componentMultiLevelChildren.xml");
+  public void testExportWithMultiLevelChildren() throws Exception {
+	  File export = tmpDir.newFile("componentMultiLevelChildren.xml");
+	  File expected = new File("src/test/resources/testOutput/componentMultiLevelChildren.xml");
 	  AbstractComponent component = newCompWithMultiLevelChildren();
 	  
-	  AbstractComponent parent = exportAndVerify(file, Arrays.asList(component));
+	  AbstractComponent parent = exportAndVerify(Arrays.asList(component), export, expected);
 	  
 	  // component with date
-	  Assert.assertEquals(parent.getComponents().size(), 1);
+	  assertEquals(parent.getComponents().size(), 1);
 	  // comp with filename
-      Assert.assertEquals(parent.getComponents().get(0)
+      assertEquals(parent.getComponents().get(0)
               .getComponents().size(), 1);
       // top level comp
-      Assert.assertEquals(parent.getComponents().get(0)
+      assertEquals(parent.getComponents().get(0)
               .getComponents().get(0)
               .getComponents().size(), 1);
       // children
-      Assert.assertEquals(parent.getComponents().get(0)
+      assertEquals(parent.getComponents().get(0)
               .getComponents().get(0)
               .getComponents().get(0)
               .getComponents().size(), 2);
       // grandchild
-      Assert.assertEquals(parent.getComponents().get(0)
+      assertEquals(parent.getComponents().get(0)
               .getComponents().get(0)
               .getComponents().get(0)
               .getComponents().get(0)
               .getComponents().size(), 1);
   }
-  
+
   @Test
-  public void testExportWithRecursiveChildren()  {
-	  
-	  File file = 
-			  new File("src/test/resources/testOutput/componentRecursiveChildren.xml");
+  public void testExportWithRecursiveChildren() throws Exception {
+	  File export = tmpDir.newFile("componentRecursiveChildren.xml");
+	  File expected = new File("src/test/resources/testOutput/componentRecursiveChildren.xml");
 	  AbstractComponent component = newCompWithRecursiveChildren();
 	  
-	  AbstractComponent parent = exportAndVerify(file, Arrays.asList(component));
+	  AbstractComponent parent = exportAndVerify(Arrays.asList(component), export, expected);
 	  
 	  // component with date
-	  Assert.assertEquals(parent.getComponents().size(), 1);
+	  assertEquals(parent.getComponents().size(), 1);
 	  // comp with filename
-      Assert.assertEquals(parent.getComponents().get(0)
+      assertEquals(parent.getComponents().get(0)
               .getComponents().size(), 1);
       // top level comp
-      Assert.assertEquals(parent.getComponents().get(0)
+      assertEquals(parent.getComponents().get(0)
               .getComponents().get(0)
               .getComponents().size(), 1);
       // child
-      Assert.assertEquals(parent.getComponents().get(0)
+      assertEquals(parent.getComponents().get(0)
               .getComponents().get(0)
               .getComponents().get(0)
               .getComponents().size(), 1);
       // grandchild (which is same as top level comp)
-      Assert.assertEquals(parent.getComponents().get(0)
+      assertEquals(parent.getComponents().get(0)
               .getComponents().get(0)
               .getComponents().get(0)
               .getComponents().get(0)
@@ -265,33 +265,33 @@ public class ExporterTest {
   }
   
   @Test
-  public void testExportMultipleComponents() {
-      File file = 
-              new File("src/test/resources/testOutput/multComp.xml");
+  public void testExportMultipleComponents() throws Exception {
+      File export = tmpDir.newFile("multComp.xml");
+      File expected = new File("src/test/resources/testOutput/multComp.xml");
       AbstractComponent component1 = newCompWithRecursiveChildren();
       AbstractComponent component2 = newCompWithChildren();
       List<AbstractComponent> comps = new ArrayList<AbstractComponent>();
       comps.add(component1);
       comps.add(component2);
       
-      AbstractComponent parent = exportAndVerify(file, comps);
+      AbstractComponent parent = exportAndVerify(comps, export, expected);
       
       // component with date
-      Assert.assertEquals(parent.getComponents().size(), 1);
+      assertEquals(parent.getComponents().size(), 1);
       // comp with filename
-      Assert.assertEquals(parent.getComponents().get(0)
+      assertEquals(parent.getComponents().get(0)
               .getComponents().size(), 1);
       // 2 top level comps
-      Assert.assertEquals(parent.getComponents().get(0)
+      assertEquals(parent.getComponents().get(0)
               .getComponents().get(0)
               .getComponents().size(), 2);
       // child of 1st top level comp
-      Assert.assertEquals(parent.getComponents().get(0)
+      assertEquals(parent.getComponents().get(0)
               .getComponents().get(0)
               .getComponents().get(0)
               .getComponents().size(), 1);
       // child of 2nd top level comp
-      Assert.assertEquals(parent.getComponents().get(0)
+      assertEquals(parent.getComponents().get(0)
               .getComponents().get(0)
               .getComponents().get(1)
               .getComponents().size(), 1);
@@ -301,12 +301,11 @@ public class ExporterTest {
   ////////////////////////////////////////////////////////////////////////////////
   
   
-  private AbstractComponent exportAndVerify(File file, 
-                                            List<AbstractComponent> components) {
-	  exporter = new Exporter(file, components);
+  private AbstractComponent exportAndVerify(List<AbstractComponent> components, File export, File expected) {
+	  exporter = new Exporter(export, components);
 	  try {
 	      exporter.doInBackground();
-	      FileReader reader = new FileReader(file);
+	      FileReader reader = new FileReader(export);
 	      if (reader.read() == -1) {
 	          Assert.fail("Output file is empty.");
 	      }
@@ -316,7 +315,7 @@ public class ExporterTest {
 	  }
 
 	  AbstractComponent parent = new TestAbstractComponent();
-	  importer = new Importer(Arrays.asList(file), "Tonto", parent);
+	  importer = new Importer(Arrays.asList(expected), "Tonto", parent);
 	  importer.doInBackground();
 	  return parent;
   }
@@ -339,7 +338,7 @@ public class ExporterTest {
 	  viewRoleProperties.put("test1", prop);
 	  prop.setProperty("viewType2", "properties2");
 	  viewRoleProperties.put("test2", prop);
-	  Mockito.when(persistenceProvider.getAllProperties(id)).thenReturn(viewRoleProperties);
+	  when(persistenceProvider.getAllProperties(id)).thenReturn(viewRoleProperties);
 	  
 	  return component;
   }
@@ -350,7 +349,7 @@ public class ExporterTest {
 	  componentB = (TestAbstractComponent) newCompWOChildren(componentB, "CHILD", 
 	                                                         "componentWithChildren");
 	  componentA.addDelegateComponent(componentB);
-	  Mockito.when(persistenceProvider.getReferencedComponents(componentA))
+	  when(persistenceProvider.getReferencedComponents(componentA))
              .thenReturn(Arrays.asList((AbstractComponent) componentB));
 	  
 	  return componentA;
@@ -370,9 +369,9 @@ public class ExporterTest {
 	  componentA.addDelegateComponents(list);
 	  componentB.addDelegateComponent(componentC);
 	  
-	  Mockito.when(persistenceProvider.getReferencedComponents(componentA))
+	  when(persistenceProvider.getReferencedComponents(componentA))
              .thenReturn(list);
-	  Mockito.when(persistenceProvider.getReferencedComponents(componentB))
+	  when(persistenceProvider.getReferencedComponents(componentB))
              .thenReturn(Arrays.asList((AbstractComponent) componentC));
 
 	  return componentA;
@@ -386,9 +385,9 @@ public class ExporterTest {
 	  componentA.addDelegateComponent(componentB);
 	  componentB.addDelegateComponent(componentA);
 	  
-	  Mockito.when(persistenceProvider.getReferencedComponents(componentA))
+	  when(persistenceProvider.getReferencedComponents(componentA))
              .thenReturn(Arrays.asList((AbstractComponent) componentB));
-	  Mockito.when(persistenceProvider.getReferencedComponents(componentB))
+	  when(persistenceProvider.getReferencedComponents(componentB))
              .thenReturn(Arrays.asList((AbstractComponent) componentA));
 
 	  return componentA;

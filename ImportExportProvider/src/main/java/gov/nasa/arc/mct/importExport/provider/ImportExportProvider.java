@@ -64,16 +64,19 @@ public class ImportExportProvider extends AbstractComponentProvider {
 
 	@Override
 	public Collection<MenuItemInfo> getMenuItemInfos() {
-		return Arrays.asList(new MenuItemInfo("/objects/additions",
-				"EXPORT_MCT_ACTION", MenuItemType.NORMAL, ExportAction.class),
-				new MenuItemInfo("/objects/additions", 
-						"IMPORT_SUBMENU", 
-						SubmenuMenu.class), 
+		return Arrays.asList(
 				new MenuItemInfo("/objects/import.ext", 
 						"IMPORT_MCT_ACTION",
 						MenuItemType.NORMAL, ImportAction.class),
-				new MenuItemInfo("/this/additions",
-						"EXPORT_THIS_ACTION", MenuItemType.NORMAL, ExportThisAction.class));
+				new MenuItemInfo("/objects/export.ext",
+						"EXPORT_MCT_ACTION", 
+						MenuItemType.NORMAL, ExportAction.class),
+				new MenuItemInfo("/this/import.ext", 
+						"IMPORT_THIS_ACTION",
+						MenuItemType.NORMAL, ImportThisAction.class),
+				new MenuItemInfo("/this/export.ext",
+						"EXPORT_THIS_ACTION", 
+						MenuItemType.NORMAL, ExportThisAction.class));
 	}
 
 	@Override

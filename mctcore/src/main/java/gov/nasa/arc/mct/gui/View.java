@@ -469,6 +469,15 @@ public abstract class View extends JPanel implements ViewProvider, LockObserver 
     }
     
     /**
+     * Get the view which is a container for this specific view.
+     * May return null if this is not known by the view.
+     * @return the parent of this view
+     */
+    public View getParentView() {
+        return null;
+    }
+    
+    /**
      * Gets the info used to create this view.
      * @return the type info used to create this view.
      */

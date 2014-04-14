@@ -37,10 +37,12 @@ import gov.nasa.arc.mct.services.component.ViewType;
 import java.awt.Container;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 
+import javax.swing.JLabel;
 import javax.swing.event.AncestorEvent;
 import javax.swing.event.AncestorListener;
 
@@ -198,7 +200,7 @@ public class TestInspector {
             @Override
             public Object answer(InvocationOnMock invocation) throws Throwable {
                 Object[] options = (Object[]) invocation.getArguments()[2];
-                return save ? options[0] : options[options.length-1]; // options[0] presumed to mean "OK"
+                return save ? options[0] : options[1]; // options[0] presumed to mean "OK"
             }
         });
         
@@ -219,6 +221,26 @@ public class TestInspector {
                 return argument instanceof Collection && ((Collection)argument).contains(mockComponent);
             }
         }));
+    }
+    
+    // Test for root cause of https://github.com/nasa/mct/issues/172
+    @Test
+    public void testLabelTransferHandler() throws Exception {
+        PropertyChangeEvent mockEvent = Mockito.mock(PropertyChangeEvent.class);
+        
+        Field viewTitleField = Inspector.class.getDeclaredField("viewTitle");
+        viewTitleField.setAccessible(true);
+        JLabel viewTitle = JLabel.class.cast(viewTitleField.get(inspector));
+        
+        Mockito.when(mockEvent.getNewValue()).thenReturn(Collections.singleton(view));
+        inspectorPropertyChangeListener.propertyChange(mockEvent);
+
+        Assert.assertNotNull(viewTitle.getTransferHandler());
+        
+        Mockito.when(mockEvent.getNewValue()).thenReturn(Collections.EMPTY_LIST);
+        inspectorPropertyChangeListener.propertyChange(mockEvent);
+        
+        Assert.assertNotNull(viewTitle.getTransferHandler());
     }
     
     @DataProvider
