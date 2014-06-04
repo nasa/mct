@@ -29,6 +29,7 @@ import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.Shape;
 import java.awt.Stroke;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -170,13 +171,23 @@ public class LegendItem extends JComponent {
 		@Override
 		public void paint(Graphics g) {
 			Stroke stroke = line.getStroke();
+			Graphics2D g2 = (Graphics2D)g;
 			if(stroke != null) {
-				((Graphics2D) g).setStroke(stroke);
+				g2.setStroke(stroke);
 			}
 			g.setColor(line.getForeground());
 			int x = getWidth();
 			int y = getHeight() / 2;
 			g.drawLine(0, y, x, y);
+			g.translate(x / 2, y);
+			Shape pointOutline = line.getPointOutline();
+			if(pointOutline != null) {
+				 g2.draw(pointOutline);
+			}
+			Shape pointFill = line.getPointFill();
+			if(pointFill != null) {
+				 g2.fill(pointFill);
+			}
 		}
 	}
 
