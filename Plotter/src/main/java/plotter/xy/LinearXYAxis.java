@@ -25,7 +25,6 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.text.NumberFormat;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -57,13 +56,7 @@ public class LinearXYAxis extends XYAxis {
 	/** Calculates tick marks and labels for the axis. */
 	private TickMarkCalculator tickMarkCalculator = new LinearTickMarkCalculator();
 
-	/** Format used to display values in labels. */
-	private NumberFormat format = NumberFormat.getInstance();
 
-	/** Format used for label tooltips.  Null if no tooltips. */
-	private NumberFormat toolTipFormat;
-
-	
 	/**
 	 * Creates an axis.
 	 * @param d dimension the axis represents
@@ -324,43 +317,5 @@ public class LinearXYAxis extends XYAxis {
 	 */
 	public void setTickMarkCalculator(TickMarkCalculator tickMarkCalculator) {
 		this.tickMarkCalculator = tickMarkCalculator;
-	}
-
-
-	/**
-	 * Returns the format for the labels.
-	 * @return the format for the labels
-	 */
-	public NumberFormat getFormat() {
-		return format;
-	}
-
-
-	/**
-	 * Sets the format for the labels.
-	 * @param format the format for the labels
-	 */
-	public void setFormat(NumberFormat format) {
-		this.format = format;
-	}
-
-
-	/**
-	 * Returns the format for the label tooltips.
-	 * Returns null if tooltips are not displayed.
-	 * @return the format for the label tooltips
-	 */
-	public NumberFormat getToolTipFormat() {
-		return toolTipFormat;
-	}
-
-
-	/**
-	 * Sets the format for the label tooltips.
-	 * The format may be null if tooltips should not be displayed.
-	 * @param toolTipFormat format for the label tooltips
-	 */
-	public void setToolTipFormat(NumberFormat toolTipFormat) {
-		this.toolTipFormat = toolTipFormat;
 	}
 }

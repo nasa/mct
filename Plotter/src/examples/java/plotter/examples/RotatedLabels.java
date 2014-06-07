@@ -27,7 +27,6 @@ import java.text.DecimalFormat;
 import javax.swing.JFrame;
 
 import plotter.Rotation;
-import plotter.xy.LinearXYAxis;
 import plotter.xy.LinearXYPlotLine;
 import plotter.xy.SimpleXYDataset;
 import plotter.xy.XYAxis;
@@ -41,7 +40,7 @@ public class RotatedLabels {
 
 		XYAxis xAxis = frame.getXAxis();
 		XYAxis yAxis = frame.getYAxis();
-		((LinearXYAxis)xAxis).setFormat(new DecimalFormat("0.0"));
+		xAxis.setFormat(new DecimalFormat("0.0"));
 		xAxis.setLabelRotation(Rotation.CCW);
 		final LinearXYPlotLine line = new LinearXYPlotLine(xAxis, yAxis, XYDimension.X);
 		line.setForeground(Color.white);

@@ -21,6 +21,8 @@
  *******************************************************************************/
 package plotter;
 
+import java.text.NumberFormat;
+
 import javax.swing.JComponent;
 
 /**
@@ -50,6 +52,12 @@ public abstract class Axis extends JComponent {
 
 	/** Whether or not to display labels. */
 	private boolean showLabels = true;
+
+	/** Format used to display values in labels. */
+	protected NumberFormat format = NumberFormat.getInstance();
+
+	/** Format used for label tooltips.  Null if no tooltips. */
+	protected NumberFormat toolTipFormat;
 
 
 	/**
@@ -179,5 +187,43 @@ public abstract class Axis extends JComponent {
 	 */
 	public void setShowLabels(boolean showLabels) {
 		this.showLabels = showLabels;
+	}
+
+
+	/**
+	 * Returns the format for the labels.
+	 * @return the format for the labels
+	 */
+	public NumberFormat getFormat() {
+		return format;
+	}
+
+
+	/**
+	 * Sets the format for the labels.
+	 * @param format the format for the labels
+	 */
+	public void setFormat(NumberFormat format) {
+		this.format = format;
+	}
+
+
+	/**
+	 * Returns the format for the label tooltips.
+	 * Returns null if tooltips are not displayed.
+	 * @return the format for the label tooltips
+	 */
+	public NumberFormat getToolTipFormat() {
+		return toolTipFormat;
+	}
+
+
+	/**
+	 * Sets the format for the label tooltips.
+	 * The format may be null if tooltips should not be displayed.
+	 * @param toolTipFormat format for the label tooltips
+	 */
+	public void setToolTipFormat(NumberFormat toolTipFormat) {
+		this.toolTipFormat = toolTipFormat;
 	}
 }
