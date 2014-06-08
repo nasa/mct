@@ -28,7 +28,6 @@ import java.text.ChoiceFormat;
 import javax.swing.JFrame;
 
 import plotter.IntegerTickMarkCalculator;
-import plotter.xy.LinearXYAxis;
 import plotter.xy.LinearXYPlotLine;
 import plotter.xy.LinearXYPlotLine.LineMode;
 import plotter.xy.SimpleXYDataset;
@@ -47,7 +46,7 @@ public class Enumeration {
 		xAxis.setStartMargin(75);
 		yAxis.setFormat(new ChoiceFormat(new double[] {-Double.POSITIVE_INFINITY, 0, 1, 2, 2.000001}, new String[] {"", "red",
 				"green", "blue", ""}));
-		((LinearXYAxis) yAxis).setTickMarkCalculator(new IntegerTickMarkCalculator());
+		yAxis.setTickMarkCalculator(new IntegerTickMarkCalculator());
 		final LinearXYPlotLine line = new LinearXYPlotLine(xAxis, yAxis, XYDimension.X);
 		line.setForeground(Color.white);
 		line.setLineMode(LineMode.STEP_YX);

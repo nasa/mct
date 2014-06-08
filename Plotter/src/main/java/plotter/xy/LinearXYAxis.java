@@ -32,7 +32,6 @@ import plotter.AxisLabel;
 import plotter.LinearTickMarkCalculator;
 import plotter.MultiLineLabelUI;
 import plotter.Rotation;
-import plotter.TickMarkCalculator;
 
 /**
  * A linear XY axis is the normal case where points on the screen are linearly related to their corresponding data values.
@@ -53,16 +52,13 @@ public class LinearXYAxis extends XYAxis {
 	/** Values of the minor tick marks. */
 	private double[] minorVals;
 
-	/** Calculates tick marks and labels for the axis. */
-	private TickMarkCalculator tickMarkCalculator = new LinearTickMarkCalculator();
-
-
 	/**
 	 * Creates an axis.
 	 * @param d dimension the axis represents
 	 */
 	public LinearXYAxis(XYDimension d) {
 		super(d);
+		setTickMarkCalculator(new LinearTickMarkCalculator());
 	}
 
 
@@ -299,23 +295,5 @@ public class LinearXYAxis extends XYAxis {
 		for(Component c : getComponents()) {
 			c.setFont(font);
 		}
-	}
-
-
-	/**
-	 * Returns the tick mark calculator.
-	 * @return the tick mark calculator
-	 */
-	public TickMarkCalculator getTickMarkCalculator() {
-		return tickMarkCalculator;
-	}
-
-
-	/**
-	 * Sets the tick mark calculator.
-	 * @param tickMarkCalculator the tick mark calculator
-	 */
-	public void setTickMarkCalculator(TickMarkCalculator tickMarkCalculator) {
-		this.tickMarkCalculator = tickMarkCalculator;
 	}
 }

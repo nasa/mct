@@ -59,6 +59,9 @@ public abstract class Axis extends JComponent {
 	/** Format used for label tooltips.  Null if no tooltips. */
 	protected NumberFormat toolTipFormat;
 
+	/** Calculates tick marks and labels for the axis. */
+	protected TickMarkCalculator tickMarkCalculator;
+
 
 	/**
 	 * Returns the start value.
@@ -225,5 +228,23 @@ public abstract class Axis extends JComponent {
 	 */
 	public void setToolTipFormat(NumberFormat toolTipFormat) {
 		this.toolTipFormat = toolTipFormat;
+	}
+
+
+	/**
+	 * Returns the tick mark calculator.
+	 * @return the tick mark calculator
+	 */
+	public TickMarkCalculator getTickMarkCalculator() {
+		return tickMarkCalculator;
+	}
+
+
+	/**
+	 * Sets the tick mark calculator.
+	 * @param tickMarkCalculator the tick mark calculator
+	 */
+	public void setTickMarkCalculator(TickMarkCalculator tickMarkCalculator) {
+		this.tickMarkCalculator = tickMarkCalculator;
 	}
 }
