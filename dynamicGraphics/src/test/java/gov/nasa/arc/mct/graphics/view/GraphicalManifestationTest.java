@@ -239,7 +239,7 @@ public class GraphicalManifestationTest {
 					/* Outline should be different */
 					Assert.assertFalse(viewImage.getRGB(x, y) == manualImage.getRGB(x, y));
 				} else {
-					/* Everyting else should still be the same */
+					/* Everything else should still be the same */
 					Assert.assertTrue (viewImage.getRGB(x, y) == manualImage.getRGB(x, y));
 				}
 			}
