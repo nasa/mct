@@ -27,16 +27,16 @@ package gov.nasa.arc.mct.services.activity;
  * wall clock time and clock ticks may deviate significantly) or be slightly delayed to reflect latency between
  * the vehicle and the ground systems. 
  * An instance can be obtained through OSGI, using code like:
- * <code><pre>
+ * <code>
  *    org.osgi.framework.BundleContext bc = ... // will be obtained through an activator
  *    ServiceReference ref = bc.getServiceReference(TimeService.class.getName());
  *    if (ref != null) 
  *      TimeService registry = (TimeService) bc.getService(ref);
  *    ...
  *    bc.ungetServiceReference(ref);
- * </pre></code>
+ * </code>
  * An instance of this class can also be obtained using the  
- * <a href=" http://www.eclipsezone.com/eclipse/forums/t97690.html">OSGI declarative
+ * <a href="http://www.eclipsezone.com/eclipse/forums/t97690.html">OSGI declarative
  * service functionality</a>. 
  *
  */

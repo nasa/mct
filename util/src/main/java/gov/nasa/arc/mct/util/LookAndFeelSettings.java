@@ -49,7 +49,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
  */
 public enum LookAndFeelSettings {
     
-    /** L&F settings instance. */
+    /** Look and Feel settings instance. */
     INSTANCE;
 
     private static final MCTLogger logger = MCTLogger.getLogger(LookAndFeelSettings.class);
@@ -71,7 +71,7 @@ public enum LookAndFeelSettings {
      * As a convenience, allow config file to specify "Metal" or Nimbus". Absence of the
      * parameter results in default to Metal. Otherwise, the config file must provide a
      * fully qualified LAF name.
-     * @param lookAndFeelStr - L&F string.
+     * @param lookAndFeelStr - Look and Feel string.
      */
     public void setLAF(String lookAndFeelStr) {
         String exceptionNotice = "";

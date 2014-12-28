@@ -42,10 +42,10 @@ public class LafColor {
 
     private final static UIDefaults lafDefaults = UIManager.getLookAndFeelDefaults();
     
-    /** The default Window L&F color. */
+    /** The default Window Look and Feel color. */
     public static Color WINDOW = lafDefaults.getColor("window");
     
-    /** The default Window border L&F color. */
+    /** The default Window border Look and Feel color. */
     public static Color WINDOW_BORDER = lafDefaults.getColor("windowBorder");
 
     /** The default menubar background color. */

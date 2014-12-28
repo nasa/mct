@@ -28,16 +28,16 @@ import javax.swing.JPopupMenu;
 /**
  * This interface provides access for menu management.
  * An instance can be obtained through OSGI, using code like:
- * <code><pre>
+ * <code>
  *    org.osgi.framework.BundleContext bc = ... // will be obtained through an activator
  *    ServiceReference ref = bc.getServiceReference(MenuManager.class.getName());
  *    if (ref != null) 
  *      MenuManager menuManager = (MenuManager) bc.getService(ref);
  *    ...
  *    bc.ungetServiceReference(ref);
- * </pre></code>
+ * </code>
  * An instance of this class can also be obtained using the  
- * <a href=" http://www.eclipsezone.com/eclipse/forums/t97690.html">OSGI declarative
+ * <a href="http://www.eclipsezone.com/eclipse/forums/t97690.html">OSGI declarative
  * service functionality</a>. 
  * 
  * @author nija.shi@nasa.gov

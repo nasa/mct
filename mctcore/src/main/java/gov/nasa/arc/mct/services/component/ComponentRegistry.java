@@ -28,16 +28,16 @@ import java.util.Collection;
 /**
  * This interface provides administrative functionality for component types.
  * An instance can be obtained through OSGI, using code like:
- * <code><pre>
+ * <code>
  *    org.osgi.framework.BundleContext bc = ... // will be obtained through an activator
  *    ServiceReference ref = bc.getServiceReference(ComponentRegistry.class.getName());
  *    if (ref != null) 
  *      ComponentRegistry registry = (ComponentRegistry) bc.getService(ref);
  *    ...
  *    bc.ungetServiceReference(ref);
- * </pre></code>
+ * </code>
  * An instance of this class can also be obtained using the  
- * <a href=" http://www.eclipsezone.com/eclipse/forums/t97690.html">OSGI declarative
+ * <a href="http://www.eclipsezone.com/eclipse/forums/t97690.html">OSGI declarative
  * service functionality</a>. 
   
  * @author chris.webster@nasa.gov

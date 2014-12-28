@@ -39,7 +39,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
- * This class contains the set of properties for a specific view. Each property is a <key, value> pair of type <String, String>
+ * This class contains the set of properties for a specific view. Each property is a (key, value) pair of type (String, String)
  * and each set of properties is associated with one component only.
  * 
  * Each set of properties will be shared across a cluster of MCT if the owner component is shared; therefore, each method of this

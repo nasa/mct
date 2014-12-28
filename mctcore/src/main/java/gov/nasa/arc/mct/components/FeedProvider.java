@@ -182,12 +182,16 @@ public interface FeedProvider {
             return valid;
         }
         
-        /** gets plottable. */
+        /** gets plottable.
+         * @return plottable 
+         * */
         public boolean isPlottable() {
             return plottable;
         }
 
-        /** sets plottable. */
+        /** sets plottable. 
+         * @param plottable true if plottable
+         * */
         public void setPlottable(boolean plottable) {
             this.plottable = plottable;
         }

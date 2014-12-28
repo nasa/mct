@@ -38,7 +38,7 @@ public interface FeedAggregator {
      * @param startTime the start time of the return data set.
      * @param endTime the end time of the return data set.
 	 * @return map of data for the specified feeds. Each entry in the map has data 
-	 * with a timestamp that is >= startTime and < endTime.
+	 * with a timestamp that is greater than or equal startTime and less than endTime.
 	 */
 	public Map<String, List<Map<String, String>>> getData(Set<String> feedIDs, TimeUnit timeUnit, long startTime, long endTime);
 
