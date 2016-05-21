@@ -45,7 +45,7 @@ public final class DataValidation {
      *            minimum length
      * @param maximum
      *            maximum length
-     * @return Returns true, if minimum <= length <= maximum; otherwise returns
+     * @return Returns true, if minimum less than or equal AND length less than or equal maximum; otherwise returns
      *         false.
      */
     public static boolean validateLength(String input, int minimum, int maximum) {

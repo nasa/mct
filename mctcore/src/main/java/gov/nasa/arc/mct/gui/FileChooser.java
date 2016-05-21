@@ -74,7 +74,7 @@ public class FileChooser {
     /**
      * Pops up an "Open File" file chooser dialog. Note that the
      * text that appears in the approve button is determined by
-     * the L&F.
+     * the Look and Feel.
      *
      * @param    parent  the parent component of the dialog,
      *          can be <code>null</code>;

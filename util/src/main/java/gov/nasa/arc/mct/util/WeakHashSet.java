@@ -46,7 +46,7 @@ import java.util.Set;
  * 
  * @author asi
  * 
- * @param <T>
+ * @param <T> WeakHashSet
  */
 public class WeakHashSet<T> extends AbstractSet<T> {
 	private static final long serialVersionUID = -7806849276006714321L;
@@ -96,7 +96,7 @@ public class WeakHashSet<T> extends AbstractSet<T> {
 
 	/**
 	 * Iterates the weak hashset.
-	 * @return Iterator<T> - the iterator.
+	 * @return Iterator
 	 */
 	public Iterator<T> iterator() {
 		cleanQueue();

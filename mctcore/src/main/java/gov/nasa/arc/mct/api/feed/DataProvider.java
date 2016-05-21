@@ -53,7 +53,7 @@ public interface DataProvider extends FeedAggregator {
      * @param endTime the end time of the return data set.
      * @param timeUnit the time unit of startTime and endTime parameters.
      * @return map of data for the specified feeds. Each entry in the map has data 
-     * with a timestamp that is >= startTime and <= endTime ordered according to the time.
+     * with a timestamp that is greater or equal startTime and less than or equal endTime ordered according to the time.
      */
     public Map<String, SortedMap<Long, Map<String, String>>> getData(Set<String> feedIDs, long startTime, long endTime, TimeUnit timeUnit);
 

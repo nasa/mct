@@ -152,16 +152,16 @@ public class SQLStatementWriter {
  * Generates sql code suitable for loading dropboxes.
  * 
  * For generic base:
-java gov.nasa.arc.mct.util.SQLStatementWriter USER  ../../deployment/src/main/resources/persistence/base/userList.txt  > ../../deployment/src/main/resources/persistence/createDropboxesForUsers.sql
-java gov.nasa.arc.mct.util.SQLStatementWriter GROUP ../../deployment/src/main/resources/persistence/base/groupList.txt  > ../../deployment/src/main/resources/persistence/createDropboxesForGroups.sql
+java gov.nasa.arc.mct.util.SQLStatementWriter USER  ../../deployment/src/main/resources/persistence/base/userList.txt  &gt; ../../deployment/src/main/resources/persistence/createDropboxesForUsers.sql
+java gov.nasa.arc.mct.util.SQLStatementWriter GROUP ../../deployment/src/main/resources/persistence/base/groupList.txt  &gt; ../../deployment/src/main/resources/persistence/createDropboxesForGroups.sql
  * 
  * For JSC site:
- java gov.nasa.arc.mct.util.SQLStatementWriter USER ../../deployment/src/main/resources/site/siteUserList.txt  > ../../deployment/src/main/resources/site/dropboxesForUsers.sql
- java gov.nasa.arc.mct.util.SQLStatementWriter GROUP ../../deployment/src/main/resources/site/siteGroupList.txt  > ../../deployment/src/main/resources/site/dropboxesForGroups.sql
+ java gov.nasa.arc.mct.util.SQLStatementWriter USER ../../deployment/src/main/resources/site/siteUserList.txt  &gt; ../../deployment/src/main/resources/site/dropboxesForUsers.sql
+ java gov.nasa.arc.mct.util.SQLStatementWriter GROUP ../../deployment/src/main/resources/site/siteGroupList.txt  &gt; ../../deployment/src/main/resources/site/dropboxesForGroups.sql
  * 
  * for Orion
- java gov.nasa.arc.mct.util.SQLStatementWriter USER ../../deployment/src/main/resources/site/orion/siteUserList.txt  > ../../deployment/src/main/resources/site/orion/dropboxesForUsers.sql
- java gov.nasa.arc.mct.util.SQLStatementWriter GROUP ../../deployment/src/main/resources/site/orion/siteGroupList.txt  > ../../deployment/src/main/resources/site/orion/dropboxesForGroups.sql
+ java gov.nasa.arc.mct.util.SQLStatementWriter USER ../../deployment/src/main/resources/site/orion/siteUserList.txt  &gt; ../../deployment/src/main/resources/site/orion/dropboxesForUsers.sql
+ java gov.nasa.arc.mct.util.SQLStatementWriter GROUP ../../deployment/src/main/resources/site/orion/siteGroupList.txt  &gt; ../../deployment/src/main/resources/site/orion/dropboxesForGroups.sql
 
  * @param args - main method array of arguments.
  */
