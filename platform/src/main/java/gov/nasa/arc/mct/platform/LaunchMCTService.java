@@ -198,7 +198,7 @@ public class LaunchMCTService {
             final String ADD_USER_PROP = "automatically.add.user";
             final String DEFAULT_GROUP_PROP = "default.user.group";
             if (Boolean.parseBoolean(System.getProperty(ADD_USER_PROP, MCTProperties.DEFAULT_MCT_PROPERTIES.getProperty(ADD_USER_PROP, "false")))) {
-                // Default to "testUser1" if no user name was ever specified
+                // Default to "user" if no user name was ever specified
                 String userId = whoami != null ? whoami : bundle.getString("DEFAULT_USER"); //NOI18N  
                 Platform platform = PlatformAccess.getPlatform();
                 
