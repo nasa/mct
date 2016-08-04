@@ -54,4 +54,27 @@ public class TimeFormatUtils {
 		return dateFormat;
 
 	}
+
+
+	// TODO: This replaces a hack in the Plotter code, but should probably be removed in favor of supporting a short format and a long format.
+	@Deprecated
+	public static SimpleDateFormat makeDateFormatWithYear(String formatString) {
+		SimpleDateFormat dateFormat = new SimpleDateFormat(TimeService.DEFAULT_TIME_FORMAT + " yyyy");
+		dateFormat.setTimeZone(TimeZone.getTimeZone(PlotConstants.DEFAULT_TIME_ZONE));
+
+		if(formatString != null && !formatString.isEmpty()) {
+			try {
+				if(formatString.endsWith(ignoreNanoSeconds)) {
+					formatString = formatString.substring(0, formatString.indexOf(ignoreNanoSeconds));
+				}
+
+				dateFormat = new SimpleDateFormat(formatString + " yyyy");
+				dateFormat.setTimeZone(TimeZone.getTimeZone(PlotConstants.DEFAULT_TIME_ZONE));
+			} catch(IllegalArgumentException e) {
+				logger.error("Unable to format date time format: " + formatString + ". Instead using default: "
+						+ TimeService.DEFAULT_TIME_FORMAT);
+			}
+		}
+		return dateFormat;
+	}
 }

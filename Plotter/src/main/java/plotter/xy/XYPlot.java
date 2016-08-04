@@ -42,6 +42,12 @@ public class XYPlot extends Plot {
 	/** The Y axis. */
 	private XYAxis yAxis;
 
+	/** The X2 axis. */
+	private XYAxis x2Axis;
+
+	/** The Y2 axis. */
+	private XYAxis y2Axis;
+
 
 	@Override
 	protected void paintComponent(Graphics g) {
@@ -113,6 +119,42 @@ public class XYPlot extends Plot {
 	 */
 	public void setYAxis(XYAxis yAxis) {
 		this.yAxis = yAxis;
+	}
+
+
+	/**
+	 * Returns the X2 axis.
+	 * @return the X2 axis
+	 */
+	public XYAxis getX2Axis() {
+		return x2Axis;
+	}
+
+
+	/**
+	 * Sets the X2 axis
+	 * @param x2Axis the X2 axis
+	 */
+	public void setX2Axis(XYAxis x2Axis) {
+		this.x2Axis = x2Axis;
+	}
+
+
+	/**
+	 * Returns the Y2 axis
+	 * @return the Y2 axis
+	 */
+	public XYAxis getY2Axis() {
+		return y2Axis;
+	}
+
+
+	/**
+	 * Sets the Y2 axis
+	 * @param y2Axis the Y2 axis
+	 */
+	public void setY2Axis(XYAxis y2Axis) {
+		this.y2Axis = y2Axis;
 	}
 
 

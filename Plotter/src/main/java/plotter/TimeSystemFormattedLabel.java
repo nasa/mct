@@ -31,8 +31,11 @@ import javax.swing.JLabel;
 public class TimeSystemFormattedLabel extends JLabel {
 	private static final long serialVersionUID = 1L;
 
+	/** Default value returned by {@link #getTimeSystemAxisLabelName()}. */
+	public static final String DEFAULT_TIME_SYSTEM_NAME = "GMT";
+
 	/** Displays the time system formatted label name. Defaults to GMT. */
-	private String timeSystemLabelName = Axis.DEFAULT_TIME_SYSTEM_NAME;
+	private String timeSystemLabelName = DEFAULT_TIME_SYSTEM_NAME;
 	
 	/** 
 	 * Formats the label for display as HTML content.

@@ -32,8 +32,8 @@ public class BigLabels {
 		yAxis.setEnd(1.2);
 		xAxis.setStart(0);
 		xAxis.setEnd(2 * Math.PI);
-		((LinearXYAxis)xAxis).setFormat(new DecimalFormat("0.0000000"));
-		((LinearXYAxis)yAxis).setFormat(new DecimalFormat("0.0000000"));
+		xAxis.setFormat(new DecimalFormat("0.0000000"));
+		yAxis.setFormat(new DecimalFormat("0.0000000"));
 		((LinearXYAxis)yAxis).setLabelRotation(Rotation.CCW);
 
 		for(int x = 0; x <= 100; x++) {

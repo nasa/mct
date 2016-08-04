@@ -164,9 +164,11 @@ public class QCPlotObjects {
 
 			// Setup the axis labels.
 			if (plot.isTimeLabelEnabled) {
-				SimpleDateFormat format = TimeFormatUtils.makeDataFormat(plot.getTimeFormatSetting());
+				String timeFormatSetting = plot.getTimeFormatSetting();
+				SimpleDateFormat format = TimeFormatUtils.makeDataFormat(timeFormatSetting);
 				xAxis.setFormat(new DateNumberFormat(format));
-                xAxis.setTimeSystemAxisLabelName(timeSystemId);
+				SimpleDateFormat tooltipFormat = TimeFormatUtils.makeDateFormatWithYear(timeFormatSetting);
+				xAxis.setToolTipFormat(new DateNumberFormat(tooltipFormat));
 			} else {
 				xAxis.setShowLabels(false);
 			}
@@ -221,9 +223,11 @@ public class QCPlotObjects {
 
 			// Setup the axis labels.
 			if (plot.isTimeLabelEnabled) {
-				SimpleDateFormat format = TimeFormatUtils.makeDataFormat(plot.getTimeFormatSetting());
-                yAxis.setFormat(new DateNumberFormat(format));
-                yAxis.setTimeSystemAxisLabelName(timeSystemId);
+				String timeFormatSetting = plot.getTimeFormatSetting();
+				SimpleDateFormat format = TimeFormatUtils.makeDataFormat(timeFormatSetting);
+				yAxis.setFormat(new DateNumberFormat(format));
+				SimpleDateFormat tooltipFormat = TimeFormatUtils.makeDateFormatWithYear(timeFormatSetting);
+				yAxis.setToolTipFormat(new DateNumberFormat(tooltipFormat));
 			} else {
 				yAxis.setShowLabels(false);
 			}

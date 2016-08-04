@@ -31,6 +31,8 @@ import java.awt.Stroke;
 import javax.swing.JComponent;
 import javax.swing.SwingUtilities;
 
+import plotter.internal.GraphicsUtils;
+
 
 /**
  * Draws a line at a particular value on an {@link XYPlot}.
@@ -58,6 +60,15 @@ public class XYMarkerLine extends JComponent {
 	/** Period length of the stroke, used to optimize drawing. */
 	private double strokeLength = 8;
 
+	/** True if optimized drawing is enabled. */
+	private boolean customLines = true;
+
+	/** Length of the dash.  Only relevant if {@link #customLines} is true. */
+	private double customDash = 4;
+
+	/** Length of the space.  Only relevant if {@link #customLines} is true. */
+	private double customSpace = 4;
+
 
 	/**
 	 * Creates a marker line.
@@ -74,7 +85,9 @@ public class XYMarkerLine extends JComponent {
 	protected void paintComponent(Graphics g) {
 		Graphics2D g2 = (Graphics2D) g.create();
 		g2.setColor(getForeground());
-		g2.setStroke(stroke);
+		if(!customLines) {
+			g2.setStroke(stroke);
+		}
 		int height = getHeight();
 		Rectangle clip = g2.getClipBounds();
 		int loc = axis.toPhysical(value);
@@ -95,7 +108,11 @@ public class XYMarkerLine extends JComponent {
 					lineymax = clip.y + clip.height;
 				}
 
-				g2.drawLine(loc, lineymin, loc, lineymax);
+				if(customLines) {
+					GraphicsUtils.drawDashedLine(g2, loc, lineymin, loc, lineymax, customDash, customSpace);
+				} else {
+					g2.drawLine(loc, lineymin, loc, lineymax);
+				}
 			}
 		} else {
 			Point p = SwingUtilities.convertPoint(axis, 0, loc, this);
@@ -115,7 +132,11 @@ public class XYMarkerLine extends JComponent {
 					linexmax = clip.x + clip.width;
 				}
 
-				g2.drawLine(linexmin, loc, linexmax, loc);
+				if(customLines) {
+					GraphicsUtils.drawDashedLine(g2, linexmin, loc, linexmax, loc, customDash, customSpace);
+				} else {
+					g2.drawLine(linexmin, loc, linexmax, loc);
+				}
 			}
 		}
 	}
@@ -137,14 +158,20 @@ public class XYMarkerLine extends JComponent {
 	public void setStroke(Stroke stroke) {
 		this.stroke = stroke;
 		if(stroke instanceof BasicStroke) {
-			float[] dashes = ((BasicStroke) stroke).getDashArray();
+			BasicStroke bs = (BasicStroke) stroke;
+			float[] dashes = bs.getDashArray();
 			float strokeLength = 0;
 			for(float f : dashes) {
 				strokeLength += f;
 			}
 			this.strokeLength = strokeLength;
+			customLines = dashes.length == 2 && bs.getDashPhase() == 0 && bs.getEndCap() == BasicStroke.CAP_BUTT
+					&& bs.getLineWidth() == 1;
+			customDash = dashes[0];
+			customSpace = dashes[1];
 		} else {
 			this.strokeLength = 0;
+			customLines = false;
 		}
 	}
 

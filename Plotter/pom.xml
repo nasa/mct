@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>plotter</groupId>
   <name>Plotter</name>
-  <version>${mct.platform.version}</version>
+  <version>${mct.platform.version}-adamcrume</version>
   <artifactId>plotter</artifactId>
   <packaging>jar</packaging>
   <description/>

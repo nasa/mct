@@ -24,7 +24,6 @@ package plotter.xy;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
-import java.awt.Stroke;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,9 +53,6 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 	/** The Y axis, used to retrieve the min and max. */
 	private XYAxis yAxis;
 
-	/** The stroke used to draw the line, or null to use the default. */
-	private Stroke stroke;
-
 	/** Number of line segments per bounding box. */
 	private int linesPerBoundingBox;
 
@@ -64,7 +60,7 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 	private int boundingBoxOffset;
 
 	/** Bounding boxes for consecutive groups of line segments. */
-	private List<Rectangle2D> boundingBoxes = new ArrayList<Rectangle2D>();
+	private List<Rectangle2D> boundingBoxes;
 
 
 	/**
@@ -93,14 +89,17 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 	private boolean invariants() {
 		assert 0 <= boundingBoxOffset && boundingBoxOffset < linesPerBoundingBox : "boundingBoxOffset = " + boundingBoxOffset
 				+ ", linesPerBoundingBox = " + linesPerBoundingBox;
-		int expectedSize = (xData.getLength() + boundingBoxOffset + linesPerBoundingBox - 1) / linesPerBoundingBox;
-		assert boundingBoxes.size() == expectedSize : "Expected boundingBoxes to be of size " + expectedSize + ", but was " + boundingBoxes.size();
-		if(!boundingBoxes.isEmpty()) {
-			assert firstIndex(0) == 0 : "firstIndex(0) = " + firstIndex(0);
-		}
-		if(boundingBoxes.size() > 0) {
-			assert firstIndex(1) == linesPerBoundingBox - boundingBoxOffset : "firstIndex(1) = " + firstIndex(1) + ", linesPerBoundingBox = "
-					+ linesPerBoundingBox;
+		if(boundingBoxes != null) {
+			int expectedSize = (xData.getLength() + boundingBoxOffset + linesPerBoundingBox - 1) / linesPerBoundingBox;
+			assert boundingBoxes.size() == expectedSize : "Expected boundingBoxes to be of size " + expectedSize
+					+ ", but was " + boundingBoxes.size();
+			if(!boundingBoxes.isEmpty()) {
+				assert firstIndex(0) == 0 : "firstIndex(0) = " + firstIndex(0);
+			}
+			if(boundingBoxes.size() > 0) {
+				assert firstIndex(1) == linesPerBoundingBox - boundingBoxOffset : "firstIndex(1) = " + firstIndex(1)
+						+ ", linesPerBoundingBox = " + linesPerBoundingBox;
+			}
 		}
 		return true;
 	}
@@ -108,6 +107,7 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 
 	@Override
 	protected void paintComponent(Graphics g) {
+		computeBoundingBoxes();
 		assert invariants();
 		int n = xData.getLength();
 		Graphics2D g2 = (Graphics2D) g;
@@ -197,6 +197,8 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 		}
 
 		if(pointFill != null || pointOutline != null) {
+			int oldx = 0;
+			int oldy = 0;
 			for(int k = 0; k < boxCount; k++) {
 				Rectangle2D box = boundingBoxes.get(k);
 				if(box == null || !box.intersects(clipLogical)) {
@@ -204,8 +206,6 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 				}
 				int index = firstIndex(k);
 				int endIndex = Math.min(n, index + linesPerBoundingBox + 1);
-				int oldx = 0;
-				int oldy = 0;
 				for(int i = index; i < endIndex; i++) {
 					double xx = xData.get(i);
 					double yy = yData.get(i);
@@ -448,6 +448,7 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 	 */
 	public void setXData(DoubleData xData) {
 		this.xData = xData;
+		boundingBoxes = null;
 	}
 
 
@@ -467,6 +468,7 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 	 */
 	public void setYData(DoubleData yData) {
 		this.yData = yData;
+		boundingBoxes = null;
 	}
 
 
@@ -489,24 +491,6 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 
 
 	/**
-	 * Returns the stroke used to draw the line.
-	 * @return the stroke used to draw the line
-	 */
-	public Stroke getStroke() {
-		return stroke;
-	}
-
-
-	/**
-	 * Sets the stroke used to draw the line.
-	 * @param stroke the stroke used to draw the line
-	 */
-	public void setStroke(Stroke stroke) {
-		this.stroke = stroke;
-	}
-
-
-	/**
 	 * Returns null.
 	 * @return null
 	 */
@@ -518,6 +502,7 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 
 	@Override
 	public void prepend(double[] x, int xoff, double[] y, int yoff, int len) {
+		computeBoundingBoxes();
 		assert invariants();
 		for(int i = len - 1; i >= 0; i--) {
 			double xx = x[xoff + i];
@@ -559,6 +544,7 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 
 	@Override
 	public void prepend(DoubleData x, DoubleData y) {
+		computeBoundingBoxes();
 		assert invariants();
 		double firstx = Double.NaN;
 		double firsty = Double.NaN;
@@ -614,15 +600,60 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 		assert invariants();
 		xData.removeAll();
 		yData.removeAll();
-		boundingBoxes.clear();
+		if(boundingBoxes != null) {
+			boundingBoxes.clear();
+		}
 		boundingBoxOffset = 0;
 		repaint();
 		assert invariants();
 	}
 
 
+	private void computeBoundingBoxes() {
+		if(boundingBoxes != null) {
+		    return;
+		}
+		boundingBoxes = new ArrayList<Rectangle2D>();
+		boundingBoxOffset = 0;
+		int numPoints = xData.getLength();
+		int numBoxes = 0;
+		int lastBoxSize = 0;
+		for(int i = 0; i < numPoints; i++) {
+			double x = xData.get(i);
+			double y = yData.get(i);
+			if(lastBoxSize == 0) {
+				if(numBoxes > 0 && !Double.isNaN(x) && !Double.isNaN(y)) {
+					Rectangle2D box = boundingBoxes.get(numBoxes - 1);
+					if(box == null) {
+						box = new Rectangle2D.Double(x, y, 0, 0);
+						boundingBoxes.set(numBoxes - 1, box);
+					} else {
+						box.add(x, y);
+					}
+				}
+				boundingBoxes.add(null);
+				numBoxes++;
+			}
+			if(!Double.isNaN(x) && !Double.isNaN(y)) {
+				Rectangle2D box = boundingBoxes.get(numBoxes - 1);
+				if(box == null) {
+					box = new Rectangle2D.Double(x, y, 0, 0);
+					boundingBoxes.set(numBoxes - 1, box);
+				} else {
+					box.add(x, y);
+				}
+			}
+			lastBoxSize++;
+			if(lastBoxSize == linesPerBoundingBox) {
+				lastBoxSize = 0;
+			}
+		}
+	}
+
+
 	@Override
 	public void add(double x, double y) {
+		computeBoundingBoxes();
 		assert invariants();
 		int nPoints = xData.getLength();
 		int lastBoxSize = nPoints + boundingBoxOffset;
@@ -661,6 +692,7 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 
 	@Override
 	public void removeFirst(int removeCount) {
+		computeBoundingBoxes();
 		assert invariants();
 		repaintData(0, removeCount);
 		boundingBoxOffset += removeCount;
@@ -676,6 +708,7 @@ public class ScatterXYPlotLine extends XYPlotLine implements XYDataset {
 
 	@Override
 	public void removeLast(int count) {
+		computeBoundingBoxes();
 		assert invariants();
 		int length = xData.getLength();
 		repaintData(length - count, count);

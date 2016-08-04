@@ -83,14 +83,45 @@ public class JUnitXYGrid extends TestCase {
 	public void testPaintSimple() throws InterruptedException, InvocationTargetException {
 		CountingGraphics g = paint();
 		LineChecker c = new LineChecker();
-		c.require(199, 0, 199, 200);
-		c.require(149, 0, 149, 200);
-		c.require(99, 0, 99, 200);
-		c.require(49, 0, 49, 200);
-		c.require(0, 150, 200, 150);
-		c.require(0, 100, 200, 100);
-		c.require(0, 50, 200, 50);
-		c.require(0, 0, 200, 0);
+
+		for(int y = 0; y < 200; y += 8) {
+			c.require(199, y, 199, y + 3);
+			c.require(149, y, 149, y + 3);
+			c.require(99, y, 99, y + 3);
+			c.require(49, y, 49, y + 3);
+		}
+
+		for(int x = 0; x < 200; x += 8) {
+			c.require(x, 0, x + 3, 0);
+			c.require(x, 50, x + 3, 50);
+			c.require(x, 100, x + 3, 100);
+			c.require(x, 150, x + 3, 150);
+		}
+
+		c.check(g.getLines());
+	}
+
+
+	public void testPaintNonBasicStroke() throws InterruptedException, InvocationTargetException {
+		grid.setStroke(new Stroke() {
+			Stroke s = new BasicStroke(1, 0, 0, 1, new float[] { 4, 4 }, 0);
+
+
+			@Override
+			public Shape createStrokedShape(Shape p) {
+				return s.createStrokedShape(p);
+			}
+		});
+		CountingGraphics g = paint();
+		LineChecker c = new LineChecker();
+		c.require(199, 0, 199, 199);
+		c.require(149, 0, 149, 199);
+		c.require(99, 0, 99, 199);
+		c.require(49, 0, 49, 199);
+		c.require(0, 150, 199, 150);
+		c.require(0, 100, 199, 100);
+		c.require(0, 50, 199, 50);
+		c.require(0, 0, 199, 0);
 		c.check(g.getLines());
 	}
 
@@ -105,6 +136,15 @@ public class JUnitXYGrid extends TestCase {
 
 	public void testPaintClipCustomStroke() throws InterruptedException, InvocationTargetException {
 		grid.setStroke(new BasicStroke(1, 0, 0, 1, new float[] { 5, 5 }, 0));
+		CountingGraphics g = paint(new Rectangle(25, 25, 50, 2));
+		LineChecker c = new LineChecker();
+		c.require(49, 20, 49, 24);
+		c.check(g.getLines());
+	}
+
+
+	public void testPaintClipCustomStroke2() throws InterruptedException, InvocationTargetException {
+		grid.setStroke(new BasicStroke(2, 0, 0, 1, new float[] { 5, 5 }, 0));
 		CountingGraphics g = paint(new Rectangle(25, 25, 50, 2));
 		LineChecker c = new LineChecker();
 		c.require(49, 20, 49, 27);

@@ -30,6 +30,7 @@ import java.awt.Stroke;
 
 import javax.swing.JComponent;
 
+import plotter.internal.GraphicsUtils;
 import plotter.xy.XYAxis.TicksChangedListener;
 
 
@@ -53,6 +54,15 @@ public class XYGrid extends JComponent implements TicksChangedListener {
 	/** Period length of the stroke, used to optimize drawing. */
 	private double strokeLength = 8;
 
+	/** True if optimized drawing is enabled. */
+	private boolean customLines = true;
+
+	/** Length of the dash.  Only relevant if {@link #customLines} is true. */
+	private double customDash = 4;
+
+	/** Length of the space.  Only relevant if {@link #customLines} is true. */
+	private double customSpace = 4;
+
 
 	/**
 	 * Creates a grid.
@@ -75,7 +85,9 @@ public class XYGrid extends JComponent implements TicksChangedListener {
 		Color origColor = g2.getColor();
 		Stroke origStroke = g2.getStroke();
 		g2.setColor(getForeground());
-		g2.setStroke(stroke);
+		if(!customLines) {
+			g2.setStroke(stroke);
+		}
 
 		int height = getHeight();
 		int width = getWidth();
@@ -102,17 +114,28 @@ public class XYGrid extends JComponent implements TicksChangedListener {
 
 		for(int x : xAxis.getMajorTicks()) {
 			if(x >= xmin && x <= xmax) {
-				g2.drawLine(x, lineymin, x, lineymax);
+				if(customLines) {
+					GraphicsUtils.drawDashedLine(g2, x, lineymin, x, lineymax, customDash, customSpace);
+				} else {
+					g2.drawLine(x, lineymin, x, lineymax);
+				}
 			}
 		}
 		for(int y : yAxis.getMajorTicks()) {
 			y = height - 1 - y;
 			if(y >= ymin && y <= ymax) {
-				g2.drawLine(linexmin, y, linexmax, y);
+				if(customLines) {
+					GraphicsUtils.drawDashedLine(g2, linexmin, y, linexmax, y, customDash, customSpace);
+				} else {
+					g2.drawLine(linexmin, y, linexmax, y);
+				}
 			}
 		}
+
 		g2.setColor(origColor);
-		g2.setStroke(origStroke);
+		if(!customLines) {
+			g2.setStroke(origStroke);
+		}
 	}
 
 
@@ -133,19 +156,27 @@ public class XYGrid extends JComponent implements TicksChangedListener {
 
 	/**
 	 * Sets the stroke used to draw the lines.
+	 * Note that optimized drawing is enabled if the stroke is null,
+	 * or else a {@link BasicStroke} with width 1, end {@link BasicStroke#CAP_BUTT}, phase 0, and a dash array of length 2. 
 	 * @param stroke the stroke used to draw the lines
 	 */
 	public void setStroke(Stroke stroke) {
 		this.stroke = stroke;
 		if(stroke instanceof BasicStroke) {
-			float[] dashes = ((BasicStroke) stroke).getDashArray();
+			BasicStroke bs = (BasicStroke) stroke;
+			float[] dashes = bs.getDashArray();
 			float strokeLength = 0;
 			for(float f : dashes) {
 				strokeLength += f;
 			}
 			this.strokeLength = strokeLength;
+			customLines = dashes.length == 2 && bs.getDashPhase() == 0 && bs.getEndCap() == BasicStroke.CAP_BUTT
+					&& bs.getLineWidth() == 1;
+			customDash = dashes[0];
+			customSpace = dashes[1];
 		} else {
 			this.strokeLength = 0;
+			customLines = false;
 		}
 	}
 }

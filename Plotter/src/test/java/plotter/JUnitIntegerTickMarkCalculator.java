@@ -167,18 +167,6 @@ public class JUnitIntegerTickMarkCalculator extends TestCase {
 		IntegerTickMarkCalculator c = new IntegerTickMarkCalculator();
 		Axis axis = new Axis() {
 			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getTimeSystemAxisLabelName() {
-				// TODO Auto-generated method stub
-				return "GMT";
-			}
-
-			@Override
-			public void setTimeSystemAxisLabelName(String labelName) {
-				// TODO Auto-generated method stub
-				
-			}
 		};
 		axis.setStart(start);
 		axis.setEnd(end);

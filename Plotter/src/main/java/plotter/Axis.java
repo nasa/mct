@@ -21,6 +21,8 @@
  *******************************************************************************/
 package plotter;
 
+import java.text.NumberFormat;
+
 import javax.swing.JComponent;
 
 /**
@@ -32,9 +34,6 @@ import javax.swing.JComponent;
  */
 public abstract class Axis extends JComponent {
 	private static final long serialVersionUID = 1L;
-
-	/** Displays the time system axis label name. Defaults to GMT. */
-	protected static final String DEFAULT_TIME_SYSTEM_NAME = "GMT";
 
 	/** Start value. */
 	private double start;
@@ -53,6 +52,15 @@ public abstract class Axis extends JComponent {
 
 	/** Whether or not to display labels. */
 	private boolean showLabels = true;
+
+	/** Format used to display values in labels. */
+	protected NumberFormat format = NumberFormat.getInstance();
+
+	/** Format used for label tooltips.  Null if no tooltips. */
+	protected NumberFormat toolTipFormat;
+
+	/** Calculates tick marks and labels for the axis. */
+	protected TickMarkCalculator tickMarkCalculator;
 
 
 	/**
@@ -183,16 +191,60 @@ public abstract class Axis extends JComponent {
 	public void setShowLabels(boolean showLabels) {
 		this.showLabels = showLabels;
 	}
-	
-	/**
-	 * Returns the time system axis label name.
-	 * @return time system axis label name.
-	 */
-	public abstract String getTimeSystemAxisLabelName();
+
 
 	/**
-	 * Sets the time system axis label name.
-	 * @param labelName time system.
+	 * Returns the format for the labels.
+	 * @return the format for the labels
 	 */
-	public abstract void setTimeSystemAxisLabelName(String labelName);
+	public NumberFormat getFormat() {
+		return format;
+	}
+
+
+	/**
+	 * Sets the format for the labels.
+	 * @param format the format for the labels
+	 */
+	public void setFormat(NumberFormat format) {
+		this.format = format;
+	}
+
+
+	/**
+	 * Returns the format for the label tooltips.
+	 * Returns null if tooltips are not displayed.
+	 * @return the format for the label tooltips
+	 */
+	public NumberFormat getToolTipFormat() {
+		return toolTipFormat;
+	}
+
+
+	/**
+	 * Sets the format for the label tooltips.
+	 * The format may be null if tooltips should not be displayed.
+	 * @param toolTipFormat format for the label tooltips
+	 */
+	public void setToolTipFormat(NumberFormat toolTipFormat) {
+		this.toolTipFormat = toolTipFormat;
+	}
+
+
+	/**
+	 * Returns the tick mark calculator.
+	 * @return the tick mark calculator
+	 */
+	public TickMarkCalculator getTickMarkCalculator() {
+		return tickMarkCalculator;
+	}
+
+
+	/**
+	 * Sets the tick mark calculator.
+	 * @param tickMarkCalculator the tick mark calculator
+	 */
+	public void setTickMarkCalculator(TickMarkCalculator tickMarkCalculator) {
+		this.tickMarkCalculator = tickMarkCalculator;
+	}
 }

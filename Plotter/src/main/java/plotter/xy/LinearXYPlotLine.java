@@ -23,7 +23,6 @@ package plotter.xy;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Stroke;
 
 import plotter.DoubleData;
 import plotter.DoubleDataDouble;
@@ -51,9 +50,6 @@ public class LinearXYPlotLine extends XYPlotLine implements XYDataset {
 
 	/** The algorithm used to draw the line. */
 	private LineMode lineMode = LineMode.STRAIGHT;
-
-	/** The stroke used to draw the line, or null to use the default. */
-	private Stroke stroke;
 
 	/** Specifies which lines to draw around a missing/invalid point. */
 	private MissingPointMode missingPointMode = MissingPointMode.NONE;
@@ -504,24 +500,6 @@ public class LinearXYPlotLine extends XYPlotLine implements XYDataset {
 	 */
 	public void setLineMode(LineMode lineMode) {
 		this.lineMode = lineMode;
-	}
-
-
-	/**
-	 * Returns the stroke used to draw the line.
-	 * @return the stroke used to draw the line
-	 */
-	public Stroke getStroke() {
-		return stroke;
-	}
-
-
-	/**
-	 * Sets the stroke used to draw the line.
-	 * @param stroke the stroke used to draw the line
-	 */
-	public void setStroke(Stroke stroke) {
-		this.stroke = stroke;
 	}
 
 

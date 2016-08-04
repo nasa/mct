@@ -23,19 +23,15 @@ package plotter.xy;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
-import java.text.NumberFormat;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Set;
 
 import plotter.AxisLabel;
-import plotter.DateNumberFormat;
 import plotter.LinearTickMarkCalculator;
 import plotter.MultiLineLabelUI;
 import plotter.Rotation;
-import plotter.TickMarkCalculator;
 
 /**
  * A linear XY axis is the normal case where points on the screen are linearly related to their corresponding data values.
@@ -56,23 +52,13 @@ public class LinearXYAxis extends XYAxis {
 	/** Values of the minor tick marks. */
 	private double[] minorVals;
 
-	/** Calculates tick marks and labels for the axis. */
-	private TickMarkCalculator tickMarkCalculator = new LinearTickMarkCalculator();
-
-	/** Format used to display values in labels. */
-	private NumberFormat format = NumberFormat.getInstance();
-	
-
-	/** Time system axis label name. */
-	private String timeSystemAxisLabelName;
-
-	
 	/**
 	 * Creates an axis.
 	 * @param d dimension the axis represents
 	 */
 	public LinearXYAxis(XYDimension d) {
 		super(d);
+		setTickMarkCalculator(new LinearTickMarkCalculator());
 	}
 
 
@@ -153,10 +139,13 @@ public class LinearXYAxis extends XYAxis {
 		// Position the labels to line up with the corresponding tick marks.
 		int textMargin = getTextMargin();
 		boolean inverted = getEnd() < getStart();
+		boolean mirrored = isMirrored();
 		if(plotDimension == XYDimension.X) {
 			for(int i = 0; i < major.length; i++) {
 				Component label = labels[i];
-				double preferredSize = label.getPreferredSize().getWidth();
+				Dimension preferredSize2 = label.getPreferredSize();
+				double preferredSize = preferredSize2.getWidth();
+				double preferredHeight = preferredSize2.getHeight();
 				double end = preferredSize / 2;
 				double start = -end;
 				if(inverted) {
@@ -176,7 +165,8 @@ public class LinearXYAxis extends XYAxis {
 				}
 				double labelWidth = end - start;
 				label.setSize((int) labelWidth, label.getHeight());
-				label.setLocation((int) (start + startMargin + major[i]), textMargin);
+				int y = mirrored ? (int)(height - 1 - textMargin - preferredHeight) : textMargin;
+				label.setLocation((int) (start + startMargin + major[i]), y);
 			}
 		} else {
 			int height2 = height - startMargin;
@@ -204,7 +194,8 @@ public class LinearXYAxis extends XYAxis {
 				double labelHeight = end - start;
 				int labelWidth = label.getWidth();
 				label.setSize(labelWidth, (int) labelHeight);
-				label.setLocation(width2 - labelWidth, (int) (height2 - major[i] - end));
+				int x = mirrored ? textMargin : (width2 - labelWidth);
+				label.setLocation(x, (int) (height2 - major[i] - end));
 			}
 		}
 	}
@@ -231,10 +222,8 @@ public class LinearXYAxis extends XYAxis {
 		}
 
 		AxisLabel label = new AxisLabel(value, format.format(value));
-		if (format.getClass().equals(DateNumberFormat.class)) {
-			GregorianCalendar gc = new GregorianCalendar();
-			gc.setTimeInMillis((long) value);
-			label.setToolTipText(format.format(value) +" " + gc.get(Calendar.YEAR) );
+		if(toolTipFormat != null) {
+			label.setToolTipText(toolTipFormat.format(value));
 		}
 		Rotation labelRotation = getLabelRotation();
 		if(labelRotation != null) {
@@ -306,51 +295,5 @@ public class LinearXYAxis extends XYAxis {
 		for(Component c : getComponents()) {
 			c.setFont(font);
 		}
-	}
-
-
-	/**
-	 * Returns the tick mark calculator.
-	 * @return the tick mark calculator
-	 */
-	public TickMarkCalculator getTickMarkCalculator() {
-		return tickMarkCalculator;
-	}
-
-
-	/**
-	 * Sets the tick mark calculator.
-	 * @param tickMarkCalculator the tick mark calculator
-	 */
-	public void setTickMarkCalculator(TickMarkCalculator tickMarkCalculator) {
-		this.tickMarkCalculator = tickMarkCalculator;
-	}
-
-
-	/**
-	 * Returns the format for the labels.
-	 * @return the format for the labels
-	 */
-	public NumberFormat getFormat() {
-		return format;
-	}
-
-
-	/**
-	 * Sets the format for the labels.
-	 * @param format the format for the labels
-	 */
-	public void setFormat(NumberFormat format) {
-		this.format = format;
-	}
-	
-	@Override
-	public String getTimeSystemAxisLabelName() {
-		return timeSystemAxisLabelName;
-	}
-	 
-	@Override
-	public void setTimeSystemAxisLabelName(String labelName) {
-		timeSystemAxisLabelName = labelName;
 	}
 }

@@ -149,18 +149,6 @@ public class JUnitLogTickMarkCalculator extends TestCase {
 		LogTickMarkCalculator c = new LogTickMarkCalculator();
 		Axis axis = new Axis() {
 			private static final long serialVersionUID = 1L;
-
-			@Override
-			public String getTimeSystemAxisLabelName() {
-				// TODO Auto-generated method stub
-				return "GMT";
-			}
-
-			@Override
-			public void setTimeSystemAxisLabelName(String labelName) {
-				// TODO Auto-generated method stub
-				
-			}
 		};
 		axis.setStart(start);
 		axis.setEnd(end);
