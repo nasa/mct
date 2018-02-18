@@ -164,14 +164,14 @@ public class PlotSettings extends GenericSettings implements PlotConfiguration {
 	
 	public boolean matches(PlotConfiguration settings) {
 		return
-			settings.getAxisOrientationSetting() == getAxisOrientationSetting() &&
-			settings.getTimeSystemSetting() == getTimeSystemSetting() &&
-			settings.getTimeFormatSetting() == getTimeFormatSetting() &&
-			settings.getXAxisMaximumLocation() == getXAxisMaximumLocation() &&
-			settings.getYAxisMaximumLocation() == getYAxisMaximumLocation() &&
-			settings.getTimeAxisSubsequentSetting() == getTimeAxisSubsequentSetting() &&
-			settings.getNonTimeAxisSubsequentMinSetting() == getNonTimeAxisSubsequentMinSetting() &&
-			settings.getNonTimeAxisSubsequentMaxSetting() == getNonTimeAxisSubsequentMaxSetting() &&
+			settings.getAxisOrientationSetting().equals(getAxisOrientationSetting()) &&
+			settings.getTimeSystemSetting().equals(getTimeSystemSetting()) &&
+			settings.getTimeFormatSetting().equals(getTimeFormatSetting()) &&
+			settings.getXAxisMaximumLocation().equals(getXAxisMaximumLocation()) &&
+			settings.getYAxisMaximumLocation().equals(getYAxisMaximumLocation()) &&
+			settings.getTimeAxisSubsequentSetting().equals(getTimeAxisSubsequentSetting()) &&
+			settings.getNonTimeAxisSubsequentMinSetting().equals(getNonTimeAxisSubsequentMinSetting()) &&
+			settings.getNonTimeAxisSubsequentMaxSetting().equals(getNonTimeAxisSubsequentMaxSetting()) &&
 			settings.getMaxTime() == getMaxTime() &&
 			settings.getMinTime() == getMinTime() &&
 			settings.getMaxNonTime() == getMaxNonTime() &&

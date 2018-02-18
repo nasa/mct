@@ -95,7 +95,6 @@ public class TestPlotDataSeries {
 	
 	@Test
 	public void testGettersAndSetters() {
-		GregorianCalendar timeOne = new GregorianCalendar();
 		GregorianCalendar timeTwo = new GregorianCalendar();
 		timeTwo.add(Calendar.MINUTE, 10);
 		PlotterPlot testPlot = new PlotterPlot();

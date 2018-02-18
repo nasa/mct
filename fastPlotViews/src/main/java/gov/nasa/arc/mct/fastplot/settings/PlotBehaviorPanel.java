@@ -708,6 +708,8 @@ public class PlotBehaviorPanel extends PlotSettingsPanel {
 			}
 		}
 
+
+		
 		@Override
 		public void replace(FilterBypass fb, int offset, int length, String string, AttributeSet attr)
 				throws BadLocationException {

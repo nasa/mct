@@ -170,6 +170,7 @@ public class PanAndZoomManager {
 		}
 	}
 
+	
 	public void zoomAction(ZoomDirection zoomAction) {
 		XYAxis xAxis = plot.getPlotView().getXAxis();
 		XYAxis yAxis = plot.getPlotView().getYAxis();
@@ -184,12 +185,12 @@ public class PanAndZoomManager {
 				yAxis.setEnd(yAxis.getEnd() - nonTimeScaleZoomAmount);
 				  markNonTimeZoomed();
 			} else if (zoomAction == ZoomDirection.ZOOM_OUT_HIGH_Y_AXIS) {
-				yAxis.setEnd(yAxis.getEnd() + nonTimeScaleZoomAmount);
+				  yAxis.setEnd(yAxis.getEnd() + nonTimeScaleZoomAmount);
 				  markNonTimeZoomed();
 			} else if (zoomAction == ZoomDirection.ZOOM_IN_CENTER_Y_AXIS) {
 				yAxis.setStart(yAxis.getStart() + nonTimeScaleZoomAmount);
 				yAxis.setEnd(yAxis.getEnd() - nonTimeScaleZoomAmount);
-				  markNonTimeZoomed();
+				 markNonTimeZoomed();
 			} else if (zoomAction == ZoomDirection.ZOOM_OUT_CENTER_Y_AXIS) {
 				yAxis.setStart(yAxis.getStart() - nonTimeScaleZoomAmount);
 				yAxis.setEnd(yAxis.getEnd() + nonTimeScaleZoomAmount);
@@ -289,5 +290,10 @@ public class PanAndZoomManager {
 		plot.getLimitManager().setModeUntranslated(false);
 		plot.getPlotDataManager().resizeAndReloadPlotBuffer();
 	}
+	
+	
 }
+
+
+
 

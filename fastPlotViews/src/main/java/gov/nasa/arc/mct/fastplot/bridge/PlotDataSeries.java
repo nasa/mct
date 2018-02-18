@@ -332,22 +332,25 @@ class PlotDataSeries  implements MinMaxChangeListener, AbstractPlotDataSeries {
 			return "Full Data: current value " + dataset.getYData().get(size - 1) + " Number data points " + size + "\n";
 		}
 	}
+	public void teste(){
+		if (getLegendEntry().hasRegressionLine()) {
+			if (regressionLine == null) {
+				addRegressionLine();
+			}
+		} else {
+			if (regressionLine != null) {
+				removeRegressionLine();
+			}
+			return;
+		}
+
+	}
 	
 	public void updateRegressionLine() {
 		if (!updateRegressionLine) {
 			return;
 		}
-		if (getLegendEntry() != null) {
-			if (getLegendEntry().hasRegressionLine()) {
-				if (regressionLine == null) {
-					addRegressionLine();
-				}
-			} else {
-				if (regressionLine != null) {
-					removeRegressionLine();
-				}
-				return;
-			}
+		teste();
 			regressionLine.removeAllPoints();
 			// Not enough data for regression
 			if (getData().getPointCount() < legendEntry.getNumberRegressionPoints()) {
@@ -405,7 +408,7 @@ class PlotDataSeries  implements MinMaxChangeListener, AbstractPlotDataSeries {
 				}
 
 			}
-		}
+		
 	}
 
 
