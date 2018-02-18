@@ -18,6 +18,9 @@ public class TestPlotLineShapePalette {
 	// The ratio at which two slices are considered similar
 	private static final double SIMILAR    = 0.75;
 	
+	//number to compare
+	public static final double TOLERANCE = 0.000001;
+	
 	
 	
 	@Test
@@ -119,7 +122,7 @@ public class TestPlotLineShapePalette {
 			for (double x = xMin; x < xMax; x += (xMax-xMin)/RESOLUTION) {
 				for (double y = yMin; y < yMax; y += (yMax-yMin)/RESOLUTION) {
 					if (shape.contains(x, y)) {
-						if (x != xAvg || y != yAvg) {
+						if((Math.abs(x - xAvg) < TOLERANCE) || (Math.abs(y - yAvg) < TOLERANCE)) {
 							double radians   = Math.atan2(y-yAvg,x-xAvg);
 							double rotations = radians / (Math.PI * 2);
 							while (rotations < 0) rotations += 1.0; //No negatives!

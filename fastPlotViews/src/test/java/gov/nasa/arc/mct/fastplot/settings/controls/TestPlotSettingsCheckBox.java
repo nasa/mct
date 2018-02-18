@@ -67,6 +67,7 @@ public class TestPlotSettingsCheckBox {
 				// Should always be valid
 				Assert.assertTrue(t.isValidated());
 				// Should be dirty every other click
+				
 				Assert.assertEquals(t.isDirty(), i % 2 == 1);
 				t.click();
 			}

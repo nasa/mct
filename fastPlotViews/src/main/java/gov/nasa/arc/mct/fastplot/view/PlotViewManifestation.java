@@ -72,6 +72,7 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 	private List<String> panelContextTitleList = new ArrayList<String>();
 	private Color plotFrameBackground;
 	
+	
 	private PlotView thePlot;
 	private PlotDataAssigner plotDataAssigner = new PlotDataAssigner(this);
 	private PlotDataFeedUpdateHandler plotDataFeedUpdateHandler = new PlotDataFeedUpdateHandler(this);
@@ -464,10 +465,11 @@ public class PlotViewManifestation extends FeedView implements RenderingCallback
 		addPlotToPanel();
 	}
 	
+	
 	private void createPlot(){			
-		thePlot = PlotViewFactory.createPlot(plotPersistenceHandler.loadPlotSettingsFromPersistance(), 
-								             getCurrentMCTTime(),
-								             this, plotDataAssigner.returnNumberOfSubPlots(), null, plotLabelingAlgorithm, plotDataAssigner.getTimeSystemDefaultChoice());
+		PlotViewFactoryParameter parameter = new PlotViewFactoryParameter(plotPersistenceHandler.loadPlotSettingsFromPersistance(),this,null,plotLabelingAlgorithm,getCurrentMCTTime(),plotDataAssigner.returnNumberOfSubPlots(),plotDataAssigner.getTimeSystemDefaultChoice());
+		
+		thePlot = PlotViewFactory.createPlot(parameter);
 	}
 	
     private void addPlotToPanel() {

@@ -81,7 +81,7 @@ public class TestPlotView {
 		testPlot.addData("DataSet1", System.currentTimeMillis(), 10.0);
 		// Insure data set names are not case sensitive
 			
-		GregorianCalendar time = new GregorianCalendar();
+		
 		testPlot.addData("daTaset1", System.currentTimeMillis(), 11.0);
 		
 	

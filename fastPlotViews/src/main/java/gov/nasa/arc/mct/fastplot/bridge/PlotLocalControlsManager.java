@@ -446,6 +446,8 @@ public class PlotLocalControlsManager implements ActionListener, AbstractPlotLoc
         return returnButton;
     }
     
+  
+    
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (pauseButton!=null && e.getSource() == pauseButton) {
@@ -460,6 +462,7 @@ public class PlotLocalControlsManager implements ActionListener, AbstractPlotLoc
 			}
 
 		// Pan Controls
+		
 		} else if (e.getSource() == yAxisPanUpButton) {
 			plot.panAndZoomManager.panAction(PanDirection.PAN_HIGHER_Y_AXIS);
 		} else if (e.getSource() == yAxisPanDownButton) {

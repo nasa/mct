@@ -21,6 +21,7 @@
  *******************************************************************************/
 package gov.nasa.arc.mct.fastplot.view;
 
+import gov.nasa.arc.mct.fastplot.view.PlotViewFactoryParameter;
 import gov.nasa.arc.mct.fastplot.bridge.AbstractPlottingPackage;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants;
 import gov.nasa.arc.mct.fastplot.bridge.PlotConstants.AxisOrientationSetting;
@@ -42,46 +43,45 @@ public class PlotViewFactory {
 	/**
 	 * Create the plot from persisted settings if available. Otherwise, create a default plot. 
 	 */
-	static PlotView createPlot(PlotSettings settings, long currentTime, PlotViewManifestation parentManifestation,
-			                   int numberOfSubPlots, PlotView oldPlot, AbbreviatingPlotLabelingAlgorithm plotLabelingAlgorithm, String viewStateTimeSystem) {		
+	static PlotView createPlot(PlotViewFactoryParameter parameter) {		
         PlotView thePlot;
         
         // Insure we always have at least one plot.
-        numberOfSubPlots = settings.getAxisOrientationSetting() == AxisOrientationSetting.Z_AXIS_AS_TIME ?
-        		1 : Math.max(1,numberOfSubPlots);
+        parameter.numberOfSubPlots = parameter.settings.getAxisOrientationSetting() == AxisOrientationSetting.Z_AXIS_AS_TIME ?
+        		1 : Math.max(1,parameter.numberOfSubPlots);
         
-		if (!settings.isNull()) {
-			if (settings.getTimeSystemSetting() == null) {
-				settings.setTimeSystemSetting(viewStateTimeSystem);
+		if (!parameter.settings.isNull()) {
+			if (parameter.settings.getTimeSystemSetting() == null) {
+				parameter.settings.setTimeSystemSetting(parameter.getViewStateTimeSystem());
 			}
 
 			// The plot has persisted settings so apply them. 
-			if (!settings.getPinTimeAxis()) {
-				adjustPlotStartAndEndTimeToMatchCurrentTime(settings, currentTime);
+			if (!parameter.settings.getPinTimeAxis()) {
+				adjustPlotStartAndEndTimeToMatchCurrentTime(parameter.settings, parameter.currentTime);
 			}
-			thePlot = createPlotFromSettings(settings, numberOfSubPlots, plotLabelingAlgorithm);
+			thePlot = createPlotFromSettings(parameter.settings, parameter.numberOfSubPlots, parameter.plotLabelingAlgorithm);
 		} else {
 			// Setup a default plot to view while the user is configuring it.
 			thePlot = new PlotView.Builder(PlotterPlot.class).
-						 numberOfSubPlots(numberOfSubPlots).
-			             plotLabelingAlgorithm(plotLabelingAlgorithm).build();
+						 numberOfSubPlots(parameter.numberOfSubPlots).
+			             plotLabelingAlgorithm(parameter.plotLabelingAlgorithm).build();
 		} 	
-		thePlot.setManifestation(parentManifestation);
-		thePlot.setPlotLabelingAlgorithm(plotLabelingAlgorithm);
+		thePlot.setManifestation(parameter.getParentManifestation());
+		thePlot.setPlotLabelingAlgorithm(parameter.plotLabelingAlgorithm);
 			
 		assert thePlot!=null : "Plot labeling algorithm should NOT be NULL at this point.";
 		
 		logger.debug("plotLabelingAlgorithm.getPanelContextTitleList().size()=" 
-				+ plotLabelingAlgorithm.getPanelContextTitleList().size()
-				+ ", plotLabelingAlgorithm.getCanvasContextTitleList().size()=" + plotLabelingAlgorithm.getCanvasContextTitleList().size());
+				+ parameter.plotLabelingAlgorithm.getPanelContextTitleList().size()
+				+ ", plotLabelingAlgorithm.getCanvasContextTitleList().size()=" + parameter.plotLabelingAlgorithm.getCanvasContextTitleList().size());
 		
 		// Copy across feed mapping from old plot, unless structure is different
-		if (oldPlot!=null && oldPlot.subPlots.size() == numberOfSubPlots) {
-			for (String dataSetName: oldPlot.dataSetNameToSubGroupMap.keySet()) {
+		if (parameter.oldPlot!=null && parameter.oldPlot.subPlots.size() == parameter.numberOfSubPlots) {
+			for (String dataSetName: parameter.oldPlot.dataSetNameToSubGroupMap.keySet()) {
 				String nameLower = dataSetName.toLowerCase();
-				for(AbstractPlottingPackage plot : oldPlot.dataSetNameToSubGroupMap.get(dataSetName)) {
-					int indexInOldPlot = oldPlot.subPlots.indexOf(plot);
-					thePlot.addDataSet(indexInOldPlot, dataSetName, oldPlot.dataSetNameToDisplayMap.get(nameLower));	
+				for(AbstractPlottingPackage plot : parameter.oldPlot.dataSetNameToSubGroupMap.get(dataSetName)) {
+					int indexInOldPlot = parameter.oldPlot.subPlots.indexOf(plot);
+					thePlot.addDataSet(indexInOldPlot, dataSetName, parameter.oldPlot.dataSetNameToDisplayMap.get(nameLower));	
 				}
 			}
 		} 

@@ -87,9 +87,15 @@ public class TestPlotViewFactory {
 		};
 	}
 	
+
+	
+	
 	@Test(dataProvider="plotViewFactoryData")
 	public void testCreatePlot(PlotSettings settings, long currentTime, long expectedMinTime, long expectedMaxTime, boolean pinned) {
-		PlotView plotView = PlotViewFactory.createPlot(settings, currentTime, plotManifestation, 1, null, labelingAlgorithm, PlotConstants.DEFAULT_TIME_SYSTEM);
+		PlotViewFactoryParameter parameter = new PlotViewFactoryParameter(settings,plotManifestation,null,labelingAlgorithm,currentTime,1,PlotConstants.DEFAULT_TIME_SYSTEM);
+		
+		
+		PlotView plotView = PlotViewFactory.createPlot(parameter);
 		Assert.assertEquals(plotView.getTimeAxisUserPin().isPinned(), pinned);
 		Assert.assertEquals(plotView.getMinTime(), expectedMinTime);
 		Assert.assertEquals(plotView.getMaxTime(), expectedMaxTime);		
